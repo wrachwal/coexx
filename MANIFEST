@@ -1,0 +1,35 @@
+
+
+MANIFEST
+
+
+include/coe-ident.h
+    src/coe-ident.cpp
+
+    src/coe--res.h
+    src/coe--res.cpp
+
+
+include/coe-kernel.h
+    src/coe-kernel.cpp
+include/coe-kernel--dcl.h
+    src/coe-kernel--dcl.cpp
+include/coe-kernel--imp.h
+    src/coe-kernel--imp.cpp
+    src/coe-kernel--r4k.h
+    src/coe-kernel--r4k.cpp
+    src/coe-kernel--s4k.h
+    src/coe-kernel--s4k.cpp
+
+
+include/coe-session.h
+    src/coe-session.cpp
+    src/coe-session--r4s.h
+    src/coe-session--r4s.cpp
+
+
+include/coe-wheel.h
+
+
+lib/Makefile
+
