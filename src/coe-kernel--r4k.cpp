@@ -9,6 +9,8 @@
 
 using namespace std;
 
+static r4Session* s_LAST_SESSION;   //FIXME: HACK: this is temporary hack to keep initial test running
+
 // =======================================================================
 
 r4Kernel::r4Kernel ()
@@ -60,6 +62,8 @@ bool r4Kernel::start_session (Session* s)
     r4Session*  keep = _current_session;
     _current_session = r4s;
 
+    ::s_LAST_SESSION = _current_session;    //FIXME: HACK
+
     EvCtx   ctx(*_handle, *s);
 
     set_heap_ptr(ctx);
@@ -67,10 +71,7 @@ bool r4Kernel::start_session (Session* s)
     //ctx.sender = SiD(0,1);  // keep->_sid;
     s->_start(ctx);
 
-    //FIXME
     _current_session = keep;
-    //keep = keep;    // suppress warning
-
     return true;
 }
 
@@ -120,6 +121,10 @@ bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
     //  1) what to verify? _kernel, _current_session, etc...
     //  2) to, heap -- need to set correct values
     //
+
+    r4Session*  keep = _current_session;
+    _current_session = ::s_LAST_SESSION;
+
     EvCtx   ctx(*_handle, *_current_session->_handle);
 
     set_heap_ptr(ctx);
@@ -127,6 +132,7 @@ bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
 
     cmd->execute(ctx, NULL, 0, arg);
 
+    _current_session = keep;
     return true;
 }
 
@@ -147,6 +153,10 @@ bool r4Kernel::yield__arg (const std::string& ev, PostArg* arg)
     //  1) what to verify? _kernel, _current_session, etc...
     //  2) to, heap -- need to set correct values
     //
+
+    r4Session*  keep = _current_session;
+    _current_session = ::s_LAST_SESSION;
+
     EvCtx   ctx(*_handle, *_current_session->_handle);
 
     set_heap_ptr(ctx);
@@ -154,6 +164,7 @@ bool r4Kernel::yield__arg (const std::string& ev, PostArg* arg)
 
     cmd->execute(ctx, NULL, 0, arg);
 
+    _current_session = keep;
     return true;
 }
 
@@ -178,6 +189,10 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
     //  1) what to verify? _kernel, _current_session, etc...
     //  2) to, heap -- need to set correct values
     //
+
+    r4Session*  keep = _current_session;
+    _current_session = ::s_LAST_SESSION;
+
     EvCtx   ctx(*_handle, *_current_session->_handle);
 
     set_heap_ptr(ctx);
@@ -185,6 +200,7 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
 
     cmd->execute(ctx, NULL, 0, arg);
 
+    _current_session = keep;
     return true;
 }
 
@@ -220,6 +236,10 @@ bool r4Kernel::select__arg (int fd, Kernel::IO_Mode mode, const string& ev, Post
     //  1) what to verify? _kernel, _current_session, etc...
     //  2) SiD, heap -- need to set correct values
     //
+
+    r4Session*  keep = _current_session;
+    _current_session = ::s_LAST_SESSION;
+
     EvCtx   ctx(*_handle, *_current_session->_handle);
 
     set_heap_ptr(ctx);
@@ -233,6 +253,7 @@ bool r4Kernel::select__arg (int fd, Kernel::IO_Mode mode, const string& ev, Post
 
     cmd->execute(ctx, &iop, 1, arg);
 
+    _current_session = keep;
     return true;
 }
 
@@ -258,5 +279,6 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 void r4Kernel::run_event_loop ()
 {
+    //TODO
 }
 

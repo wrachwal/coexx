@@ -38,6 +38,9 @@ strip: $(program)
 test: $(program)
 	./$(program)
 
+check: $(program)
+	./$(program) | diff $(program).log -
+
 clean:
 	-rm core *.o *.d $(program) $(program).exe
 

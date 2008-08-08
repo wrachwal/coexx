@@ -39,23 +39,22 @@ public:
             return s->ID();
         }
     ~MyHouse ()
-        { delete _coridor; }
+        {}
 
 private:
     MyHouse (string name) : _name(name)
         {
             set_heap(this);
-            _coridor = new Coridor;
         }
 
     void _start (EvCtx& ctx)
         {
-            ctx.kernel.state("leaving", handler(*this,     &MyHouse::on_leaving_msg));
-            ctx.kernel.state("coridor", handler(*_coridor, &Coridor::on_coridor_msg));
-            ctx.kernel.state("room2",   handler(*this,     &MyHouse::on_room2));
-            ctx.kernel.state("knock",   handler(*this,     &MyHouse::on_knock));
-            ctx.kernel.state("wife",    handler(*this,     &MyHouse::on_wife));
-            ctx.kernel.state("money",   handler(*this,     &MyHouse::on_money));
+            ctx.kernel.state("leaving", handler(*this,    &MyHouse::on_leaving_msg));
+            ctx.kernel.state("coridor", handler(_coridor, &Coridor::on_coridor_msg));
+            ctx.kernel.state("room2",   handler(*this,    &MyHouse::on_room2));
+            ctx.kernel.state("knock",   handler(*this,    &MyHouse::on_knock));
+            ctx.kernel.state("wife",    handler(*this,    &MyHouse::on_wife));
+            ctx.kernel.state("money",   handler(*this,    &MyHouse::on_money));
         }
 
     void print_msg (string& msg)
@@ -71,11 +70,11 @@ private:
     public:
         void on_coridor_msg (TEvCtx<MyHouse>& ctx, string& msg)
             {
-                cout << __FUNCTION__ << ": TEvCtx<MyHouse> -> " << ctx.heap << endl;
+                cout << __FUNCTION__ << ": TEvCtx<MyHouse> -> " << ctx->_name << endl;
                 msg += string(" (called from ") + __FUNCTION__ + ")";
                 ctx->print_msg(msg);    // typed heap :)
             }
-    };
+    } _coridor;
 
     void on_room2 (EvCtx& ctx, const DatIO& io, string& msg)
         {
@@ -105,8 +104,6 @@ private:
             pln += change;
         }
 
-    Coridor* _coridor;
-
     string  _name;
 };
 
@@ -134,7 +131,7 @@ void test_coe ()
     kernel.run_event_loop();    // ***
 
     //FIXME: on_coridor_msg: TEvCtx<MyHouse> -> 0
-    exit(0);
+    //exit(0);
 
     kernel.post(tar, "coridor", vparam(string("and to the coridor... :)")));
 

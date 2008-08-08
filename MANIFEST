@@ -33,3 +33,7 @@ include/coe-wheel.h
 
 lib/Makefile
 
+    typeinfo.cpp
+    dynacall.cpp
+lib/dynacall.log
+
