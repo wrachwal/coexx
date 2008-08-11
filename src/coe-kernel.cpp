@@ -16,7 +16,7 @@ EvCtx::EvCtx (Kernel& k, Session& s)
 
 // ------------------------------------
 
-DatIO::DatIO (int f, Kernel::IO_Mode m)
+DatIO::DatIO (int f, IO_Mode m)
     : filedes(f), mode(m)
 {
 }
@@ -63,7 +63,7 @@ bool Kernel::call (SiD on, const string& ev, CallArg* rp)
     return _r4kernel->call__arg(on, ev, rp);
 }
 
-bool Kernel::select (int fd, Kernel::IO_Mode mode, const string ev, PostArg* vp)
+bool Kernel::select (int fd, IO_Mode mode, const string ev, PostArg* vp)
 {
     return _r4kernel->select__arg(fd, mode, ev, vp);
 }

@@ -21,6 +21,7 @@ objects = \
   dynacall.o \
   typeinfo.o \
   coe-ident.o \
+  coe--ev.o \
   coe-kernel.o \
   coe-kernel--dcl.o \
   coe-kernel--imp.o \

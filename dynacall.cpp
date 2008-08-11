@@ -128,8 +128,6 @@ void test_coe ()
 
     kernel.post(tar, "leaving", vparam(string("once again with valid string type :)")));
 
-    kernel.run_event_loop();    // ***
-
     //FIXME: on_coridor_msg: TEvCtx<MyHouse> -> 0
     //exit(0);
 
@@ -140,10 +138,12 @@ void test_coe ()
     kernel.post(tar, "knock");
     kernel.post(tar, "knock", vparam((char*)"excessive argument!"));
 
-    kernel.select(1, Kernel::IO_write, "room2", vparam(string("polling WRITE to stdout :)")));
-    kernel.select(2, Kernel::IO_read,  "room2", vparam(string("polling READ for stderr :)")));
+    kernel.run_event_loop();    // ***
 
-    kernel.select(0, Kernel::IO_read,  "room2", vparam(double(666)));   // arg#1 type mismatch
+    kernel.select(1, IO_write, "room2", vparam(string("polling WRITE to stdout :)")));
+    kernel.select(2, IO_read,  "room2", vparam(string("polling READ for stderr :)")));
+
+    kernel.select(0, IO_read,  "room2", vparam(double(666)));   // arg#1 type mismatch
 
     //XXX   due to auto_ptr's rhs parameter in copy-constructor is not of type *const*
     //      the following doesn't compile:
@@ -167,7 +167,7 @@ void test_coe ()
 
 int main ()
 {
-    type_info_show();
+    // type_info_show();
     cout << string(75, '#') << endl;
 
     test_coe();

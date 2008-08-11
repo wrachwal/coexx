@@ -3,7 +3,7 @@
 #ifndef __COE_IDENT_H
 #define __COE_IDENT_H
 
-typedef unsigned long NiD;
+typedef long NiD;
 
 // =======================================================================
 // SiD
@@ -11,6 +11,8 @@ typedef unsigned long NiD;
 class SiD {
 public:
     SiD () : _k(0), _s(0) {}
+
+    NiD s () const { return _s; }
 
     static const SiD NONE;
     static const SiD KERNEL;

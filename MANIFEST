@@ -6,6 +6,9 @@ MANIFEST
 include/coe-ident.h
     src/coe-ident.cpp
 
+    src/coe--ev.h
+    src/coe--ev.cpp
+
     src/coe--res.h
     src/coe--res.cpp
 
@@ -33,7 +36,6 @@ include/coe-wheel.h
 
 lib/Makefile
 
-    typeinfo.cpp
-    dynacall.cpp
-lib/dynacall.log
+typeinfo.cpp
+dynacall.cpp
 

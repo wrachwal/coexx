@@ -12,7 +12,7 @@ struct r4Session {  //TODO: derive from... `Resource'
     SiD         _sid;
     void*       _heap;
 
-    r4Kernel*   _kernel;    //FIXME: do we need this? if so, not Kernel*?
+    r4Kernel*   _kernel;
     r4Session*  _parent;
     r4Session*  _children_list;
 

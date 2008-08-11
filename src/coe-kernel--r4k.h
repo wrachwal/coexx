@@ -5,6 +5,8 @@
 
 #include <map>
 
+#include "coe--ev.h"
+
 class Kernel;
 class Session;
 class StateCmd;
@@ -15,17 +17,20 @@ struct s4Kernel;
 
 struct r4Kernel {
 
-    Kernel*     _handle;
-    r4Kernel*   _parent;
-    s4Kernel*   _s4kernel;
+    Kernel*         _handle;
+    r4Kernel*       _parent;
+    s4Kernel*       _s4kernel;
 
-    r4Session*  _current_session;
+    //r4Session*  _current_session;
+    SessionContext  _current_context;
 
-    NiD         _last_sid;
-    bool        _sid_wrap;
+    NiD             _last_sid;
+    bool            _sid_wrap;
 
-    typedef std::map<std::string, StateCmd*> State2Cmd;
-    State2Cmd   _state_cmd;
+    // _s1ev_cmd : sid/1 x ev-name --> StateCmd*
+    typedef std::pair<NiD, std::string> S1Ev;
+    typedef std::map<S1Ev, StateCmd*> S1Ev_Cmd;
+    S1Ev_Cmd    _s1ev_cmd;
 
     // -------------------------------------------------------------------
 
@@ -35,13 +40,15 @@ struct r4Kernel {
     bool start_session (Session* s);
     void set_heap_ptr (EvCtx& ctx);
 
-    StateCmd* find_state_handler (const std::string& ev);
+    StateCmd* find_state_handler (NiD sid1, const std::string& ev);
 
     bool post__arg (SiD to, const std::string& ev, PostArg* arg);
     bool yield__arg (const std::string& ev, PostArg* arg);
     bool call__arg (SiD on, const std::string& ev, CallArg* arg);
-    bool select__arg (int fd, Kernel::IO_Mode mode, const std::string& ev, PostArg* arg);
+    bool select__arg (int fd, IO_Mode mode, const std::string& ev, PostArg* arg);
     void state__cmd (const std::string& ev, StateCmd* cmd);
+
+    void dispatch_evmsg (EvMsg* evmsg);
 
     void run_event_loop ();
 };

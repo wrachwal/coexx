@@ -16,6 +16,14 @@ class                   EvCtx;
 template<class> struct TEvCtx;
 class                   DatIO;
 
+// -----------------------------------------------------------------------
+
+enum IO_Mode {
+    IO_read  = 0,
+    IO_write = 1,
+    IO_error = 2
+};
+
 // =======================================================================
 // Kernel
 
@@ -77,12 +85,6 @@ public:
      * select_pause  (FD, MODE)                 ## MODE := IO_read | IO_write
      * select_resume (FD, MODE)                 ## MODE := IO_read | IO_write
      */
-
-    enum IO_Mode {
-        IO_read  = 0,
-        IO_write = 1,
-        IO_error = 2
-    };
 
     bool select (int fd, IO_Mode mode);         // reset
     bool select (int fd, IO_Mode mode, const std::string ev, PostArg* pp=0);
@@ -227,11 +229,11 @@ StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&));
 
 class DatIO {
 public:
-    const int               filedes;
-    const Kernel::IO_Mode   mode;
+    const int       filedes;
+    const IO_Mode   mode;
 private:
     friend struct r4Kernel;
-    DatIO (int f, Kernel::IO_Mode m);
+    DatIO (int f, IO_Mode m);
     DatIO (const DatIO&);           // prohibited
     void operator= (const EvCtx&);  // prohibited
 };
