@@ -22,6 +22,7 @@ objects = \
   typeinfo.o \
   coe-ident.o \
   coe--ev.o \
+  coe--thread.o \
   coe-kernel.o \
   coe-kernel--dcl.o \
   coe-kernel--imp.o \

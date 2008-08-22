@@ -6,6 +6,7 @@
 #include <map>
 
 #include "coe--ev.h"
+#include "coe--thread.h"
 
 class Kernel;
 class Session;
@@ -17,8 +18,9 @@ struct s4Kernel;
 
 struct r4Kernel {
 
+    d4Thread*       _thread;        // controlling thread
     Kernel*         _handle;
-    r4Kernel*       _parent;
+    //FIXME: r4Kernel*       _parent;   // no longer tree-like structure
     s4Kernel*       _s4kernel;
 
     //r4Session*  _current_session;
@@ -37,7 +39,7 @@ struct r4Kernel {
     r4Kernel ();
 
     SiD get_next_unique_sid ();
-    bool start_session (Session* s);
+    SiD start_session (Session* s);
     void set_heap_ptr (EvCtx& ctx);
 
     StateCmd* find_state_handler (NiD sid1, const std::string& ev);

@@ -6,8 +6,12 @@ MANIFEST
 include/coe-ident.h
     src/coe-ident.cpp
 
+    src/coe--list.h
     src/coe--ev.h
     src/coe--ev.cpp
+
+    src/coe--thread.h
+    src/coe--thread.cpp
 
     src/coe--res.h
     src/coe--res.cpp
@@ -38,4 +42,6 @@ lib/Makefile
 
 typeinfo.cpp
 dynacall.cpp
+
+test/list.cpp
 

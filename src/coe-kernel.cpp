@@ -36,7 +36,7 @@ Kernel& Kernel::instance ()
     return *pKernel;
 }
 
-bool Kernel::start_session (Session* s)
+SiD Kernel::start_session (Session* s)
 {
     return _r4kernel->start_session(s);
 }

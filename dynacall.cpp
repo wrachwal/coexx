@@ -34,9 +34,7 @@ class MyHouse : public Session {
 public:
     static SiD spawn (Kernel& kernel, string name)
         {
-            Session* s = new MyHouse(name);
-            kernel.start_session(s);
-            return s->ID();
+            return kernel.start_session(new MyHouse(name));
         }
     ~MyHouse ()
         {}

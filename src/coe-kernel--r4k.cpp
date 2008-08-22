@@ -18,6 +18,8 @@ static SessionMap g_SessionMap;
 //TODO: event queue, thread (local or foreign) level
 static deque<EvCommon*> g_Queue;
 
+static /*FIXME:__thread*/ d4Thread* g_tls_thread = NULL;
+
 // -----------------------------------------------------------------------
 
 class CCScope {
@@ -38,16 +40,20 @@ private:
 
 r4Kernel::r4Kernel ()
 {
+    _thread = g_tls_thread;
+    if (NULL == _thread) {
+        _thread = new d4Thread;
+        g_tls_thread = _thread;
+    }
+
     _handle = NULL;
-    _parent = NULL;             //FIXME: how to get/provide it?
 
     _last_sid = 0;
     _sid_wrap = false;
 
     _s4kernel = new s4Kernel;
-    bool res = start_session(_s4kernel);
+    start_session(_s4kernel);
 
-    assert(res);
     assert(_s4kernel->ID() == SiD::KERNEL);
 
     _current_context.session = _s4kernel->_r4session;
@@ -66,14 +72,14 @@ SiD r4Kernel::get_next_unique_sid ()
 
 // -----------------------------------------------------------------------
 
-bool r4Kernel::start_session (Session* s)
+SiD r4Kernel::start_session (Session* s)
 {
     if (NULL == s || NULL == s->_r4session) // resource has been detached
-        return false;
+        return SiD();
 
     r4Session*  r4s = s->_r4session;
-    if (NULL != r4s->_handle)   // resource is already attached
-        return false;
+    if (NULL != r4s->_handle)               // resource is already attached
+        return r4s->_sid;
 
     r4s->_handle = s;   // attach resource now
     r4s->_kernel = this;
@@ -96,7 +102,7 @@ bool r4Kernel::start_session (Session* s)
     //ctx.sender = SiD(0,1);  // keep->_sid;
     s->_start(ctx);
 
-    return true;
+    return r4s->_sid;
 }
 
 // -----------------------------------------------------------------------
