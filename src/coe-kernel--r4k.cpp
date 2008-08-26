@@ -20,6 +20,8 @@ static deque<EvCommon*> g_Queue;
 
 static /*FIXME:__thread*/ d4Thread* g_tls_thread = NULL;
 
+NiD r4Kernel::_last_kid = 0;
+
 // -----------------------------------------------------------------------
 
 class CCScope {
@@ -47,6 +49,7 @@ r4Kernel::r4Kernel ()
     }
 
     _handle = NULL;
+    _kid    = KiD(++_last_kid); //TODO: protect by a mutex
 
     _last_sid = 0;
     _sid_wrap = false;
@@ -54,7 +57,7 @@ r4Kernel::r4Kernel ()
     _s4kernel = new s4Kernel;
     start_session(_s4kernel);
 
-    assert(_s4kernel->ID() == SiD::KERNEL);
+    assert(_s4kernel->ID().is_kernel());
 
     _current_context.session = _s4kernel->_r4session;
 }
@@ -67,7 +70,7 @@ SiD r4Kernel::get_next_unique_sid ()
         _sid_wrap = true;
         //TODO: visit sessions' map to get next unique sid
     }
-    return SiD(0, _last_sid);
+    return SiD(_kid, _last_sid);
 }
 
 // -----------------------------------------------------------------------
@@ -249,7 +252,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 {
     //TODO: check if _current_session is allowable to accept Kernel::state()
 
-    S1Ev    s1ev(_current_context.session->_sid.s(), ev);
+    S1Ev    s1ev(_current_context.session->_sid.nid(), ev);
 
     S1Ev_Cmd::iterator  kv = _s1ev_cmd.find(s1ev);
 
@@ -269,7 +272,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 {
-    StateCmd* cmd = find_state_handler(evmsg->_target->_sid.s(), evmsg->_name);
+    StateCmd* cmd = find_state_handler(evmsg->_target->_sid.nid(), evmsg->_name);
     if (NULL == cmd) {
         //TODO: call session's default error handling, like _default in POE?
         return;

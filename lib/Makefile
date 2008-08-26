@@ -20,7 +20,6 @@ program = dynacall
 objects = \
   dynacall.o \
   typeinfo.o \
-  coe-ident.o \
   coe--ev.o \
   coe--thread.o \
   coe-kernel.o \

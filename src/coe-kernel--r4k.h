@@ -20,7 +20,10 @@ struct r4Kernel {
 
     d4Thread*       _thread;        // controlling thread
     Kernel*         _handle;
-    //FIXME: r4Kernel*       _parent;   // no longer tree-like structure
+
+    static NiD      _last_kid;
+    KiD             _kid;
+
     s4Kernel*       _s4kernel;
 
     //r4Session*  _current_session;

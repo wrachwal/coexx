@@ -25,98 +25,16 @@ struct dList {
 
     size_t size () const { return count; }
 
-    void put_tail (T* data)
-        {
-            if (data) {
-                assert(NULL == _link(data)->next);
-                assert(NULL == _link(data)->prev);
-                if (head) {
-                    _insert_element(data, tail, head);
-                    tail = data;
-                }
-                else {  // empty list
-                    _insert_element(data);
-                    head = tail = data;
-                }
-                ++ count;
-            }
-        }
-
-    void put_head (T* data)
-        {
-            if (data) {
-                assert(NULL == _link(data)->next);
-                assert(NULL == _link(data)->prev);
-                if (head) {
-                    _insert_element(data, tail, head);
-                    head = data;
-                }
-                else {  // empty list
-                    _insert_element(data);
-                    head = tail = data;
-                }
-                ++ count;
-            }
-        }
-
     T* peek_head () const { return head; }
     T* peek_tail () const { return tail; }
 
-    T* get_head ()
-        {
-            T*  data = head;
-            if (data) {
-                if (1 == count) {
-                    _remove_thelast(data);
-                }
-                else {
-                    head = _link(data)->next;
-                    _remove_element(data);
-                }
-                -- count;
-            }
-            return data;
-        }
+    T* get_head ();
+    T* get_tail ();
 
-    T* get_tail ()
-        {
-            T*  data = tail;
-            if (data) {
-                if (1 == count) {
-                    _remove_thelast(data);
-                }
-                else {
-                    tail = _link(data)->prev;
-                    _remove_element(data);
-                }
-                -- count;
-            }
-            return data;
-        }
+    void put_head (T* data);
+    void put_tail (T* data);
 
-    T* remove (T* data)
-        {
-            if (data) {
-                // these easy checks are not able to verify list membership
-                assert(_link(_link(data)->prev)->next == data);
-                assert(_link(_link(data)->next)->prev == data);
-                // therefore the following can show up inconsistency later
-                assert(count > 0);
-
-                if (1 == count) {
-                    _remove_thelast(data);
-                }
-                else {
-                    if (head == data)
-                        head = _link(data)->next;
-                    if (tail == data)
-                        tail = _link(data)->prev;
-                    _remove_element(data);
-                }
-                -- count;
-            }
-            return data;
-        }
+    T* remove (T* data);
 
     // --------------------------------
 
@@ -204,6 +122,103 @@ private:
     T*      tail;
     size_t  count;
 };
+
+// =======================================================================
+
+template<class T, size_t LinkOffset>
+T* dList<T, LinkOffset>::get_head ()
+{
+    T*  data = head;
+    if (data) {
+        if (1 == count) {
+            _remove_thelast(data);
+        }
+        else {
+            head = _link(data)->next;
+            _remove_element(data);
+        }
+        -- count;
+    }
+    return data;
+}
+
+template<class T, size_t LinkOffset>
+T* dList<T, LinkOffset>::get_tail ()
+{
+    T*  data = tail;
+    if (data) {
+        if (1 == count) {
+            _remove_thelast(data);
+        }
+        else {
+            tail = _link(data)->prev;
+            _remove_element(data);
+        }
+        -- count;
+    }
+    return data;
+}
+
+template<class T, size_t LinkOffset>
+void dList<T, LinkOffset>::put_head (T* data)
+{
+    if (data) {
+        assert(NULL == _link(data)->next);
+        assert(NULL == _link(data)->prev);
+        if (head) {
+            _insert_element(data, tail, head);
+            head = data;
+        }
+        else {  // empty list
+            _insert_element(data);
+            head = tail = data;
+        }
+        ++ count;
+    }
+}
+
+template<class T, size_t LinkOffset>
+void dList<T, LinkOffset>::put_tail (T* data)
+{
+    if (data) {
+        assert(NULL == _link(data)->next);
+        assert(NULL == _link(data)->prev);
+        if (head) {
+            _insert_element(data, tail, head);
+            tail = data;
+        }
+        else {  // empty list
+            _insert_element(data);
+            head = tail = data;
+        }
+        ++ count;
+    }
+}
+
+template<class T, size_t LinkOffset>
+T* dList<T, LinkOffset>::remove (T* data)
+{
+    if (data) {
+        // these easy checks are not able to verify list membership
+        assert(_link(_link(data)->prev)->next == data);
+        assert(_link(_link(data)->next)->prev == data);
+        // therefore the following can show up inconsistency later
+        assert(count > 0);
+
+        if (1 == count) {
+            _remove_thelast(data);
+        }
+        else {
+            if (head == data)
+                head = _link(data)->next;
+            if (tail == data)
+                tail = _link(data)->prev;
+            _remove_element(data);
+        }
+        -- count;
+    }
+    return data;
+}
 
 // =======================================================================
 

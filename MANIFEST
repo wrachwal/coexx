@@ -4,8 +4,6 @@ MANIFEST
 
 
 include/coe-ident.h
-    src/coe-ident.cpp
-
     src/coe--list.h
     src/coe--ev.h
     src/coe--ev.cpp
