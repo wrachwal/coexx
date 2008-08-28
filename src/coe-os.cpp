@@ -357,12 +357,10 @@ int main (int argc, char* argv[])
         }
         else {
             cout << "Condition wait timed out." << endl;
-            // [under cygwin]
-            // --------------
             // Without the following break statement when hibernation is 3 or longer,
             // the execution stays in the while loop forever.
             // Apparently, second and next timedwait(s) monopolize CPU completely,
-            // and condition variable in the wait_thread is never signaled.
+            // and wait_thread has no chance to signal the condition.
             break;
         }
     }

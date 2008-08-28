@@ -1,13 +1,19 @@
 # Makefile
 
+UNAME := $(shell uname -o)
+
 INC_DIRS = ../include ../src
 SRC_DIRS = ..
 
 CXX = g++
-override CXX += -MMD
 
-override CXXFLAGS += -g -O2 -Wall -pedantic -ansi \
-        $(patsubst %,-I%,${INC_DIRS})
+CXX += -MMD
+CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${INC_DIRS})
+
+ifeq ($(UNAME),Solaris)
+  CXXFLAGS += -D_POSIX_C_SOURCE
+  LDFLAGS  += -lpthread
+endif
 
 VPATH = $(subst  ,:,${INC_DIRS} ${SRC_DIRS})
 
@@ -43,7 +49,7 @@ check: $(program)
 	./$(program) | diff $(program).log -
 
 clean:
-	-rm core *.o *.d $(program) $(program).exe
+	-rm core *.o *.d a.out $(program) $(program).exe
 
 -include $(patsubst %.o,%.d,$(objects))
 
