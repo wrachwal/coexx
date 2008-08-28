@@ -13,6 +13,8 @@ public:
              TiD ()      : _t(0) {}
     explicit TiD (NiD t) : _t(t) {}
 
+    static TiD NONE () { return TiD(); }
+
     NiD nid () const { return _t; }
 
     bool operator== (const TiD& rhs) const { return _t == rhs._t; }
@@ -30,6 +32,8 @@ public:
              KiD ()      : _k(0) {}
     explicit KiD (NiD k) : _k(k) {}
 
+    static KiD NONE () { return KiD(); }
+
     NiD nid () const { return _k; }
 
     bool operator== (const KiD& rhs) const { return _k == rhs._k; }
@@ -46,6 +50,8 @@ class SiD {
 public:
     SiD ()             : _k(0), _s(0) {}
     SiD (KiD k, NiD s) : _k(k), _s(s) {}
+
+    static SiD NONE () { return SiD(); }
 
     KiD kid () const { return _k; }
     NiD nid () const { return _s; }
@@ -69,6 +75,8 @@ class AiD {
 public:
              AiD ()      : _a(0) {}
     explicit AiD (NiD a) : _a(a) {}
+
+    static AiD NONE () { return AiD(); }
 
     NiD nid () const { return _a; }
 

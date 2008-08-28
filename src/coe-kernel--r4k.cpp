@@ -78,7 +78,7 @@ SiD r4Kernel::get_next_unique_sid ()
 SiD r4Kernel::start_session (Session* s)
 {
     if (NULL == s || NULL == s->_r4session) // resource has been detached
-        return SiD();
+        return SiD::NONE();
 
     r4Session*  r4s = s->_r4session;
     if (NULL != r4s->_handle)               // resource is already attached

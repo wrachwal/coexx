@@ -24,7 +24,7 @@ Session::~Session ()
 
 SiD Session::ID () const
 {
-    return _r4session ? _r4session->_sid : SiD();
+    return _r4session ? _r4session->_sid : SiD::NONE();
 }
 
 void Session::set_heap (void* heap)

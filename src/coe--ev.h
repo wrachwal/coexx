@@ -48,6 +48,7 @@ public:
 // -----------------------------------------------------------------------
 // EvAlarm
 
+#if 0
 class EvAlarm : public EvCommon {
 public:
     /*final*/ void dispatch ();
@@ -66,6 +67,7 @@ public:
     int     _fd;
     IO_Mode _mode;
 };
+#endif
 
 // =======================================================================
 

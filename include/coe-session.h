@@ -21,6 +21,8 @@ protected:
     void  set_heap (void* heap);        // handlers will get it in EvCtx
     void* get_heap () const;
 
+    Kernel* start_as_new_kernel_session ();
+
     /*
      * session management
      */
