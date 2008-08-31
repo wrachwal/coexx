@@ -27,7 +27,8 @@ objects = \
   dynacall.o \
   typeinfo.o \
   coe--ev.o \
-  coe--thread.o \
+  coe-os.o \
+  coe-thread--d4t.o \
   coe-kernel.o \
   coe-kernel--dcl.o \
   coe-kernel--imp.o \

@@ -6,7 +6,7 @@
 #include <map>
 
 #include "coe--ev.h"
-#include "coe--thread.h"
+#include "coe-thread--d4t.h"
 
 class Kernel;
 class Session;

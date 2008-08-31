@@ -3,8 +3,8 @@
 #ifndef __COE__EV_H
 #define __COE__EV_H
 
-//#include "coe-ident.h"
 #include "coe-kernel.h"     // IO_Mode
+#include "coe--list.h"
 
 class PostArg;
 struct r4kernel;
@@ -23,6 +23,8 @@ struct SessionContext {
 // EvCommon
 
 class EvCommon {
+    friend struct EvCommonList;
+    dLink<EvCommon> _link_queue;
 public:
     virtual ~EvCommon ();
     virtual void dispatch () = 0;
@@ -31,6 +33,10 @@ public:
     r4Session*  _target;
     std::string _name;
     PostArg*    _arg;
+};
+
+struct EvCommonList {
+    typedef dList<EvCommon, offsetof(EvCommon, _link_queue)> Queue;
 };
 
 // -----------------------------------------------------------------------

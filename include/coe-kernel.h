@@ -31,8 +31,10 @@ class Kernel {
 public:
     static Kernel& instance ();
 
-    SiD start_session (Session*);
     void run_event_loop ();
+    bool run_event_loop (TiD tid);
+
+    SiD start_session (Session*);
 
     /*
      * post (SiD, EV_NAME[, PARAM...])
