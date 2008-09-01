@@ -6,13 +6,20 @@
 #include <cassert>
 
 #include <pthread.h>
+#include <sys/select.h> // select()
 
 using namespace std;
 
 #define TABLEN(tab)     int(sizeof(tab) / sizeof((tab)[0]))
 
+#if defined(__CYGWIN__)
+// Cygwin seems not to have RT signals :( or not many (SIGRTMIN==SIGRTMAX).
+const int TimeSigNo = SIGUSR1;
+const int KickSigNo = SIGUSR2;
+#else
 const int TimeSigNo = SIGRTMIN;
 const int KickSigNo = SIGRTMIN + 1;
+#endif
 
 static const clockid_t   g_ClockID = CLOCK_REALTIME;
 static timer_t           g_TimerID;
@@ -38,7 +45,7 @@ static void set_next_timeout (int secs)
 
     nowtime.tv_sec += secs;
 
-    itimerspec_t    settime;
+    itimerspec  settime;
     settime.it_interval = niltime;  // zero
     settime.it_value    = nowtime;
 
