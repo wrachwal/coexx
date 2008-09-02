@@ -15,6 +15,8 @@ public:
 
     static TiD NONE () { return TiD(); }
 
+    bool valid () const { return 0 != _t; }
+
     NiD nid () const { return _t; }
 
     bool operator== (const TiD& rhs) const { return _t == rhs._t; }
@@ -34,6 +36,8 @@ public:
 
     static KiD NONE () { return KiD(); }
 
+    bool valid () const { return 0 != _k; }
+
     NiD nid () const { return _k; }
 
     bool operator== (const KiD& rhs) const { return _k == rhs._k; }
@@ -52,6 +56,8 @@ public:
     SiD (KiD k, NiD s) : _k(k), _s(s) {}
 
     static SiD NONE () { return SiD(); }
+
+    bool valid () const { return 0 != _s; }     //FIXME: test _k as well?!
 
     KiD kid () const { return _k; }
     NiD nid () const { return _s; }
@@ -77,6 +83,8 @@ public:
     explicit AiD (NiD a) : _a(a) {}
 
     static AiD NONE () { return AiD(); }
+
+    bool valid () const { return 0 != _a; }
 
     NiD nid () const { return _a; }
 

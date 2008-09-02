@@ -10,14 +10,19 @@ ifeq ($(UNAME),Solaris)
   LDFLAGS  += -lpthread -lrt
 endif
 
+programs = sigsel1 sigsel2
+
 .DEFAULT: all
 .PHONY: all clean
 
-all: sigsel
+all: $(programs)
 
-sigsel: sigsel.o
+sigsel1: sigsel1.o
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+sigsel2: sigsel2.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 clean:
-	-rm *.d *.o core *.exe sigsel
+	-rm *.d *.o core *.exe $(programs)
 

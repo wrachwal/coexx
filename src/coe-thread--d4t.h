@@ -17,6 +17,8 @@ struct d4Thread {
     void      enque_event (EvCommon* ev);
     EvCommon* deque_event ();
 
+    static void* _thread_entry (void* arg);
+
     // --------------------------------
 
     static struct Glob {
@@ -41,7 +43,7 @@ struct d4Thread {
 
     struct Sched {
 
-        Sched () : state(BUSY), fired_time(0.0), io_requests(0) {}
+        Sched ();
 
         Mutex   mutex;
         CondVar cond;
@@ -54,8 +56,16 @@ struct d4Thread {
         EvCommonList::Queue lqueue;
         EvCommonList::Queue pqueue; //TODO: change to priority queue
 
-        double  fired_time;
-        int     io_requests;
+        int io_requests;
+
+        enum Timer_State {
+            READY,
+            ALARMED,
+            EXPIRED
+        } timer_state;
+        //
+        double  timestamp;
+        double  timer_due;
 
     } sched;
 };

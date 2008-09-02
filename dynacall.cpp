@@ -1,6 +1,7 @@
 // dynacall.cpp
 
 #include "coe-session.h"
+#include "coe-thread.h"
 
 #include <iostream>
 #include <memory>       // auto_ptr
@@ -159,6 +160,18 @@ void test_coe ()
     cash = 1;
     kernel.call(tar, "money", rparam(cash));
     cout << "and she now have " << cash << "." << endl;
+
+
+    // ================================
+
+    for (int i = 0; i < 10; ++i) {
+        Thread::create_new();
+    }
+
+    while(1) {
+        sleep(2);
+        cout << endl;
+    }
 }
 
 // ------------------------------------

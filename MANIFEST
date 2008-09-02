@@ -14,6 +14,8 @@ include/coe-os.h
 include/coe-ident.h
 
 include/coe-config.h
+    src/coe-config--d4c.h
+    src/coe-config--d4c.cpp
 
 include/coe-thread.h
     src/coe-thread--d4t.h
@@ -44,6 +46,9 @@ lib/Makefile
 typeinfo.cpp
 dynacall.cpp
 
+test/Makefile
 test/list.cpp
 test/cond.cpp
+test/sigsel1.cpp
+test/sigsel2.cpp
 

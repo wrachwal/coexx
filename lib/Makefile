@@ -28,6 +28,7 @@ objects = \
   typeinfo.o \
   coe--ev.o \
   coe-os.o \
+  coe-config--d4c.o \
   coe-thread--d4t.o \
   coe-kernel.o \
   coe-kernel--dcl.o \

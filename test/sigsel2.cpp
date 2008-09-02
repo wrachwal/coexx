@@ -1,4 +1,17 @@
-// sigsel.cpp -- posix timers, signals, and select
+// sigsel2.cpp -- posix timers (SIGEV_THREAD), signals, and select
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// ***** IMPORTANT NOTE *****
+//   On Solaris I am using
+//      $ uname -a
+//      SunOS XXX 5.9 Generic_118558-35 sun4u sparc SUNW,Sun-Fire-480R Solaris
+//  I get the following runtime error:
+//      SIGRTMIN = 39
+//      SIGRTMAX = 46
+//      timer_create: Invalid argument
+//      zsh: IOT instruction (core dumped)  ./sigsel2
+// Isn't SIGEV_THREAD supported ??!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #include <iostream>
 #include <cerrno>
@@ -14,16 +27,13 @@ using namespace std;
 
 #if defined(__CYGWIN__)
 // Cygwin seems not to have RT signals :( or not many (SIGRTMIN==SIGRTMAX).
-const int TimeSigNo = SIGUSR1;
 const int KickSigNo = SIGUSR2;
 #else
-const int TimeSigNo = SIGRTMIN;
-const int KickSigNo = SIGRTMIN + 1;
+const int KickSigNo = SIGRTMIN;
 #endif
 
 static const clockid_t   g_ClockID = CLOCK_REALTIME;
 static timer_t           g_TimerID;
-static pthread_t         timer_tid;
 
 // =======================================================================
 // worker threads
@@ -147,12 +157,12 @@ static void* worker_thread_entry (void* arg)
 // =======================================================================
 // timer thread
 
-static void notify_workers (int sigNo)
+static void notify_workers ()
 {
     static int odd = 0; //UGLY :)
 
-    cout << "\n\n\ntime_sig_handler: sigNo=" << sigNo << " received -- kicking worker "
-         << (odd ? "ODD" : "EVEN") << " threads..." << endl;
+    cout << "\n\n\n" << __FUNCTION__ << " received -- kicking worker "
+         << (odd ? "ODD" : "EVEN") << " threads...\n" << endl;
 
     for (int i = 0; i < TABLEN(g_Worker); ++i) {
 
@@ -171,44 +181,11 @@ static void notify_workers (int sigNo)
     odd ^= 1;
 }
 
-static void* timer_thread_entry (void* arg)
+static void timer_thread_callback (union sigval sv)
 {
-    sigset_t    sigSet;
-
-    //
-    // block ALL signals
-    //
-    sigfillset(&sigSet);
-    pthread_sigmask(SIG_BLOCK, &sigSet, NULL);
-
-    //
-    // synchronously wait in loop for timer signal
-    //
-    sigemptyset(&sigSet);
-    sigaddset(&sigSet, ::TimeSigNo);
-
-    while (1) {
-
-        //
-        //CAUTION:
-        //  sigwait() may consume all pending signals
-        //  of a given type if there are more in the queue
-        //  at the time when sigwait() is called.
-        //  This behavior is implementation-dependent.
-        //see also:
-        //  http://opengroup.org/onlinepubs/009695399/functions/sigwait.html
-        //
-
-        int actSig;
-        int result = sigwait(&sigSet, &actSig);
-        if (result == 0) {
-            cout << __FUNCTION__ << ": sigwait: signal -> " << actSig << endl;
-            notify_workers(actSig);
-        }
-        else {
-            cout << __FUNCTION__ << ": sigwait: " << strerror(errno) << endl;
-        }
-    }
+    cout << __FUNCTION__ << " (SIGEV_THREAD) called with .sival_ptr "
+         << sv.sival_ptr << endl;
+    notify_workers();
 }
 
 // =======================================================================
@@ -219,11 +196,10 @@ int main ()
     cout << "SIGRTMAX = " << SIGRTMAX << endl;
 
     // --------------------------------
-    // First block Time+Kick signals
+    // First block Kick signal
     {
         sigset_t    sigSet;
         sigemptyset(&sigSet);
-        sigaddset(&sigSet, ::TimeSigNo);
         sigaddset(&sigSet, ::KickSigNo);
         pthread_sigmask(SIG_BLOCK, &sigSet, NULL);
     }
@@ -234,24 +210,18 @@ int main ()
     {
         sigevent    signalSpec;
 
-        signalSpec.sigev_notify = SIGEV_SIGNAL;
-        signalSpec.sigev_signo  = ::TimeSigNo;
+        signalSpec.sigev_notify            = SIGEV_THREAD;
+        signalSpec.sigev_value.sival_ptr   = &::g_TimerID;
+        signalSpec.sigev_notify_function   = &::timer_thread_callback;
+        signalSpec.sigev_notify_attributes = NULL;  // will be detached
 
-        if (timer_create(::g_ClockID, &signalSpec, &g_TimerID) != 0) {
+        if (timer_create(::g_ClockID, &signalSpec, &::g_TimerID) != 0) {
             perror("timer_create");
             abort();
         }
-    }
 
-    // --------------------------------
-    // create timer thread
-    //
-    {
-        int status = pthread_create(&timer_tid, NULL, &::timer_thread_entry, NULL);
-        if (status != 0) {
-            cerr << "pthread_create: " << strerror(status) << endl;
-            abort();
-        }
+        cout << "### .sigev_value.sival_ptr --> & ::g_TimerID --> "
+             << & ::g_TimerID << endl;
     }
 
     // --------------------------------

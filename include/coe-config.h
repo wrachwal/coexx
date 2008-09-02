@@ -10,7 +10,8 @@ struct CoeConfig {
 
     CoeConfig ();
 
-    int timer_signo;    // reserved signal for timer manager
+    int time_signo;     // signal notification on timer expiry
+    int kick_signo;     // signal to break blocked I/O
 };
 
 // -----------------------------------------------------------------------
