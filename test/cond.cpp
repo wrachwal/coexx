@@ -3,6 +3,7 @@
 #include "coe-os.h"
 
 #include <iostream>
+#include <unistd.h> // sleep() on Linux
 
 using namespace std;
 

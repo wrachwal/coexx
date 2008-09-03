@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <memory>       // auto_ptr
+#include <unistd.h>     // sleep() on Linux
 
 using namespace std;
 

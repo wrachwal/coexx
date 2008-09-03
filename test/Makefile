@@ -5,13 +5,13 @@ UNAME := $(shell uname -o)
 INC_DIRS = ../include ../src
 
 CXX = g++
-CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${INC_DIRS}) \
-	    -Wno-invalid-offsetof
+CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${INC_DIRS})
 
 ifeq ($(UNAME),Solaris)
   CXXFLAGS += -D_POSIX_C_SOURCE
   LDFLAGS  += -lpthread -lrt
 endif
+  LDFLAGS  += -lpthread -lrt
 
 VPATH = $(subst  ,:,${INC_DIRS})
 

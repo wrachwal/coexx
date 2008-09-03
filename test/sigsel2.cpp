@@ -20,6 +20,7 @@
 
 #include <pthread.h>
 #include <sys/select.h> // select()
+#include <unistd.h>     // read() on Linux
 
 using namespace std;
 
@@ -45,8 +46,8 @@ struct Worker {
 
 static void set_next_timeout (int secs)
 {
-    timespec_t  niltime = { 0, 0 };
-    timespec_t  nowtime;
+    struct timespec niltime = { 0, 0 };
+    struct timespec nowtime;
 
     if (clock_gettime(::g_ClockID, &nowtime) != 0) {
         perror("clock_gettime");
@@ -55,7 +56,7 @@ static void set_next_timeout (int secs)
 
     nowtime.tv_sec += secs;
 
-    itimerspec  settime;
+    struct itimerspec   settime;
     settime.it_interval = niltime;  // zero
     settime.it_value    = nowtime;
 
