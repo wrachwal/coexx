@@ -8,7 +8,8 @@ SRC_DIRS = ..
 CXX = g++
 
 CXX += -MMD
-CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${INC_DIRS})
+CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${INC_DIRS}) \
+	    -Wno-invalid-offsetof
 
 ifeq ($(UNAME),Solaris)
   CXXFLAGS += -D_POSIX_C_SOURCE

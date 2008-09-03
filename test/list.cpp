@@ -116,7 +116,8 @@ int main ()
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
         EventList::Active   list;   // shadow earlier variable
-        int max = fill_list(list);
+
+        fill_list(list);
 
         EventList::Active::iterator iter = list.begin();
 
