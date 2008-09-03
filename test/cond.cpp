@@ -2,6 +2,20 @@
 
 #include "coe-os.h"
 
+#include <iostream>
+
+using namespace std;
+
+// -----------------------------------------------------------------------
+
+#define raise_error(code, text)                                             \
+    do {                                                                    \
+        cerr << text << " at \"" << __FILE__ << "\":" << __LINE__ << ": "   \
+             << strerror(code) << " (" << code << ')' << endl;              \
+        abort();                                                            \
+    } while(0)
+
+
 // -----------------------------------------------------------------------
 
 static pthread_mutex_t  mutex_0  =  PTHREAD_MUTEX_INITIALIZER;
@@ -17,7 +31,7 @@ static void check_guards_usage ()
         {
             Mutex::Guard    guard_0(Mutex::from_sys(mutex_0));
             Mutex::Guard    guard_A(mutex_A);
-            RWLock::Guard   guard_B(rwlock_B, RWLock::RLock);
+            RWLock::Guard   guard_B(rwlock_B, RWLock::READ);
             Mutex::Guard    guard_C(mutex_C);
         }
     }
@@ -28,7 +42,7 @@ static void check_guards_usage ()
         Mutex   mutex_B;
         Mutex   mutex_C;
         {
-            RWLock::Guard   guard_0(RWLock::from_sys(rwlock_0), RWLock::WLock);
+            RWLock::Guard   guard_0(RWLock::from_sys(rwlock_0), RWLock::WRITE);
             Mutex::Guard    guard_A(mutex_A, guard_0);
             Mutex::Guard    guard_B(mutex_B, guard_A);
             Mutex::Guard    guard_C(mutex_C, guard_B);

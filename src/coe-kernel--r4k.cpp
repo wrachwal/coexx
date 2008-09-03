@@ -18,8 +18,6 @@ static SessionMap g_SessionMap;
 //TODO: event queue, thread (local or foreign) level
 static deque<EvCommon*> g_Queue;
 
-static /*FIXME:__thread*/ d4Thread* g_tls_thread = NULL;
-
 NiD r4Kernel::_last_kid = 0;
 
 // -----------------------------------------------------------------------
@@ -40,12 +38,25 @@ private:
 
 // =======================================================================
 
+extern int g_TiD;   //FIXME
+
 r4Kernel::r4Kernel ()
 {
-    _thread = g_tls_thread;
-    if (NULL == _thread) {
+    // try to reuse `d4Thread' from the current thread
+    _thread = d4Thread::get_tls_data();
+
+    if (NULL == _thread) {  // or create/setup it if not found
+
         _thread = new d4Thread;
-        g_tls_thread = _thread;
+
+        d4Thread::set_tls_data(_thread);
+
+        _thread->os_thread = pthread_self();
+
+        //TODO: find unique tid in d4Thread::glob.tid_map
+        //compare with d4Thread::_thread_entry()
+        //consider reordering operations here and there
+        _thread->tid = TiD(++ ::g_TiD);
     }
 
     _handle = NULL;

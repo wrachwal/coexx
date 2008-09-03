@@ -66,7 +66,7 @@ public:
 
     static RWLock& from_sys (pthread_rwlock_t& rwlock);
 
-    enum Type { RLock, WLock };
+    enum Type { READ, WRITE };
 
     class Guard : public _Guard {
     public:

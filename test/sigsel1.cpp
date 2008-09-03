@@ -293,10 +293,12 @@ int main ()
     //
     // endless loop
     //
+    int x = 0;
+
     while (1) {
         int result = select(0, NULL, NULL, NULL, NULL);
         if (result == -1) {
-            cout << "main() -- select --> EINTR " << endl;
+            cout << "main() -- select --> EINTR (" << ++x << ")" << endl;
         }
         else {
             cerr << "main() -- unexpected select" << endl;

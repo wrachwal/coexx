@@ -53,6 +53,11 @@ bool Kernel::post (SiD to, const string& ev, PostArg* vp)
     return _r4kernel->post__arg(to, ev, vp);
 }
 
+bool Kernel::anon_post (SiD to, const string& ev, PostArg* vp)
+{
+    return d4Thread::anon_post__arg(to, ev, vp);
+}
+
 bool Kernel::yield (const string& ev, PostArg* vp)
 {
     return _r4kernel->yield__arg(ev, vp);

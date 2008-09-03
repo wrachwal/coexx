@@ -1,4 +1,4 @@
-# Makefile
+# lib/Makefile
 
 UNAME := $(shell uname -o)
 

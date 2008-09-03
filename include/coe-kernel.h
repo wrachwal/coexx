@@ -39,19 +39,17 @@ public:
     /*
      * post (SiD, EV_NAME[, PARAM...])
      */
-
-    bool post (SiD to, const std::string& ev, PostArg* pp=0);
+           bool      post (SiD to, const std::string& ev, PostArg* pp=0);
+    static bool anon_post (SiD to, const std::string& ev, PostArg* pp=0);
 
     /*
      * yield (EV_NAME[, PARAM...]])
      */
-
     bool yield (const std::string& ev, PostArg* pp=0);
 
     /*
      * call (SiD, EV_NAME[, PARAM...])
      */
-
     bool call (SiD on, const std::string& ev, CallArg* cp);
 
     /*
@@ -63,7 +61,6 @@ public:
      * delay     (EV_NAME, DURATION_SECS[, PARAM...])
      * delay_add (EV_NAME, DURATION_SECS[, PARAM...])
      */
-
     bool alarm     (const std::string ev);          // reset
     bool alarm     (const std::string ev, double epoch_time, PostArg* pp=0);
     bool alarm_add (const std::string ev, double epoch_time, PostArg* pp=0);
@@ -87,7 +84,6 @@ public:
      * select_pause  (FD, MODE)                 ## MODE := IO_read | IO_write
      * select_resume (FD, MODE)                 ## MODE := IO_read | IO_write
      */
-
     bool select (int fd, IO_Mode mode);         // reset
     bool select (int fd, IO_Mode mode, const std::string ev, PostArg* pp=0);
     bool select_pause  (int fd, IO_Mode mode);
@@ -98,7 +94,6 @@ public:
      * state (EV_NAME, OBJECT, METHOD)
      * state (EV_NAME, FUNCTION)
      */
-
     void state (const std::string& ev);         // reset
     void state (const std::string& ev, StateCmd* handler);
 

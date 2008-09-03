@@ -27,7 +27,7 @@ using namespace std;
 
 #if defined(__CYGWIN__)
 // Cygwin seems not to have RT signals :( or not many (SIGRTMIN==SIGRTMAX).
-const int KickSigNo = SIGUSR2;
+const int KickSigNo = SIGRTMIN;
 #else
 const int KickSigNo = SIGRTMIN;
 #endif
@@ -65,7 +65,7 @@ static void set_next_timeout (int secs)
     }
 }
 
-static void kick_sig_handler (int sigNo, siginfo_t* info, void* context)
+static void kick_sig_handler (int sigNo)
 {
     pthread_t   tid = pthread_self();
     for (int tn = 0; tn < TABLEN(g_Worker); ++tn) {
@@ -100,9 +100,10 @@ static void* worker_thread_entry (void* arg)
     //
     struct sigaction    sigAction;
     sigemptyset(&sigSet);
-    sigAction.sa_sigaction = &::kick_sig_handler;
-    sigAction.sa_mask      =  sigSet;
-    sigAction.sa_flags     =  SA_SIGINFO;
+    sigaddset(&sigSet, ::KickSigNo);
+    sigAction.sa_handler = &::kick_sig_handler;
+    sigAction.sa_mask    = sigSet;
+    sigAction.sa_flags   = 0;
 
     if (sigaction(::KickSigNo, &sigAction, NULL) != 0) {
         perror("sigaction");
@@ -255,15 +256,22 @@ int main ()
     //
     // endless loop
     //
+    int x = 0;
+
     while (1) {
+#if 0
         int result = select(0, NULL, NULL, NULL, NULL);
         if (result == -1) {
-            cout << "main() -- select --> EINTR " << endl;
+            cout << "main() -- select --> EINTR (" << ++x << ")" << endl;
         }
         else {
             cerr << "main() -- unexpected select" << endl;
             abort();
         }
+#else
+            sleep(1);
+            cout << "main() -- sleep(1) [" << ++x << "]" << endl;
+#endif
     }
 }
 

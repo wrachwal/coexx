@@ -15,7 +15,6 @@ using namespace std;
         abort();                                                            \
     } while(0)
 
-
 // =======================================================================
 // _Guard
 
@@ -132,7 +131,7 @@ RWLock& RWLock::from_sys (pthread_rwlock_t& rwlock)
 
 void RWLock::_lock (Type type)
 {
-    if (RLock == type) {
+    if (READ == type) {
         int status = pthread_rwlock_rdlock(&_rwlock);
         if (status != 0) {
             raise_error(status, "pthread_rwlock_rdlock");

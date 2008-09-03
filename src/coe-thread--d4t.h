@@ -17,7 +17,11 @@ struct d4Thread {
     void      enque_event (EvCommon* ev);
     EvCommon* deque_event ();
 
+    static bool anon_post__arg (SiD to, const std::string& ev, PostArg* pp);
+
     static void* _thread_entry (void* arg);
+    static d4Thread* get_tls_data ();
+    static void      set_tls_data (d4Thread* d4t);
 
     // --------------------------------
 
