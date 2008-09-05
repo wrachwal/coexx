@@ -1,7 +1,7 @@
-// coe--ev.h
+// coe--event.h
 
-#ifndef __COE__EV_H
-#define __COE__EV_H
+#ifndef __COE__EVENT_H
+#define __COE__EVENT_H
 
 #include "coe-kernel.h"     // IO_Mode
 #include "coe--list.h"

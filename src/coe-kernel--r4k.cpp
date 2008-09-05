@@ -11,14 +11,8 @@
 
 using namespace std;
 
-//TODO: put to global store, protected by a library-level mutex
-typedef map<SiD, r4Session*> SessionMap;
-static SessionMap g_SessionMap;
-
 //TODO: event queue, thread (local or foreign) level
 static deque<EvCommon*> g_Queue;
-
-NiD r4Kernel::_last_kid = 0;
 
 // -----------------------------------------------------------------------
 
@@ -38,50 +32,41 @@ private:
 
 // =======================================================================
 
-extern int g_TiD;   //FIXME
-
 r4Kernel::r4Kernel ()
 {
-    // try to reuse `d4Thread' from the current thread
+    _handle = NULL;
+
+    // trying attach kernel to current thread
     _thread = d4Thread::get_tls_data();
 
-    if (NULL == _thread) {  // or create/setup it if not found
-
+    if (NULL == _thread) {  // thread's event loop has not been run yet
         _thread = new d4Thread;
-
-        d4Thread::set_tls_data(_thread);
-
         _thread->os_thread = pthread_self();
-
-        //TODO: find unique tid in d4Thread::glob.tid_map
-        //compare with d4Thread::_thread_entry()
-        //consider reordering operations here and there
-        _thread->tid = TiD(++ ::g_TiD);
+        d4Thread::set_tls_data(_thread);
+        _thread->_allocate_tid();           // --@@--
     }
 
-    _handle = NULL;
-    _kid    = KiD(++_last_kid); //TODO: protect by a mutex
+    //
+    // --@@--
+    //
+    {
+        RWLock::Guard   guard(d4Thread::glob.kid_rwlock, RWLock::WRITE);
+        _kid = d4Thread::glob.kid_generator.generate_next(d4Thread::glob.kid_map);
+        d4Thread::glob.kid_map[_kid] = this;
+    }
 
-    _last_sid = 0;
-    _sid_wrap = false;
+    // once `kid' is known, setup sid_generator
+    _sid_generator = IdentGenerator<SiD>(SiD(_kid, 0));
 
+    //
+    // create and start the kernel session
+    //
     _s4kernel = new s4Kernel;
     start_session(_s4kernel);
 
     assert(_s4kernel->ID().is_kernel());
 
     _current_context.session = _s4kernel->_r4session;
-}
-
-// -----------------------------------------------------------------------
-
-SiD r4Kernel::get_next_unique_sid ()
-{
-    if (0 == ++_last_sid || _sid_wrap) {
-        _sid_wrap = true;
-        //TODO: visit sessions' map to get next unique sid
-    }
-    return SiD(_kid, _last_sid);
 }
 
 // -----------------------------------------------------------------------
@@ -99,11 +84,19 @@ SiD r4Kernel::start_session (Session* s)
     r4s->_kernel = this;
     r4s->_parent = _current_context.session;
 
-    SiD sid = get_next_unique_sid();
-    r4s->_sid = sid;
+    //
+    // --@@-- allocate `sid'
+    //
+    {
+        assert(NULL != _thread);
+        //FIXME: *** provide lower/upper bounds of sid_t_map for a given kernel
+        r4s->_sid = _sid_generator.generate_next(_thread->sid_t_map);
+        _thread->sid_t_map[r4s->_sid] = r4s;
 
-    //TODO: must be atomic op, under library-level mutex
-    g_SessionMap.insert(SessionMap::value_type(sid, r4s));
+        // --@@--
+        RWLock::Guard   guard(d4Thread::glob.sid_x_rwlock, RWLock::WRITE);
+        d4Thread::glob.sid_x_map[r4s->_sid] = r4s;
+    }
 
     CCScope __scope(_current_context);
 
@@ -144,15 +137,15 @@ bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
     // case 1) `to' is local
     // case 2) `to' is foreign
 
-    SessionMap::iterator    sp = g_SessionMap.find(to);
-    if (sp == g_SessionMap.end()) {
+    map<SiD, r4Session*>::iterator  sp = _thread->sid_t_map.find(to);
+    if (sp == _thread->sid_t_map.end()) {
         //errno = ???
         return false;
     }
 
     evmsg->_target = (*sp).second;
 
-    g_Queue.push_back(evmsg.release());
+    ::g_Queue.push_back(evmsg.release());
 
     return true;
 }
@@ -311,9 +304,9 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 void r4Kernel::run_event_loop ()
 {
     //TODO
-    while (! g_Queue.empty()) {
-        EvCommon*   ev = g_Queue.front();
-        g_Queue.pop_front();
+    while (! ::g_Queue.empty()) {
+        EvCommon*   ev = ::g_Queue.front();
+        ::g_Queue.pop_front();
         ev->dispatch();
         delete ev;
     }

@@ -1,7 +1,7 @@
-// coe-os.h
+// coe-sys.h
 
-#ifndef __COE_OS_H
-#define __COE_OS_H
+#ifndef __COE_SYS_H
+#define __COE_SYS_H
 
 #include <pthread.h>
 

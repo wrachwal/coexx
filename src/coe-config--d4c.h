@@ -3,7 +3,7 @@
 #ifndef __COE_CONFIG__D4C_H
 #define __COE_CONFIG__D4C_H
 
-#include "coe-os.h"     //TODO: <pthread.h> ?!
+#include "coe-sys.h"    //TODO: <pthread.h> ?!
 
 // =======================================================================
 // d4Config

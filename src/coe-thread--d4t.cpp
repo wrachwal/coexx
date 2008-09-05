@@ -55,6 +55,15 @@ EvCommon* d4Thread::deque_event ()
 
 // -----------------------------------------------------------------------
 
+void d4Thread::_allocate_tid ()
+{
+    assert(tid == TiD::NONE());
+    // --@@--
+    RWLock::Guard   guard(glob.tid_rwlock, RWLock::WRITE);
+    tid = glob.tid_generator.generate_next(glob.tid_map);
+    glob.tid_map[tid] = this;
+}
+
 d4Thread* d4Thread::get_tls_data ()
 {
     d4Config*   cfg = d4Config::instance();
@@ -82,16 +91,13 @@ bool d4Thread::anon_post__arg (SiD to, const string& ev, PostArg* pp)
 
 namespace {
     struct _Arg {
-        _Arg (d4Thread* d) : data(d), done(false) {}
+        _Arg (d4Thread* d) : data(d) {}
         d4Thread*   data;       // owned by new thread
         Mutex       mutex;
         CondVar     cond;
-        TiD         tid;        // result
-        bool        done;       // predicate
+        TiD         tid;        // predicate
     };
 }
-
-int g_TiD = 0;  //FIXME
 
 void* d4Thread::_thread_entry (void* arg)
 {
@@ -99,25 +105,13 @@ void* d4Thread::_thread_entry (void* arg)
 
     d4Thread*   d4t = init->data;
 
-    // no thread will join it
     pthread_detach(pthread_self());
-
-    // associate d4t data with the thread
     d4Thread::set_tls_data(d4t);
+    d4t->_allocate_tid();           // --@@--
 
-    //
-    // allocate `tid' before run_event_loop()
-    //
-    {
-        RWLock::Guard   guard(glob.tid_rwlock, RWLock::WRITE);
-
-        //TODO: find unique tid in glob.tid_map
-        d4t->tid = TiD(++ ::g_TiD);
-
-        init->tid = d4t->tid;   // set result
-        init->done = true;      // set predicate
-        init->cond.signal();    // notify the caller
-    }
+    // notify the creator
+    init->tid = d4t->tid;   // set predicate
+    init->cond.signal();    // notify the caller
 
     //
     // Now we can start running event loop (forever)
@@ -152,11 +146,10 @@ TiD Thread::create_new ()
         return TiD::NONE();
     }
 
-    while (! arg.done) {
+    while (! arg.tid.valid()) {
         arg.cond.wait(guard);
     }
 
-    //TODO: pass/set errno if tid invalid
     return arg.tid;
 }
 

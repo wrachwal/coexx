@@ -1,6 +1,6 @@
 // cond.cpp
 
-#include "coe-os.h"
+#include "coe-sys.h"
 
 #include <iostream>
 #include <unistd.h> // sleep() on Linux

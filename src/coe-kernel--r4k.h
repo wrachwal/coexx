@@ -5,7 +5,7 @@
 
 #include <map>
 
-#include "coe--ev.h"
+#include "coe--event.h"
 #include "coe-thread--d4t.h"
 
 class Kernel;
@@ -18,19 +18,15 @@ struct s4Kernel;
 
 struct r4Kernel {
 
-    d4Thread*       _thread;        // controlling thread
-    Kernel*         _handle;
+    d4Thread*           _thread;    // controlling thread
+    Kernel*             _handle;
 
-    static NiD      _last_kid;
-    KiD             _kid;
+    KiD                 _kid;
+    IdentGenerator<SiD> _sid_generator;
 
-    s4Kernel*       _s4kernel;
+    s4Kernel*           _s4kernel;
 
-    //r4Session*  _current_session;
-    SessionContext  _current_context;
-
-    NiD             _last_sid;
-    bool            _sid_wrap;
+    SessionContext      _current_context;
 
     // _s1ev_cmd : sid/1 x ev-name --> StateCmd*
     typedef std::pair<NiD, std::string> S1Ev;

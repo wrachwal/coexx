@@ -26,7 +26,7 @@ all: $(programs)
 list: list.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-cond: cond.o coe-os.o
+cond: cond.o coe-sys.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 sigsel1: sigsel1.o

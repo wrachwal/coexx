@@ -3,12 +3,13 @@
 MANIFEST
 
 
-include/coe-os.h
-    src/coe-os.cpp
+include/coe-sys.h
+    src/coe-sys.cpp
 
     src/coe--list.h
-    src/coe--ev.h
-    src/coe--ev.cpp
+    src/coe--util.h
+    src/coe--event.h
+    src/coe--event.cpp
 
 
 include/coe-ident.h

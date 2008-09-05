@@ -38,3 +38,8 @@ void* Session::get_heap () const
     return _r4session ? _r4session->_heap : NULL;
 }
 
+Kernel* Session::start_as_new_kernel_session ()
+{
+    return NULL;    //TODO
+}
+

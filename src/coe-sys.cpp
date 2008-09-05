@@ -1,7 +1,8 @@
-// coe-os.cpp
+// coe-sys.cpp
 
-#include "coe-os.h"
-#include <errno.h>
+#include "coe-sys.h"
+
+#include <cerrno>
 #include <iostream>
 
 using namespace std;

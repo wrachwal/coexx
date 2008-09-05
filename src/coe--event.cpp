@@ -1,6 +1,6 @@
-// coe--ev.cpp
+// coe--event.cpp
 
-#include "coe--ev.h"
+#include "coe--event.h"
 #include "coe-kernel--r4k.h"
 #include "coe-session--r4s.h"
 

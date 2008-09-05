@@ -10,20 +10,21 @@ typedef int NiD;
 
 class TiD {
 public:
-             TiD ()      : _t(0) {}
-    explicit TiD (NiD t) : _t(t) {}
+    typedef NiD int_type;
+             TiD ()           : _t(0) {}
+    explicit TiD (int_type t) : _t(t) {}
 
     static TiD NONE () { return TiD(); }
 
     bool valid () const { return 0 != _t; }
 
-    NiD nid () const { return _t; }
+    int_type nid () const { return _t; }
 
     bool operator== (const TiD& rhs) const { return _t == rhs._t; }
     bool operator<  (const TiD& rhs) const { return _t <  rhs._t; }
 
 private:
-    NiD _t;
+    int_type    _t;
 };
 
 // -----------------------------------------------------------------------
@@ -31,6 +32,7 @@ private:
 
 class KiD {
 public:
+    typedef NiD int_type;
              KiD ()      : _k(0) {}
     explicit KiD (NiD k) : _k(k) {}
 
@@ -52,6 +54,7 @@ private:
 
 class SiD {
 public:
+    typedef NiD int_type;
     SiD ()             : _k(0), _s(0) {}
     SiD (KiD k, NiD s) : _k(k), _s(s) {}
 
