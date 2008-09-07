@@ -8,6 +8,9 @@
 #include "coe--util.h"
 #include <map>
 
+struct r4Kernel;
+struct r4Session;
+
 // =======================================================================
 
 struct d4Thread {
@@ -20,31 +23,46 @@ struct d4Thread {
 
     static bool anon_post__arg (SiD to, const std::string& ev, PostArg* pp);
 
-    static void* _thread_entry (void* arg);
-           void  _allocate_tid ();
     static d4Thread* get_tls_data ();
     static void      set_tls_data (d4Thread* d4t);
 
-    // --------------------------------
+    static void* _thread_entry (void* arg);
+           void  _allocate_tid ();
+    static void  _allocate_kid (r4Kernel& r4k);
+    static void  _allocate_sid (r4Session& r4s);
 
+    // --------------------------------
+    //         | rwlock |
+    // thread  |  R | W |
+    // ------------------
+    //   all   |  R | W |
+    //
     static struct Glob {
 
+        RWLock                      rwlock;
+
         IdentGenerator<TiD>         tid_generator;
-        RWLock                      tid_rwlock;
         std::map<TiD, d4Thread*>    tid_map;        //TODO: hash_map
 
         IdentGenerator<KiD>         kid_generator;
-        RWLock                      kid_rwlock;
         std::map<KiD, r4Kernel*>    kid_map;        //TODO: hash_map
-
-        RWLock                      sid_x_rwlock;
-        std::map<SiD, r4Session*>   sid_x_map;      //TODO: hash_map
 
     } glob;
 
     // --------------------------------
+    //         | rwlock |
+    // thread  |  R | W |
+    // ------------------
+    //  local  |  0 | W |
+    // foreign |  R | ! |
+    //
+    struct Local {
+        RWLock                      rwlock;
 
-    std::map<SiD, r4Session*>       sid_t_map;      //TODO: hash_map
+        std::map<KiD, r4Kernel*>    kid_map;        //TODO: hash_map
+        std::map<SiD, r4Session*>   sid_map;        //TODO: hash_map
+
+    } local;
 
     // --------------------------------
 
@@ -66,16 +84,9 @@ struct d4Thread {
         EvCommonList::Queue lqueue;
         EvCommonList::Queue pqueue; //TODO: change to priority queue
 
-        int io_requests;
+        int         io_requests;
 
-        enum Timer_State {
-            READY,
-            ALARMED,
-            EXPIRED
-        } timer_state;
-        //
-        double  timestamp;
-        double  timer_due;
+        TimeSpec    timestamp;
 
     } sched;
 };

@@ -3,28 +3,25 @@
 #ifndef __COE_IDENT_H
 #define __COE_IDENT_H
 
-typedef int NiD;
-
 // =======================================================================
 // TiD -- thread identity
 
 class TiD {
 public:
-    typedef NiD int_type;
-             TiD ()           : _t(0) {}
-    explicit TiD (int_type t) : _t(t) {}
-
-    static TiD NONE () { return TiD(); }
+    typedef int IntType;
+             TiD ()          : _t(0) {}
+    explicit TiD (IntType t) : _t(t) {}
 
     bool valid () const { return 0 != _t; }
-
-    int_type nid () const { return _t; }
+    IntType id () const { return _t; }
 
     bool operator== (const TiD& rhs) const { return _t == rhs._t; }
     bool operator<  (const TiD& rhs) const { return _t <  rhs._t; }
 
+    static TiD NONE () { return TiD(); }
+
 private:
-    int_type    _t;
+    IntType _t;
 };
 
 // -----------------------------------------------------------------------
@@ -32,21 +29,20 @@ private:
 
 class KiD {
 public:
-    typedef NiD int_type;
-             KiD ()      : _k(0) {}
-    explicit KiD (NiD k) : _k(k) {}
-
-    static KiD NONE () { return KiD(); }
+    typedef int IntType;
+             KiD ()          : _k(0) {}
+    explicit KiD (IntType k) : _k(k) {}
 
     bool valid () const { return 0 != _k; }
-
-    NiD nid () const { return _k; }
+    IntType id () const { return _k; }
 
     bool operator== (const KiD& rhs) const { return _k == rhs._k; }
     bool operator<  (const KiD& rhs) const { return _k <  rhs._k; }
 
+    static KiD NONE () { return KiD(); }
+
 private:
-    NiD _k;
+    IntType _k;
 };
 
 // =======================================================================
@@ -54,16 +50,13 @@ private:
 
 class SiD {
 public:
-    typedef NiD int_type;
-    SiD ()             : _k(0), _s(0) {}
-    SiD (KiD k, NiD s) : _k(k), _s(s) {}
-
-    static SiD NONE () { return SiD(); }
+    typedef int IntType;
+    SiD ()                 : _s(0), _k(0) {}
+    SiD (KiD k, IntType s) : _s(s), _k(k) {}
 
     bool valid () const { return 0 != _s; }     //FIXME: test _k as well?!
-
-    KiD kid () const { return _k; }
-    NiD nid () const { return _s; }
+    KiD    kid () const { return _k; }
+    IntType id () const { return _s; }
 
     bool is_kernel () const { return 1 == _s; }
 
@@ -72,9 +65,11 @@ public:
     bool operator<  (const SiD& rhs) const
         { return _k < rhs._k || _k == rhs._k && _s < rhs._s; }
 
+    static SiD NONE () { return SiD(); }
+
 private:
-    KiD _k;
-    NiD _s;
+    IntType _s;
+    KiD     _k;
 };
 
 // -----------------------------------------------------------------------
@@ -82,20 +77,20 @@ private:
 
 class AiD {
 public:
-             AiD ()      : _a(0) {}
-    explicit AiD (NiD a) : _a(a) {}
-
-    static AiD NONE () { return AiD(); }
+    typedef int IntType;
+             AiD ()          : _a(0) {}
+    explicit AiD (IntType a) : _a(a) {}
 
     bool valid () const { return 0 != _a; }
-
-    NiD nid () const { return _a; }
+    IntType id () const { return _a; }
 
     bool operator== (const AiD& rhs) const { return _a == rhs._a; }
     bool operator<  (const AiD& rhs) const { return _a <  rhs._a; }
 
+    static AiD NONE () { return AiD(); }
+
 private:
-    NiD _a;
+    IntType _a;
 };
 
 // =======================================================================

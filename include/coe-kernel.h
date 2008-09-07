@@ -5,6 +5,7 @@
 
 #include "coe-ident.h"
 #include "coe-kernel--dcl.h"
+#include <time.h>       // timespec
 
 class Kernel;
 class Session;
@@ -15,6 +16,8 @@ struct r4Kernel;
 class                   EvCtx;
 template<class> struct TEvCtx;
 class                   DatIO;
+
+struct TimeSpec;
 
 // -----------------------------------------------------------------------
 
@@ -29,7 +32,7 @@ enum IO_Mode {
 
 class Kernel {
 public:
-    static Kernel& instance ();
+    static Kernel& create_new ();
 
     void run_event_loop ();
     bool run_event_loop (TiD tid);
@@ -56,16 +59,16 @@ public:
      * Name-Based Timers
      * =================
      * alarm     (EV_NAME)                          -- reset
-     * alarm     (EV_NAME, EPOCH_TIME[, PARAM...])
-     * alarm_add (EV_NAME, EPOCH_TIME[, PARAM...])
+     * alarm     (EV_NAME, ABS_TIME[, PARAM...])
+     * alarm_add (EV_NAME, ABS_TIME[, PARAM...])
      * delay     (EV_NAME, DURATION_SECS[, PARAM...])
      * delay_add (EV_NAME, DURATION_SECS[, PARAM...])
      */
     bool alarm     (const std::string ev);          // reset
-    bool alarm     (const std::string ev, double epoch_time, PostArg* pp=0);
-    bool alarm_add (const std::string ev, double epoch_time, PostArg* pp=0);
-    bool delay     (const std::string ev, double duration, PostArg* pp=0);
-    bool delay_add (const std::string ev, double duration, PostArg* pp=0);
+    bool alarm     (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
+    bool alarm_add (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
+    bool delay     (const std::string ev, TimeSpec duration, PostArg* pp=0);
+    bool delay_add (const std::string ev, TimeSpec duration, PostArg* pp=0);
 
     /*
      * Identifier-Based Timers
@@ -107,8 +110,7 @@ private:
 };
 
 // =======================================================================
-//  EvCtx
-// TEvCtx<Heap>
+// EvCtx
 
 class EvCtx {
 public:
@@ -127,6 +129,7 @@ private:
 };
 
 // ------------------------------------
+// TEvCtx<Heap>
 
 template<class Heap>
 struct TEvCtx : public EvCtx {
@@ -134,6 +137,30 @@ struct TEvCtx : public EvCtx {
     operator bool () const { return NULL != heap; }
     Heap* operator-> () const { return static_cast<Heap*>(heap); }
     operator Heap* () const { return static_cast<Heap*>(heap); }
+};
+
+// ------------------------------------
+// DatIO
+
+class DatIO {
+public:
+    const int       filedes;
+    const IO_Mode   mode;
+private:
+    friend struct r4Kernel;
+    DatIO (int f, IO_Mode m);
+    DatIO (const DatIO&);           // prohibited
+    void operator= (const EvCtx&);  // prohibited
+};
+
+// =======================================================================
+// TimeSpec
+
+struct TimeSpec : public timespec {
+             TimeSpec ()                      { tv_sec = 0;   tv_nsec = 0; }
+    explicit TimeSpec (double sec);
+    explicit TimeSpec (time_t sec)            { tv_sec = sec; tv_nsec = 0; }
+             TimeSpec (time_t sec, long nsec) { tv_sec = sec; tv_nsec = nsec; }
 };
 
 // =======================================================================
@@ -220,20 +247,6 @@ template<class Heap, class P1, class P2, class P3, class P4>
 StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&));
 template<class Heap, class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&));
-
-// =======================================================================
-// DatIO
-
-class DatIO {
-public:
-    const int       filedes;
-    const IO_Mode   mode;
-private:
-    friend struct r4Kernel;
-    DatIO (int f, IO_Mode m);
-    DatIO (const DatIO&);           // prohibited
-    void operator= (const EvCtx&);  // prohibited
-};
 
 // =======================================================================
 

@@ -113,7 +113,7 @@ void type_info_show ();
 
 void test_coe ()
 {
-    Kernel& kernel = Kernel::instance();
+    Kernel& kernel = Kernel::create_new();
 
     SiD tar = MyHouse::spawn(kernel, "waldy");
 
@@ -166,7 +166,7 @@ void test_coe ()
     // ================================
 
     for (int i = 0; i < 10; ++i) {
-        Thread::create_new();
+        Thread::spawn_new();
     }
 
     while(1) {

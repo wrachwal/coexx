@@ -29,7 +29,7 @@ Kernel::Kernel ()
     _r4kernel->_handle = this;
 }
 
-Kernel& Kernel::instance ()
+Kernel& Kernel::create_new ()
 {
     //TODO: use pthread(s) and TLS? Hmm... TLS would preclude thread pools!
     static Kernel* pKernel = new Kernel;

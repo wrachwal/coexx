@@ -3,6 +3,8 @@
 #include "coe-thread.h"
 #include "coe-thread--d4t.h"
 #include "coe-config--d4c.h"
+#include "coe-kernel--r4k.h"
+#include "coe-session--r4s.h"
 #include <cerrno>
 
 #include <iostream>
@@ -23,10 +25,7 @@ d4Thread::d4Thread ()
 
 d4Thread::Sched::Sched ()
   : state(BUSY),
-    io_requests(0),
-    timer_state(READY),
-    timestamp(0.0),
-    timer_due(0.0)
+    io_requests(0)
 {
 }
 
@@ -47,7 +46,7 @@ EvCommon* d4Thread::deque_event ()
 {
     //TODO
     while(1) {
-        cout << "thread #" << tid.nid() << " is running." << endl;
+        cout << "thread #" << tid.id() << " is running." << endl;
         sleep(5);
     }
     return NULL;    // should never happen
@@ -55,13 +54,11 @@ EvCommon* d4Thread::deque_event ()
 
 // -----------------------------------------------------------------------
 
-void d4Thread::_allocate_tid ()
+bool d4Thread::anon_post__arg (SiD to, const string& ev, PostArg* pp)
 {
-    assert(tid == TiD::NONE());
-    // --@@--
-    RWLock::Guard   guard(glob.tid_rwlock, RWLock::WRITE);
-    tid = glob.tid_generator.generate_next(glob.tid_map);
-    glob.tid_map[tid] = this;
+    //TODO: posting event from within an unrelated thread,
+    //e.g. from others' apis thread providing data to a wheel
+    return false;
 }
 
 d4Thread* d4Thread::get_tls_data ()
@@ -80,14 +77,51 @@ void d4Thread::set_tls_data (d4Thread* d4t)
     }
 }
 
-bool d4Thread::anon_post__arg (SiD to, const string& ev, PostArg* pp)
+// =======================================================================
+
+void d4Thread::_allocate_tid ()
 {
-    //TODO: posting event from within an unrelated thread,
-    //e.g. from others' apis thread providing data to a wheel
-    return false;
+    assert(tid == TiD::NONE());
+    // --@@--
+    RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
+
+    tid = glob.tid_generator.generate_next(glob.tid_map);
+
+    glob.tid_map[tid] = this;
 }
 
-// =======================================================================
+void d4Thread::_allocate_kid (r4Kernel& r4k)
+{
+    assert(r4k._kid == KiD::NONE());
+    assert(NULL != r4k._thread);
+
+    // --@@--
+    RWLock::Guard   g_guard(glob.rwlock, RWLock::WRITE);
+    RWLock::Guard   l_guard(r4k._thread->local.rwlock, RWLock::WRITE);
+
+    r4k._kid = glob.kid_generator.generate_next(glob.kid_map);
+
+                  glob.kid_map[r4k._kid] = &r4k;
+    r4k._thread->local.kid_map[r4k._kid] = &r4k;
+}
+
+void d4Thread::_allocate_sid (r4Session& r4s)
+{
+    assert(NULL != r4s._kernel);
+    assert(NULL != r4s._kernel->_thread);
+
+    r4Kernel*   kernel = r4s._kernel;
+    d4Thread*   thread = kernel->_thread;
+
+    // --@@--
+    RWLock::Guard   guard(thread->local.rwlock, RWLock::WRITE);
+
+    r4s._sid = kernel->_sid_generator.generate_next(thread->local.sid_map);
+
+    thread->local.sid_map[r4s._sid] = &r4s;
+}
+
+// -----------------------------------------------------------------------
 
 namespace {
     struct _Arg {
@@ -124,7 +158,7 @@ void* d4Thread::_thread_entry (void* arg)
 
 // -----------------------------------------------------------------------
 
-TiD Thread::create_new ()
+TiD Thread::spawn_new ()
 {
     // when d4Config singleton is being created, signal mask (among other things)
     // of the calling thread is modified, therefore to allow future threads

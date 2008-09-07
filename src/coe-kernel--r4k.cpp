@@ -46,14 +46,7 @@ r4Kernel::r4Kernel ()
         _thread->_allocate_tid();           // --@@--
     }
 
-    //
-    // --@@--
-    //
-    {
-        RWLock::Guard   guard(d4Thread::glob.kid_rwlock, RWLock::WRITE);
-        _kid = d4Thread::glob.kid_generator.generate_next(d4Thread::glob.kid_map);
-        d4Thread::glob.kid_map[_kid] = this;
-    }
+    d4Thread::_allocate_kid(*this);         // --@@--
 
     // once `kid' is known, setup sid_generator
     _sid_generator = IdentGenerator<SiD>(SiD(_kid, 0));
@@ -62,7 +55,8 @@ r4Kernel::r4Kernel ()
     // create and start the kernel session
     //
     _s4kernel = new s4Kernel;
-    start_session(_s4kernel);
+
+    start_session(_s4kernel);               // --@@--
 
     assert(_s4kernel->ID().is_kernel());
 
@@ -84,19 +78,7 @@ SiD r4Kernel::start_session (Session* s)
     r4s->_kernel = this;
     r4s->_parent = _current_context.session;
 
-    //
-    // --@@-- allocate `sid'
-    //
-    {
-        assert(NULL != _thread);
-        //FIXME: *** provide lower/upper bounds of sid_t_map for a given kernel
-        r4s->_sid = _sid_generator.generate_next(_thread->sid_t_map);
-        _thread->sid_t_map[r4s->_sid] = r4s;
-
-        // --@@--
-        RWLock::Guard   guard(d4Thread::glob.sid_x_rwlock, RWLock::WRITE);
-        d4Thread::glob.sid_x_map[r4s->_sid] = r4s;
-    }
+    d4Thread::_allocate_sid(*r4s);          // --@@--
 
     CCScope __scope(_current_context);
 
@@ -121,7 +103,7 @@ void r4Kernel::set_heap_ptr (EvCtx& ctx)
 
 // -----------------------------------------------------------------------
 
-StateCmd* r4Kernel::find_state_handler (NiD sid1, const string& ev)
+StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
 {
     S1Ev_Cmd::iterator  sh = _s1ev_cmd.find(make_pair(sid1, ev));
     return (sh == _s1ev_cmd.end()) ? NULL : (*sh).second;
@@ -137,8 +119,8 @@ bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
     // case 1) `to' is local
     // case 2) `to' is foreign
 
-    map<SiD, r4Session*>::iterator  sp = _thread->sid_t_map.find(to);
-    if (sp == _thread->sid_t_map.end()) {
+    map<SiD, r4Session*>::iterator  sp = _thread->local.sid_map.find(to);
+    if (sp == _thread->local.sid_map.end()) {
         //errno = ???
         return false;
     }
@@ -256,7 +238,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 {
     //TODO: check if _current_session is allowable to accept Kernel::state()
 
-    S1Ev    s1ev(_current_context.session->_sid.nid(), ev);
+    S1Ev    s1ev(_current_context.session->_sid.id(), ev);
 
     S1Ev_Cmd::iterator  kv = _s1ev_cmd.find(s1ev);
 
@@ -276,7 +258,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 {
-    StateCmd* cmd = find_state_handler(evmsg->_target->_sid.nid(), evmsg->_name);
+    StateCmd* cmd = find_state_handler(evmsg->_target->_sid.id(), evmsg->_name);
     if (NULL == cmd) {
         //TODO: call session's default error handling, like _default in POE?
         return;

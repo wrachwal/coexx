@@ -23,17 +23,21 @@ struct SessionContext {
 // EvCommon
 
 class EvCommon {
-    friend struct EvCommonList;
-    dLink<EvCommon> _link_queue;
 public:
     virtual ~EvCommon ();
     virtual void dispatch () = 0;
-//protected:
+protected:
     EvCommon (const std::string& name, PostArg* arg);
+    friend struct EvCommonList;
+    dLink<EvCommon> _link_queue;
+//private:
+public:
     r4Session*  _target;
     std::string _name;
     PostArg*    _arg;
 };
+
+// ------------------------------------
 
 struct EvCommonList {
     typedef dList<EvCommon, offsetof(EvCommon, _link_queue)> Queue;
@@ -44,9 +48,11 @@ struct EvCommonList {
 
 class EvMsg : public EvCommon {
 public:
-    EvMsg (const std::string& name, PostArg* arg, SessionContext& cc);
+    EvMsg (const std::string& name, PostArg* arg, SessionContext& cc);  // post
+    EvMsg (const std::string& name, PostArg* arg);                 // anon_post
     /*final*/ void dispatch ();
 //private:
+    r4Session*  _source;
     SiD         _sender;
     std::string _sender_state;
 };
@@ -54,13 +60,13 @@ public:
 // -----------------------------------------------------------------------
 // EvAlarm
 
-#if 0
 class EvAlarm : public EvCommon {
 public:
+    EvAlarm (const std::string& name, PostArg* arg, SessionContext& cc);
     /*final*/ void dispatch ();
 //private:
-    //AiD   _alarm_id;
-    double  _time_due;
+    //AiD       _alarm_id;
+    TimeSpec    _time_due;
 };
 
 // -----------------------------------------------------------------------
@@ -68,12 +74,12 @@ public:
 
 class EvIO : public EvCommon {
 public:
+    EvIO (const std::string& name, PostArg* arg, SessionContext& cc);
     /*final*/ void dispatch ();
 //private:
     int     _fd;
     IO_Mode _mode;
 };
-#endif
 
 // =======================================================================
 

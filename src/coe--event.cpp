@@ -18,6 +18,7 @@ EvCommon::EvCommon (const string& name, PostArg* arg)
 
 EvCommon::~EvCommon ()
 {
+    assert(NULL == _link_queue.next);
     delete _arg;
     _arg = NULL;    // just in case ;)
 }
@@ -28,12 +29,25 @@ EvCommon::~EvCommon ()
 EvMsg::EvMsg (const string& name, PostArg* arg, SessionContext& cc)
   : EvCommon(name, arg)
 {
-    _sender       = cc.session->_sid;   //TODO: local/foreign adjustment
+    _source       = cc.session;
+    _sender       = cc.session->_sid;
     _sender_state = cc.state;
+}
+
+EvMsg::EvMsg (const string& name, PostArg* arg)
+  : EvCommon(name, arg),
+    _source(NULL)
+{
 }
 
 void EvMsg::dispatch ()
 {
     _target->_kernel->dispatch_evmsg(this);
 }
+
+// =======================================================================
+// EvAlarm
+
+// =======================================================================
+// EvIO
 

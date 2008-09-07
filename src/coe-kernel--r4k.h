@@ -29,9 +29,9 @@ struct r4Kernel {
     SessionContext      _current_context;
 
     // _s1ev_cmd : sid/1 x ev-name --> StateCmd*
-    typedef std::pair<NiD, std::string> S1Ev;
-    typedef std::map<S1Ev, StateCmd*> S1Ev_Cmd;
-    S1Ev_Cmd    _s1ev_cmd;
+    typedef std::pair<SiD::IntType, std::string> S1Ev;
+    typedef std::map<S1Ev, StateCmd*>            S1Ev_Cmd;
+    S1Ev_Cmd            _s1ev_cmd;
 
     // -------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ struct r4Kernel {
     SiD start_session (Session* s);
     void set_heap_ptr (EvCtx& ctx);
 
-    StateCmd* find_state_handler (NiD sid1, const std::string& ev);
+    StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
 
     bool post__arg (SiD to, const std::string& ev, PostArg* arg);
     bool yield__arg (const std::string& ev, PostArg* arg);

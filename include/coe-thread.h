@@ -10,7 +10,7 @@
 
 struct Thread {
 
-    static TiD create_new ();
+    static TiD spawn_new ();
 
 };
 
