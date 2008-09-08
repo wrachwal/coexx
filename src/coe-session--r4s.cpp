@@ -11,7 +11,6 @@ r4Session::r4Session ()
     _heap   = NULL;
     _kernel = NULL;
     _parent = NULL;
-    _children_list = NULL;
 }
 
 void r4Session::release_resource ()

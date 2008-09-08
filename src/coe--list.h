@@ -23,6 +23,7 @@ struct dList {
 
     dList () : head(NULL), tail(NULL), count(0) {}
 
+    bool  empty () const { return 0 == count; }
     size_t size () const { return count; }
 
     T* peek_head () const { return head; }

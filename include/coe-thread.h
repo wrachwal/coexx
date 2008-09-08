@@ -12,6 +12,7 @@ struct Thread {
 
     static TiD spawn_new ();
 
+    //TODO: get statistics api
 };
 
 // =======================================================================

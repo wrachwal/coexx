@@ -54,7 +54,7 @@ public:
 // PostArg
 // CallArg
 
-class PostArg : public EventArg {};
+class PostArg : public EventArg {}; //TODO: add cloning capability
 class CallArg : public EventArg {};
 
 // ------------------------------------

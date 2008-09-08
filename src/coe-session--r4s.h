@@ -14,7 +14,7 @@ struct r4Session {  //TODO: derive from... `Resource'
 
     r4Kernel*   _kernel;
     r4Session*  _parent;
-    r4Session*  _children_list;
+    //TODO:     _list_children;
 
     r4Session ();
     void release_resource ();

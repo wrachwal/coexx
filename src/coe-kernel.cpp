@@ -1,12 +1,14 @@
 // coe-kernel.cpp
 
 #include "coe-kernel.h"
-#include "coe-session.h"
 #include "coe-kernel--r4k.h"
+#include "coe-session.h"
+#include "coe-session--r4s.h"
 
 using namespace std;
 
 // =======================================================================
+// EvCtx
 
 EvCtx::EvCtx (Kernel& k, Session& s)
     : kernel(k), session(s)
@@ -14,7 +16,8 @@ EvCtx::EvCtx (Kernel& k, Session& s)
     heap = NULL;
 }
 
-// ------------------------------------
+// -----------------------------------------------------------------------
+// DatIO
 
 DatIO::DatIO (int f, IO_Mode m)
     : filedes(f), mode(m)
@@ -22,6 +25,7 @@ DatIO::DatIO (int f, IO_Mode m)
 }
 
 // =======================================================================
+// Kernel
 
 Kernel::Kernel ()
 {
@@ -31,8 +35,7 @@ Kernel::Kernel ()
 
 Kernel& Kernel::create_new ()
 {
-    //TODO: use pthread(s) and TLS? Hmm... TLS would preclude thread pools!
-    static Kernel* pKernel = new Kernel;
+    Kernel* pKernel = new Kernel;
     return *pKernel;
 }
 
@@ -43,35 +46,98 @@ SiD Kernel::start_session (Session* s)
 
 void Kernel::run_event_loop ()
 {
-    _r4kernel->run_event_loop();
+    if (NULL != _r4kernel && NULL != _r4kernel->_thread) {
+        // blocks only if loop has not been run yet
+        _r4kernel->_thread->run_event_loop();
+    }
 }
 
 // -----------------------------------------------------------------------
 
-bool Kernel::post (SiD to, const string& ev, PostArg* vp)
+static inline
+bool kernel_attached (r4Kernel* r4k)
 {
-    return _r4kernel->post__arg(to, ev, vp);
+    if (NULL == r4k || NULL == r4k->_thread) {
+        // errno = ???  //TODO
+        return false;
+    }
+    return true;
 }
+
+static inline
+bool target_valid (SiD target)
+{
+    if (! target.valid()) {
+        // errno = ???  //TODO
+        return false;
+    }
+    return true;
+}
+
+static inline
+bool user_evname (const string& ev)
+{
+    if (ev.empty() || '.' == ev[0]) {
+        // errno = ???  //TODO
+        return false;
+    }
+    return true;
+}
+
+// -----------------------------------------------------------------------
 
 bool Kernel::anon_post (SiD to, const string& ev, PostArg* vp)
 {
-    return d4Thread::anon_post__arg(to, ev, vp);
+    if (! target_valid(to) || ! user_evname(ev)) {
+        delete vp;
+        return false;
+    }
+    return d4Thread::anon_post_event(to, new EvMsg(ev, vp));
+}
+
+bool Kernel::post (SiD to, const string& ev, PostArg* vp)
+{
+    if (! kernel_attached(_r4kernel) || ! target_valid(to) || ! user_evname(ev)) {
+        delete vp;
+        return false;
+    }
+    return _r4kernel->post__arg(to, ev, vp);
 }
 
 bool Kernel::yield (const string& ev, PostArg* vp)
 {
-    return _r4kernel->yield__arg(ev, vp);
+    if (! kernel_attached(_r4kernel) || ! user_evname(ev)) {
+        delete vp;
+        return false;
+    }
+    SiD to = _r4kernel->_current_context.session->_sid;
+    if (! target_valid(to)) {
+        delete vp;
+        return false;
+    }
+    return _r4kernel->post__arg(to, ev, vp);
 }
 
 bool Kernel::call (SiD on, const string& ev, CallArg* rp)
 {
+    if (! kernel_attached(_r4kernel) || ! target_valid(on) || ! user_evname(ev)) {
+        delete rp;
+        return false;
+    }
     return _r4kernel->call__arg(on, ev, rp);
 }
 
 bool Kernel::select (int fd, IO_Mode mode, const string ev, PostArg* vp)
 {
+    //TODO: check fd/mode
+    if (! kernel_attached(_r4kernel) || ! user_evname(ev)) {
+        delete vp;
+        return false;
+    }
     return _r4kernel->select__arg(fd, mode, ev, vp);
 }
+
+// -----------------------------------------------------------------------
 
 void Kernel::state (const string& ev)
 {

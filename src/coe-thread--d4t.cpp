@@ -12,14 +12,37 @@
 
 using namespace std;
 
-// -----------------------------------------------------------------------
-
 d4Thread::Glob  d4Thread::glob;
+
+// -----------------------------------------------------------------------
+// d4Thread::Glob
+
+r4Kernel* d4Thread::Glob::find_kernel (KiD kid) const
+{
+    map<KiD, r4Kernel*>::const_iterator i = kid_map.find(kid);
+    return i == kid_map.end() ? NULL : (*i).second;
+}
+
+// -----------------------------------------------------------------------
+// d4Thread::Local
+
+r4Kernel* d4Thread::Local::find_kernel (KiD kid) const
+{
+    map<KiD, r4Kernel*>::const_iterator i = kid_map.find(kid);
+    return i == kid_map.end() ? NULL : (*i).second;
+}
+
+r4Session* d4Thread::Local::find_session (SiD sid) const
+{
+    map<SiD, r4Session*>::const_iterator i = sid_map.find(sid);
+    return i == sid_map.end() ? NULL : (*i).second;
+}
 
 // =======================================================================
 // d4Thread
 
 d4Thread::d4Thread ()
+  : _event_loop_running(false)
 {
 }
 
@@ -31,35 +54,145 @@ d4Thread::Sched::Sched ()
 
 void d4Thread::run_event_loop ()
 {
-    EvCommon*   ev;
-    while ((ev = deque_event()) != NULL) {
-        ev->dispatch();     //TODO: should take d4Thread as param
+    if (! _event_loop_running) {
+        _event_loop_running = true;
+
+        EvCommon*   ev;
+        while ((ev = deque_event()) != NULL) {
+            ev->dispatch();
+        }
+
+        _event_loop_running = false;
     }
 }
 
 void d4Thread::enque_event (EvCommon* ev)
 {
-    //TODO: put to local or foreign thread sched queue
+    if (ev->prio_order() < 0) {
+        assert(this == get_tls_data());
+
+        sched.lqueue.put_tail(ev);
+    }
+    else {
+        // --@@--
+        Mutex::Guard    guard(sched.mutex);
+
+        if (Sched::WAIT == sched.state && sched.pqueue.empty()) {
+
+            sched.pqueue.put_tail(ev);
+
+            // wake up waiting thread
+            if (sched.io_requests) {
+                // write a byte to notification pipe
+                //TODO
+            }
+            else {
+                sched.cond.signal();
+            }
+        }
+        else {
+            sched.pqueue.put_tail(ev);
+        }
+    }
 }
 
 EvCommon* d4Thread::deque_event ()
 {
-    //TODO
-    while(1) {
-        cout << "thread #" << tid.id() << " is running." << endl;
-        sleep(5);
+    if (! sched.lqueue.empty()) {
+        return sched.lqueue.get_head();
     }
-    return NULL;    // should never happen
+
+    // --@@--
+    Mutex::Guard    guard(sched.mutex);
+
+    if (! sched.pqueue.empty()) {
+        return sched.pqueue.get_head();
+    }
+
+    sched.state = Sched::WAIT;
+
+    if (sched.io_requests) {
+        //TODO: unlock guard, then wait on select()
+        //TODO: static void Mutex::Guard::unlock (Mutex::Guard& guard);
+        assert(0);
+        return NULL;    //FIXME
+    }
+    else {
+
+        while (sched.pqueue.empty()) {  // test predicate
+            //TODO: wait/timedwait
+            sched.cond.wait(guard);
+        }
+
+        sched.state = Sched::BUSY;
+
+        return sched.pqueue.get_head();
+    }
 }
 
 // -----------------------------------------------------------------------
 
-bool d4Thread::anon_post__arg (SiD to, const string& ev, PostArg* pp)
+bool d4Thread::anon_post_event (SiD to, EvMsg *evmsg)
 {
-    //TODO: posting event from within an unrelated thread,
-    //e.g. from others' apis thread providing data to a wheel
+    d4Thread*   thread = get_tls_data();
+    if (NULL != thread) {
+        if (thread->local.kid_map.find(to.kid()) != thread->local.kid_map.end()) {
+            return post_event(thread, to, evmsg);
+        }
+    }
+    return post_event(NULL, to, evmsg);
+}
+
+bool d4Thread::post_event (d4Thread* local, SiD to, EvMsg* evmsg)
+{
+    if (NULL != local) {
+
+        r4Session*  session = local->local.find_session(to);
+        if (NULL != session) {
+
+            evmsg->target(session);
+
+            // --@@--
+            local->enque_event(evmsg);
+            return true;
+        }
+    }
+    else {
+        // --@@--
+        RWLock::Guard   guard(glob.rwlock, RWLock::READ);
+
+        r4Kernel*   kernel = glob.find_kernel(to.kid());
+        if (NULL != kernel &&
+            NULL != kernel->_thread)
+        {
+            // --@@--
+            d4Thread*   thread = kernel->_thread;
+            RWLock::Guard   guard(thread->local.rwlock, RWLock::READ);
+
+            r4Session*  session = thread->local.find_session(to);
+            if (NULL != session) {
+
+                evmsg->target(session);
+                evmsg->source(NULL);    // source and target in different threads
+
+                if (evmsg->prio_order() < 0) {
+                    evmsg->prio_order(0);   //TODO: get from config
+                }
+
+                // --@@--
+                thread->enque_event(evmsg);
+                return true;
+            }
+        }
+    }
+
+    // `to' not found
+    //errno = ???   //TODO
+    delete evmsg;
     return false;
 }
+
+// -----------------------------------------------------------------------
 
 d4Thread* d4Thread::get_tls_data ()
 {

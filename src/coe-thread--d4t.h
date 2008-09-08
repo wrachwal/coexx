@@ -21,7 +21,8 @@ struct d4Thread {
     void      enque_event (EvCommon* ev);
     EvCommon* deque_event ();
 
-    static bool anon_post__arg (SiD to, const std::string& ev, PostArg* pp);
+    static bool anon_post_event (                 SiD to, EvMsg* evmsg);
+    static bool      post_event (d4Thread* local, SiD to, EvMsg* evmsg);
 
     static d4Thread* get_tls_data ();
     static void      set_tls_data (d4Thread* d4t);
@@ -47,6 +48,10 @@ struct d4Thread {
         IdentGenerator<KiD>         kid_generator;
         std::map<KiD, r4Kernel*>    kid_map;        //TODO: hash_map
 
+        // --------
+
+        r4Kernel* find_kernel (KiD kid) const;
+
     } glob;
 
     // --------------------------------
@@ -57,17 +62,24 @@ struct d4Thread {
     // foreign |  R | ! |
     //
     struct Local {
+
         RWLock                      rwlock;
 
         std::map<KiD, r4Kernel*>    kid_map;        //TODO: hash_map
         std::map<SiD, r4Session*>   sid_map;        //TODO: hash_map
 
+        // --------
+
+        r4Kernel*  find_kernel  (KiD kid) const;
+        r4Session* find_session (SiD sid) const;
+
     } local;
 
     // --------------------------------
 
-    pthread_t                       os_thread;
-    TiD                             tid;
+    pthread_t       os_thread;
+    TiD             tid;
+    bool            _event_loop_running;
 
     struct Sched {
 

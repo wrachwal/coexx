@@ -4,19 +4,16 @@
 #define __COE_CONFIG_H
 
 // =======================================================================
-// CoeConfig
+// Config
 
-struct CoeConfig {
+struct Config {
 
-    CoeConfig ();
+    Config ();
 
-    int time_signo;     // signal notification on timer expiry
-    int kick_signo;     // signal to break blocked I/O
+    static bool initialize (Config& config);
+
+    //TODO: default priorities for external events
 };
-
-// -----------------------------------------------------------------------
-
-bool coe_init (CoeConfig& cfg);
 
 // =======================================================================
 

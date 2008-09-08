@@ -4,15 +4,9 @@
 #include "coe-kernel--r4k.h"
 #include "coe-kernel--s4k.h"
 #include "coe-session--r4s.h"
-
-#include <assert.h>
-
-#include <deque>    // g_Queue
+#include <cassert>
 
 using namespace std;
-
-//TODO: event queue, thread (local or foreign) level
-static deque<EvCommon*> g_Queue;
 
 // -----------------------------------------------------------------------
 
@@ -113,30 +107,18 @@ StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
 
 bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
 {
-    auto_ptr<EvMsg> evmsg(new EvMsg(ev, arg, _current_context));
+    // assertions confirm what have been validated by a caller
+    assert(NULL != _thread);
+    assert(to.valid());
 
-    //TODO:
-    // case 1) `to' is local
-    // case 2) `to' is foreign
+    EvMsg*  evmsg = new EvMsg(ev, arg, _current_context);
 
-    map<SiD, r4Session*>::iterator  sp = _thread->local.sid_map.find(to);
-    if (sp == _thread->local.sid_map.end()) {
-        //errno = ???
-        return false;
+    if (to.kid() == _kid || NULL != _thread->local.find_kernel(to.kid())) {
+        return d4Thread::post_event(_thread, to, evmsg);
     }
-
-    evmsg->_target = (*sp).second;
-
-    ::g_Queue.push_back(evmsg.release());
-
-    return true;
-}
-
-// -----------------------------------------------------------------------
-
-bool r4Kernel::yield__arg (const std::string& ev, PostArg* arg)
-{
-    return post__arg(_current_context.session->_sid, ev, arg);
+    else {
+        return d4Thread::post_event(NULL, to, evmsg);
+    }
 }
 
 // -----------------------------------------------------------------------
@@ -258,7 +240,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 {
-    StateCmd* cmd = find_state_handler(evmsg->_target->_sid.id(), evmsg->_name);
+    StateCmd* cmd = find_state_handler(evmsg->target()->_sid.id(), evmsg->name());
     if (NULL == cmd) {
         //TODO: call session's default error handling, like _default in POE?
         return;
@@ -266,31 +248,20 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 
     CCScope __scope(_current_context);
 
-    _current_context.session = evmsg->_target;
-    _current_context.state   = evmsg->_name;
+    _current_context.session = evmsg->target();
+    _current_context.state   = evmsg->name();
 
     EvCtx   ctx(*_handle, *_current_context.session->_handle);
 
     set_heap_ptr(ctx);
     ctx.state        = _current_context.state;
-    ctx.sender       = evmsg->_sender;
-    ctx.sender_state = evmsg->_sender_state;
+    ctx.sender       = evmsg->sender();
+    ctx.sender_state = evmsg->sender_state();
 
-    cmd->execute(ctx, NULL, 0, evmsg->_arg);
+    cmd->execute(ctx, NULL, 0, evmsg->arg());
 
     //TODO: decrement sender's ref-count
-}
 
-// -----------------------------------------------------------------------
-
-void r4Kernel::run_event_loop ()
-{
-    //TODO
-    while (! ::g_Queue.empty()) {
-        EvCommon*   ev = ::g_Queue.front();
-        ::g_Queue.pop_front();
-        ev->dispatch();
-        delete ev;
-    }
+    delete evmsg;
 }
 

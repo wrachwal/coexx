@@ -158,6 +158,7 @@ private:
 
 struct TimeSpec : public timespec {
              TimeSpec ()                      { tv_sec = 0;   tv_nsec = 0; }
+    explicit TimeSpec (const timespec& ts);
     explicit TimeSpec (double sec);
     explicit TimeSpec (time_t sec)            { tv_sec = sec; tv_nsec = 0; }
              TimeSpec (time_t sec, long nsec) { tv_sec = sec; tv_nsec = nsec; }

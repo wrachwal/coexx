@@ -25,14 +25,26 @@ struct SessionContext {
 class EvCommon {
 public:
     virtual ~EvCommon ();
+
     virtual void dispatch () = 0;
+
+    const std::string& name () const { return _name; }
+    PostArg*            arg () const { return _arg; }
+
+    r4Session* target () const { return _target; }
+    void       target (r4Session* session);
+
+    short prio_order () const { return _prio_order; }
+    void  prio_order (int po);
+
 protected:
     EvCommon (const std::string& name, PostArg* arg);
+
     friend struct EvCommonList;
     dLink<EvCommon> _link_queue;
-//private:
-public:
+
     r4Session*  _target;
+    short       _prio_order;    // [ -1, 0 .. PQLen )
     std::string _name;
     PostArg*    _arg;
 };
@@ -50,8 +62,16 @@ class EvMsg : public EvCommon {
 public:
     EvMsg (const std::string& name, PostArg* arg, SessionContext& cc);  // post
     EvMsg (const std::string& name, PostArg* arg);                 // anon_post
+
+    SiD                sender       () const { return _sender; }
+    const std::string& sender_state () const { return _sender_state; }
+
     /*final*/ void dispatch ();
-//private:
+
+    void       source (r4Session* r4s);
+    r4Session* source () const { return _source; }
+
+private:
     r4Session*  _source;
     SiD         _sender;
     std::string _sender_state;
@@ -63,9 +83,11 @@ public:
 class EvAlarm : public EvCommon {
 public:
     EvAlarm (const std::string& name, PostArg* arg, SessionContext& cc);
+
     /*final*/ void dispatch ();
-//private:
-    //AiD       _alarm_id;
+
+private:
+    AiD         _aid;
     TimeSpec    _time_due;
 };
 
@@ -75,10 +97,12 @@ public:
 class EvIO : public EvCommon {
 public:
     EvIO (const std::string& name, PostArg* arg, SessionContext& cc);
+
     /*final*/ void dispatch ();
-//private:
-    int     _fd;
-    IO_Mode _mode;
+
+private:
+    int         _fd;
+    IO_Mode     _mode;
 };
 
 // =======================================================================
