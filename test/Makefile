@@ -1,4 +1,4 @@
-# test/Makefile
+# $Id$
 
 UNAME := $(shell uname -o)
 

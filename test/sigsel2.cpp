@@ -1,4 +1,6 @@
-// sigsel2.cpp -- posix timers (SIGEV_THREAD), signals, and select
+// $Id$
+
+// posix timers (SIGEV_THREAD), signals, and select
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // ***** IMPORTANT NOTE *****

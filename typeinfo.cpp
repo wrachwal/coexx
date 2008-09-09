@@ -1,4 +1,4 @@
-// typeinfo.cpp
+// $Id$
 
 #include <typeinfo>
 #include <vector>

@@ -1,4 +1,4 @@
-// dynacall.cpp
+// $Id$
 
 #include "coe-session.h"
 #include "coe-thread.h"

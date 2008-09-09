@@ -1,4 +1,6 @@
-// sigsel1.cpp -- posix timers (SIGEV_SIGNAL), signals, and select
+// $Id$
+
+// posix timers (SIGEV_SIGNAL), signals, and select
 
 #include <iostream>
 #include <cerrno>
