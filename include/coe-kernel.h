@@ -1,5 +1,27 @@
 // coe-kernel.h
 
+/*************************************************************************
+Copyright (c) 2008 Waldemar Rachwal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*************************************************************************/
+
 #ifndef __COE_KERNEL_H
 #define __COE_KERNEL_H
 
@@ -35,7 +57,7 @@ public:
     static Kernel& create_new ();
 
     void run_event_loop ();
-    bool run_event_loop (TiD tid);
+    bool run_event_loop (TiD tid);  // transfer to `tid' thread
 
     SiD start_session (Session*);
 
@@ -57,12 +79,6 @@ public:
 
     /*
      * Name-Based Timers
-     * =================
-     * alarm     (EV_NAME)                          -- reset
-     * alarm     (EV_NAME, ABS_TIME[, PARAM...])
-     * alarm_add (EV_NAME, ABS_TIME[, PARAM...])
-     * delay     (EV_NAME, DURATION_SECS[, PARAM...])
-     * delay_add (EV_NAME, DURATION_SECS[, PARAM...])
      */
     bool alarm     (const std::string ev);          // reset
     bool alarm     (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
@@ -72,20 +88,20 @@ public:
 
     /*
      * Identifier-Based Timers
-     * =======================
-     * alarm_remove_all ()
-     * alarm_remove (TID)
-     * alarm_set    (EV_NAME, EPOCH_TIME[, PARAM...])
-     * alarm_adjust (TID, DELTA_SECS)
-     * delay_set    (EV_NAME, DURATION_SECS[, PARAM...])
-     * delay_adjust (EV_NAME, SECS_FROM_NOW)
      */
+    AiD  alarm_remove (AiD aid);                    // reset
+    AiD  alarm_set    (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
+    bool alarm_adjust (AiD aid, TimeSpec delta_secs);
+    AiD  delay_set    (const std::string ev, TimeSpec duration, PostArg* pp=0);
+    bool delay_adjust (AiD aid, TimeSpec secs_from_now);
+
+    void alarm_remove_all ();
 
     /*
      * select        (FD, MODE)                 -- reset
      * select        (FD, MODE, EV_NAME[, PARAM...])
-     * select_pause  (FD, MODE)                 ## MODE := IO_read | IO_write
-     * select_resume (FD, MODE)                 ## MODE := IO_read | IO_write
+     * select_pause  (FD, MODE)
+     * select_resume (FD, MODE)
      */
     bool select (int fd, IO_Mode mode);         // reset
     bool select (int fd, IO_Mode mode, const std::string ev, PostArg* pp=0);
@@ -120,7 +136,7 @@ public:
     std::string state;
     SiD         sender;
     std::string sender_state;
-    //TODO:     timer;      // set if timer event
+    //TODO:     alarm_id;   // set if timer event
 private:
     friend struct r4Kernel;
     EvCtx (Kernel& k, Session& s);
@@ -157,12 +173,32 @@ private:
 // TimeSpec
 
 struct TimeSpec : public timespec {
-             TimeSpec ()                      { tv_sec = 0;   tv_nsec = 0; }
+             TimeSpec ()                      { tv_sec = tv_nsec = 0; }
     explicit TimeSpec (const timespec& ts);
     explicit TimeSpec (double sec);
     explicit TimeSpec (time_t sec)            { tv_sec = sec; tv_nsec = 0; }
              TimeSpec (time_t sec, long nsec) { tv_sec = sec; tv_nsec = nsec; }
+
+    static TimeSpec ZERO () { return TimeSpec(); }
+
+    int compare (const TimeSpec& rhs) const;    // [ -1, 0, 1 ]
+
+    TimeSpec& operator+= (const TimeSpec& add);
+    TimeSpec& operator-= (const TimeSpec& sub);
 };
+
+// ------------------------------------
+
+bool operator== (const TimeSpec& lhs, const TimeSpec& rhs);
+bool operator!= (const TimeSpec& lhs, const TimeSpec& rhs);
+
+bool operator<  (const TimeSpec& lhs, const TimeSpec& rhs);
+bool operator<= (const TimeSpec& lhs, const TimeSpec& rhs);
+bool operator>  (const TimeSpec& lhs, const TimeSpec& rhs);
+bool operator>= (const TimeSpec& lhs, const TimeSpec& rhs);
+
+TimeSpec operator+ (const TimeSpec& lhs, const TimeSpec& rhs);
+TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs);
 
 // =======================================================================
 // vparam (p1[, ...])

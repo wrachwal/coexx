@@ -1,23 +1,92 @@
 // coe-session--r4s.h
 
+/*************************************************************************
+Copyright (c) 2008 Waldemar Rachwal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*************************************************************************/
+
 #ifndef __COE_SESSION__R4S_H
 #define __COE_SESSION__R4S_H
 
+#include "coe--event.h"
+#include "coe--util.h"
+#include <functional>
+
 // =======================================================================
+// r4Session
 
 struct r4Session {  //TODO: derive from... `Resource'
 
     Session*    _handle;
-
     SiD         _sid;
+
     void*       _heap;
 
     r4Kernel*   _kernel;
-    r4Session*  _parent;
-    //TODO:     _list_children;
+
+    // related sessions
+    r4Session*          _parent;
+    dList<void, 0>      _list_children;
+
+    // alarms
+    IdentGenerator<AiD> _aid_generator;
+    EvAlarmStore::List  _list_alarm;
+
+    // --------------------------------
 
     r4Session ();
     void release_resource ();
+
+private:
+    friend struct r4SessionStore;
+    dLink<r4Session>    _link_children;
+};
+
+// ------------------------------------
+
+struct r4SessionStore {
+    typedef dList<r4Session, offsetof(r4Session, _link_children)> ChildrenList;
+
+    // -Wno-strict-aliasing
+    static ChildrenList& list_children (r4Session& session)
+        { return reinterpret_cast<ChildrenList&>(session._list_children); }
+};
+
+// -----------------------------------------------------------------------
+// AiDExistsPred
+
+class AiDExistsPred : public std::unary_function<AiD, bool> {
+public:
+    AiDExistsPred (EvAlarmStore::List& list) : _list(list) {}
+    bool operator() (AiD aid) const
+        {
+            EvAlarmStore::List::iterator i = _list.begin();
+            while (i != _list.end()) {
+                if ((*i)->aid() == aid)
+                    return true;
+                ++ i;
+            }
+            return false;
+        }
+private:
+    EvAlarmStore::List& _list;
 };
 
 // =======================================================================

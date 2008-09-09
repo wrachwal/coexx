@@ -1,5 +1,27 @@
 // coe-kernel.cpp
 
+/*************************************************************************
+Copyright (c) 2008 Waldemar Rachwal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*************************************************************************/
+
 #include "coe-kernel.h"
 #include "coe-kernel--r4k.h"
 #include "coe-session.h"
@@ -84,6 +106,16 @@ bool user_evname (const string& ev)
     return true;
 }
 
+static inline
+bool delay_gt0 (const TimeSpec& ts)
+{
+    if (ts <= TimeSpec::ZERO()) {
+        // errno = ???
+        return false;
+    }
+    return true;
+}
+
 // -----------------------------------------------------------------------
 
 bool Kernel::anon_post (SiD to, const string& ev, PostArg* vp)
@@ -118,6 +150,8 @@ bool Kernel::yield (const string& ev, PostArg* vp)
     return _r4kernel->post__arg(to, ev, vp);
 }
 
+// -----------------------------------------------------------------------
+
 bool Kernel::call (SiD on, const string& ev, CallArg* rp)
 {
     if (! kernel_attached(_r4kernel) || ! target_valid(on) || ! user_evname(ev)) {
@@ -126,6 +160,23 @@ bool Kernel::call (SiD on, const string& ev, CallArg* rp)
     }
     return _r4kernel->call__arg(on, ev, rp);
 }
+
+// -----------------------------------------------------------------------
+
+AiD Kernel::delay_set (const string ev, TimeSpec duration, PostArg* pp)
+{
+    if (! kernel_attached(_r4kernel) || ! delay_gt0(duration) || ! user_evname(ev)) {
+        delete pp;
+        return AiD::NONE();
+    }
+    return _r4kernel->_thread->create_alarm(
+                                    d4Thread::_DELAY_SET,
+                                    duration,
+                                    new EvAlarm(ev, pp, _r4kernel->_current_context)
+                                );
+}
+
+// -----------------------------------------------------------------------
 
 bool Kernel::select (int fd, IO_Mode mode, const string ev, PostArg* vp)
 {
