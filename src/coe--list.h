@@ -33,9 +33,9 @@ THE SOFTWARE.
 
 template<class T>
 struct dLink {
-    dLink () : prev(NULL), next(NULL) {}
-    T*  prev;
+    dLink () : next(NULL), prev(NULL) {}
     T*  next;
+    T*  prev;
 };
 
 // -----------------------------------------------------------------------
@@ -43,13 +43,13 @@ struct dLink {
 template<class T, size_t LinkOffset>
 struct dList {
 
-    dList () : head(NULL), tail(NULL), count(0) {}
+    dList () : _head(NULL), _tail(NULL), _size(0) {}
 
-    bool  empty () const { return 0 == count; }
-    size_t size () const { return count; }
+    bool  empty () const { return 0 == _size; }
+    size_t size () const { return _size; }
 
-    T* peek_head () const { return head; }
-    T* peek_tail () const { return tail; }
+    T* peek_head () const { return _head; }
+    T* peek_tail () const { return _tail; }
 
     T* get_head ();
     T* get_tail ();
@@ -71,7 +71,7 @@ struct dList {
     class iterator : public std::iterator<std::forward_iterator_tag, T*> {
     public:
         iterator () : _data(0), _list(0) {}         // STL
-        iterator (dList& list) : _data(list.head), _list(&list) {}
+        iterator (dList& list) : _data(list._head), _list(&list) {}
         operator bool () const { return 0 != _data; }
         operator T* () const { return _data; }
         T* operator-> () const { return _data; }
@@ -100,7 +100,7 @@ struct dList {
         void _move_next ()
             {
                 _data = _link(_data)->next;
-                if (_data == _list->head)
+                if (_data == _list->_head)
                     _data = 0;
             }
         T*      _data;
@@ -139,14 +139,14 @@ private:
         {
             _link(data)->prev =
             _link(data)->next = NULL;
-            head =
-            tail = NULL;
+            _head =
+            _tail = NULL;
         }
 
     // ------------
-    T*      head;
-    T*      tail;
-    size_t  count;
+    T*      _head;
+    T*      _tail;
+    size_t  _size;
 };
 
 // -----------------------------------------------------------------------
@@ -155,13 +155,13 @@ private:
 template<>
 struct dList<void, 0> {
 
-    dList () : head(NULL), tail(NULL), count(0) {}
+    dList () : _head(NULL), _tail(NULL), _size(0) {}
 
     // This is important the specialization to have same layout of member data
     // ------------
-    void*   head;
-    void*   tail;
-    size_t  count;
+    void*   _head;
+    void*   _tail;
+    size_t  _size;
 };
 
 // =======================================================================
@@ -169,16 +169,16 @@ struct dList<void, 0> {
 template<class T, size_t LinkOffset>
 T* dList<T, LinkOffset>::get_head ()
 {
-    T*  data = head;
+    T*  data = _head;
     if (data) {
-        if (1 == count) {
+        if (1 == _size) {
             _remove_thelast(data);
         }
         else {
-            head = _link(data)->next;
+            _head = _link(data)->next;
             _remove_element(data);
         }
-        -- count;
+        -- _size;
     }
     return data;
 }
@@ -186,16 +186,16 @@ T* dList<T, LinkOffset>::get_head ()
 template<class T, size_t LinkOffset>
 T* dList<T, LinkOffset>::get_tail ()
 {
-    T*  data = tail;
+    T*  data = _tail;
     if (data) {
-        if (1 == count) {
+        if (1 == _size) {
             _remove_thelast(data);
         }
         else {
-            tail = _link(data)->prev;
+            _tail = _link(data)->prev;
             _remove_element(data);
         }
-        -- count;
+        -- _size;
     }
     return data;
 }
@@ -206,15 +206,15 @@ void dList<T, LinkOffset>::put_head (T* data)
     if (data) {
         assert(NULL == _link(data)->next);
         assert(NULL == _link(data)->prev);
-        if (head) {
-            _insert_element(data, tail, head);
-            head = data;
+        if (_head) {
+            _insert_element(data, _tail, _head);
+            _head = data;
         }
         else {  // empty list
             _insert_element(data);
-            head = tail = data;
+            _head = _tail = data;
         }
-        ++ count;
+        ++ _size;
     }
 }
 
@@ -224,15 +224,15 @@ void dList<T, LinkOffset>::put_tail (T* data)
     if (data) {
         assert(NULL == _link(data)->next);
         assert(NULL == _link(data)->prev);
-        if (head) {
-            _insert_element(data, tail, head);
-            tail = data;
+        if (_head) {
+            _insert_element(data, _tail, _head);
+            _tail = data;
         }
         else {  // empty list
             _insert_element(data);
-            head = tail = data;
+            _head = _tail = data;
         }
-        ++ count;
+        ++ _size;
     }
 }
 
@@ -244,19 +244,19 @@ T* dList<T, LinkOffset>::remove (T* data)
         assert(_link(_link(data)->prev)->next == data);
         assert(_link(_link(data)->next)->prev == data);
         // therefore the following can show up inconsistency later
-        assert(count > 0);
+        assert(_size > 0);
 
-        if (1 == count) {
+        if (1 == _size) {
             _remove_thelast(data);
         }
         else {
-            if (head == data)
-                head = _link(data)->next;
-            if (tail == data)
-                tail = _link(data)->prev;
+            if (_head == data)
+                _head = _link(data)->next;
+            if (_tail == data)
+                _tail = _link(data)->prev;
             _remove_element(data);
         }
-        -- count;
+        -- _size;
     }
     return data;
 }

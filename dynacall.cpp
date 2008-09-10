@@ -111,7 +111,7 @@ private:
 
 void type_info_show ();
 
-void test_coe ()
+void test_my_house ()
 {
     Kernel& kernel = Kernel::create_new();
 
@@ -175,14 +175,44 @@ void test_coe ()
     }
 }
 
-// ------------------------------------
+// =======================================================================
+
+class MyClock : public Session {
+public:
+    static SiD spawn (Kernel& kernel)
+        {
+            return kernel.start_session(new MyClock);
+        }
+private:
+    void _start (EvCtx& ctx)
+        {
+            ctx.kernel.yield("next");
+            ctx.kernel.state("next", handler(*this, &MyClock::next));
+        }
+    void next (EvCtx& ctx)
+        {
+            cout << "tick... (from " << ctx.sender_state << ")" << endl;
+            ctx.kernel.delay_set("next", TimeSpec(1, 0));
+        }
+};
+
+static void test_my_clock ()
+{
+    Kernel& kernel = Kernel::create_new();
+    MyClock::spawn(kernel);
+    kernel.run_event_loop();
+}
+
+// =======================================================================
 
 int main ()
 {
     // type_info_show();
     cout << string(75, '#') << endl;
 
-    test_coe();
+    //test_my_house();
+    test_my_clock();
+
     cout << "# DONE." << endl;
 
     return 0;

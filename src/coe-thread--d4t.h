@@ -28,12 +28,12 @@ THE SOFTWARE.
 #include "coe-sys.h"
 #include "coe--event.h"
 #include "coe--util.h"
-#include <map>
 
 struct r4Kernel;
 struct r4Session;
 
 // =======================================================================
+// d4Thread
 
 struct d4Thread {
 
@@ -43,13 +43,17 @@ struct d4Thread {
     void      enque_event (EvCommon* ev);
     EvCommon* deque_event ();
 
+    static TimeSpec get_current_time ();
+
+    void _queue_expired_alarms();
+
     static bool anon_post_event (                 SiD to, EvMsg* evmsg);
     static bool      post_event (d4Thread* local, SiD to, EvMsg* evmsg);
 
     enum SetupAlarmMode {
         _DELAY_SET
     };
-    AiD create_alarm (SetupAlarmMode mode, TimeSpec spec, EvAlarm* evalm);
+    AiD create_alarm (SetupAlarmMode mode, const TimeSpec& spec, EvAlarm* evalm);
 
     static d4Thread* get_tls_data ();
     static void      set_tls_data (d4Thread* d4t);
@@ -128,6 +132,11 @@ struct d4Thread {
         TimeSpec    timestamp;
 
     } sched;
+
+    /*
+     * alarms
+     */
+    DueSidAid_Map   _dsa_map;
 };
 
 // =======================================================================

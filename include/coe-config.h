@@ -34,7 +34,10 @@ struct Config {
 
     static bool initialize (Config& config);
 
-    //TODO: default priorities for external events
+    //TODO: default priorities for "external" events
+    //      i.e. I/O, alarms, and posted events.
+
+    int session_alarms_threshold;   //TODO: list/map book-keeping of alarms
 };
 
 // =======================================================================

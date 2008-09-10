@@ -25,15 +25,20 @@ THE SOFTWARE.
 #ifndef __COE__EVENT_H
 #define __COE__EVENT_H
 
-#include "coe-kernel.h"     // IO_Mode
+#include "coe-kernel.h"         // IO_Mode
 #include "coe--list.h"
+#include <map>
 
-class PostArg;
-struct r4kernel;
-struct r4Session;
+// forward(s)
+class EvCommon;
+    class EvMsg;
+    class EvAlarm;
+    class EvIO;
 
 // -----------------------------------------------------------------------
 // SessionContext
+
+struct r4Session;
 
 struct SessionContext {
     SessionContext () : session(NULL) {}
@@ -41,8 +46,33 @@ struct SessionContext {
     std::string state;
 };
 
+// -----------------------------------------------------------------------
+// DueSidAid_Key
+
+struct DueSidAid_Key {
+    DueSidAid_Key () {}
+    DueSidAid_Key (const TimeSpec& d, const SiD& s, AiD a)
+        : due(d), sid(s), aid(a) {}
+    bool operator< (const DueSidAid_Key& rhs) const
+        {
+            return due < rhs.due || (due == rhs.due
+                && sid < rhs.sid || (sid == rhs.sid
+                && aid < rhs.aid));
+        }
+    // ------------
+    TimeSpec    due;
+    SiD         sid;
+    AiD         aid;
+};
+
+// ------------------------------------
+
+typedef std::map<DueSidAid_Key, EvAlarm*>   DueSidAid_Map;
+
 // =======================================================================
 // EvCommon
+
+class PostArg;
 
 class EvCommon {
 public:
@@ -87,6 +117,7 @@ class EvMsg : public EvCommon {
 public:
     EvMsg (const std::string& name, PostArg* arg, SessionContext& cc);  // post
     EvMsg (const std::string& name, PostArg* arg);                 // anon_post
+    ~EvMsg ();
 
     /*final*/ void dispatch ();
 
@@ -106,6 +137,7 @@ private:
 class EvAlarm : public EvCommon {
 public:
     EvAlarm (const std::string& name, PostArg* arg, SessionContext& cc);
+    ~EvAlarm ();
 
     /*final*/ void dispatch ();
 
@@ -115,12 +147,16 @@ public:
     void            time_due (TimeSpec& abs_time);
     const TimeSpec& time_due () const { return _time_due; }
 
+    void                    dsa_iter (DueSidAid_Map::iterator iter);
+    DueSidAid_Map::iterator dsa_iter () const { return _dsa_iter; }
+
 private:
     friend struct EvAlarmStore;
     dLink<EvAlarm> _link_alarm;
 
-    AiD         _aid;
-    TimeSpec    _time_due;
+    AiD                     _aid;
+    TimeSpec                _time_due;
+    DueSidAid_Map::iterator _dsa_iter;
 };
 
 // ------------------------------------

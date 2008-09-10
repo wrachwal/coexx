@@ -99,6 +99,7 @@ SiD r4Kernel::start_session (Session* s)
     CCScope __scope(_current_context);
 
     _current_context.session = r4s;
+    _current_context.state   = ".start";
 
     EvCtx   ctx(*_handle, *s);
 
@@ -265,6 +266,7 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
     StateCmd* cmd = find_state_handler(evmsg->target()->_sid.id(), evmsg->name());
     if (NULL == cmd) {
         //TODO: call session's default error handling, like _default in POE?
+        delete evmsg;
         return;
     }
 
@@ -285,5 +287,40 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
     //TODO: decrement sender's ref-count
 
     delete evmsg;
+}
+
+// -----------------------------------------------------------------------
+
+void r4Kernel::dispatch_alarm (EvAlarm* alarm)
+{
+    r4Session*  session = alarm->target();
+
+    StateCmd* cmd = find_state_handler(session->_sid.id(), alarm->name());
+    if (NULL == cmd) {
+        //TODO: call session's default error handling, like _default in POE?
+        delete alarm;
+        return;
+    }
+
+    CCScope __scope(_current_context);
+
+    _current_context.session = session;
+    _current_context.state   = alarm->name();
+
+    EvCtx   ctx(*_handle, *_current_context.session->_handle);
+
+    set_heap_ptr(ctx);
+    ctx.state        = _current_context.state;
+    ctx.sender       = session->_sid;
+    ctx.sender_state = alarm->sender_state();
+
+    cmd->execute(ctx, NULL, 0, alarm->arg());
+
+    //TODO: decrement sender's ref-count
+
+    session->_list_alarm.remove(alarm);
+
+    //TODO: re-schedule periodic alarm
+    delete alarm;
 }
 

@@ -79,6 +79,8 @@ void d4Thread::run_event_loop ()
     if (! _event_loop_running) {
         _event_loop_running = true;
 
+        sched.timestamp = get_current_time();
+
         EvCommon*   ev;
         while ((ev = deque_event()) != NULL) {
             ev->dispatch();
@@ -141,15 +143,65 @@ EvCommon* d4Thread::deque_event ()
     }
     else {
 
-        while (sched.pqueue.empty()) {  // test predicate
-            //TODO: wait/timedwait
-            sched.cond.wait(guard);
+        if (_dsa_map.empty()) {
+            while (sched.pqueue.empty()) {  // test predicate
+                sched.cond.wait(guard);
+            }
+        }
+        else {
+            TimeSpec due = (*_dsa_map.begin()).first.due;
+            while (sched.pqueue.empty()) {  // test predicate
+                //FIXME: what clock is being used??!!
+                if (! sched.cond.timedwait(guard, due)) {
+                    _queue_expired_alarms();
+                }
+            }
         }
 
         sched.state = Sched::BUSY;
 
         return sched.pqueue.get_head();
     }
+}
+
+TimeSpec d4Thread::get_current_time ()
+{
+    //
+    //FIXME:
+    //  1) There is no CLOCK_MONOTONIC #define on Solaris.
+    //  2) On Linux it is but clock_gettime() fails with 'Invalid argument' errno :(
+    //  On these systems and on Cygwin CLOCK_REALTIME seems to be in SYNC
+    //  with what pthread_cond_timedwait() expects when condvar is default,
+    //  i.e. created without any specific attributes (like setting clock type,
+    //  the option not available everywhere).
+    //
+    clockid_t   clock_id = CLOCK_REALTIME;
+    TimeSpec    now;
+    if (clock_gettime(clock_id, &now) != 0) {
+        //TODO
+        perror("clock_gettime");
+        abort();
+    }
+    return now;
+}
+
+void d4Thread::_queue_expired_alarms ()     // --@@--
+{
+    sched.timestamp = get_current_time();
+
+    // add 1ns to construct fine upper bound key
+    TimeSpec    upr_due = sched.timestamp + TimeSpec(0, 1);
+
+    DueSidAid_Map::iterator upr =
+        _dsa_map.upper_bound(DueSidAid_Key(upr_due, SiD::NONE(), AiD::NONE()));
+
+    assert(upr != _dsa_map.begin());
+
+    for (DueSidAid_Map::iterator i = _dsa_map.begin(); i != upr; ++i) {
+        sched.pqueue.put_tail((*i).second);
+    }
+
+    _dsa_map.erase(_dsa_map.begin(), upr);  // complexity at most O(log(size()) + N)
 }
 
 // -----------------------------------------------------------------------
@@ -216,11 +268,42 @@ bool d4Thread::post_event (d4Thread* local, SiD to, EvMsg* evmsg)
 
 // -----------------------------------------------------------------------
 
-AiD d4Thread::create_alarm (SetupAlarmMode mode, TimeSpec spec, EvAlarm* evalm)
+AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* evalm)
 {
     r4Session*  session = evalm->target();
-    //TODO
-    return AiD::NONE();
+    assert(NULL != session);
+
+    // generate unique `aid' for the alarm event
+    AiD aid = session->_aid_generator.generate_next(
+                    AiDExistsPred(session->_list_alarm)
+                );
+    evalm->aid(aid);
+
+    // calculate time `due' (optionally remove name-based alarms)
+    TimeSpec    due;
+
+    if (mode == _DELAY_SET) {
+        due = sched.timestamp + ts;
+    }
+    else {
+        assert(0);
+        return AiD::NONE();
+    }
+    evalm->time_due(due);
+
+    // insert alarm event in due/sid/aid map (sorted by time due--main index)
+    DueSidAid_Key   dsa(due, session->_sid, aid);
+
+    pair<DueSidAid_Map::iterator, bool> insert =
+        _dsa_map.insert(DueSidAid_Map::value_type(dsa, evalm));
+    assert(true == insert.second);
+
+    evalm->dsa_iter(insert.first);  // store iterator for fast removal
+
+    // add event to list in session (event's owner)
+    session->_list_alarm.put_head(evalm);
+
+    return aid;
 }
 
 // -----------------------------------------------------------------------

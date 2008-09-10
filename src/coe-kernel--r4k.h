@@ -71,6 +71,7 @@ struct r4Kernel {
     void state__cmd (const std::string& ev, StateCmd* cmd);
 
     void dispatch_evmsg (EvMsg* evmsg);
+    void dispatch_alarm (EvAlarm* alarm);
 };
 
 // =======================================================================

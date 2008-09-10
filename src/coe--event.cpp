@@ -76,6 +76,10 @@ EvMsg::EvMsg (const string& name, PostArg* arg)
 {
 }
 
+EvMsg::~EvMsg ()
+{
+}
+
 void EvMsg::source (r4Session* session)
 {
     assert(NULL == _link_queue.next);
@@ -97,6 +101,11 @@ EvAlarm::EvAlarm (const string& name, PostArg* arg, SessionContext& cc)
     _sender_state = cc.state;
 }
 
+EvAlarm::~EvAlarm ()
+{
+    assert(NULL == _link_alarm.next);
+}
+
 void EvAlarm::aid (AiD a)
 {
     assert(NULL == _link_queue.next);
@@ -109,9 +118,15 @@ void EvAlarm::time_due (TimeSpec& abs_time)
     _time_due = abs_time;
 }
 
+void EvAlarm::dsa_iter (DueSidAid_Map::iterator iter)
+{
+    assert(NULL == _link_queue.next);
+    _dsa_iter = iter;
+}
+
 void EvAlarm::dispatch ()
 {
-    //TODO: _target->_kernel->dispatch_alarm(this);
+    _target->_kernel->dispatch_alarm(this);
 }
 
 // =======================================================================
