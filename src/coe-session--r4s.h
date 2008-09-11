@@ -1,7 +1,7 @@
 // $Id$
 
 /*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal
+Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ THE SOFTWARE.
 // =======================================================================
 // r4Session
 
-struct r4Session {  //TODO: derive from... `Resource'
+struct r4Session {
 
     Session*    _handle;
     SiD         _sid;
@@ -52,6 +52,8 @@ struct r4Session {  //TODO: derive from... `Resource'
     // --------------------------------
 
     r4Session ();
+    ~r4Session ();
+
     void release_resource ();
 
 private:

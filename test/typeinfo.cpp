@@ -77,7 +77,7 @@ public:
 
 // =======================================================================
 
-void type_info_show ()
+static void type_info_show ()
 {
     TI  Tinfo[] = {
         make_TI(void),
@@ -192,5 +192,13 @@ void type_info_show ()
         }
     }
     cout << endl;
+}
+
+// =======================================================================
+
+int main ()
+{
+    type_info_show();
+    return 0;
 }
 

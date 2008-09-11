@@ -1,7 +1,7 @@
 // $Id$
 
 /*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal
+Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef __COE_IDENT_H
 #define __COE_IDENT_H
 
+#include <ostream>
+
 // =======================================================================
 // TiD -- thread identity
 
@@ -46,6 +48,10 @@ private:
     IntType _t;
 };
 
+// ----------------
+
+std::ostream& operator<< (std::ostream& os, TiD tid);
+
 // -----------------------------------------------------------------------
 // KiD -- kernel identity
 
@@ -66,6 +72,10 @@ public:
 private:
     IntType _k;
 };
+
+// ----------------
+
+std::ostream& operator<< (std::ostream& os, KiD kid);
 
 // =======================================================================
 // SiD -- session identity
@@ -94,6 +104,10 @@ private:
     KiD     _k;
 };
 
+// ----------------
+
+std::ostream& operator<< (std::ostream& os, const SiD& sid);
+
 // -----------------------------------------------------------------------
 // AiD -- alarm identity (per session resource)
 
@@ -114,6 +128,10 @@ public:
 private:
     IntType _a;
 };
+
+// ----------------
+
+std::ostream& operator<< (std::ostream& os, AiD aid);
 
 // =======================================================================
 

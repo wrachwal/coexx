@@ -1,7 +1,7 @@
 // $Id$
 
 /*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal
+Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,11 @@ Kernel& Kernel::create_new ()
 {
     Kernel* pKernel = new Kernel;
     return *pKernel;
+}
+
+KiD Kernel::ID () const
+{
+    return _r4kernel ? _r4kernel->_kid : KiD::NONE();
 }
 
 SiD Kernel::start_session (Session* s)

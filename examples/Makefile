@@ -17,7 +17,7 @@ endif
 
 VPATH = $(subst  ,:,${inc_dirs})
 
-programs := typeinfo list cond sigsel1 sigsel2
+programs := myhouse tick
 
 objects := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
@@ -34,21 +34,10 @@ lib:
 
 $(library): lib
 
-typeinfo: typeinfo.o $(library)
+myhouse: myhouse.o $(library)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-list: list.o
-	$(CXX) -o $@ $^ $(LDFLAGS)
-
-cond: cond.o $(library)
-	$(CXX) -o $@ $^ $(LDFLAGS)
-
-cond.o: CXXFLAGS += -Wno-missing-braces
-
-sigsel1: sigsel1.o
-	$(CXX) -o $@ $^ $(LDFLAGS)
-
-sigsel2: sigsel2.o
+tick: tick.o $(library)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 clean:

@@ -1,7 +1,7 @@
 // $Id$
 
 /*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal
+Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,15 +37,13 @@ r4Session::r4Session ()
     _heap   = NULL;
     _kernel = NULL;
     _parent = NULL;
+}
 
-#if 1
-    for (int i = 0; i < 5; ++i)
-        cout << "[" << i << "] ++aid --> "
-             << _aid_generator.generate_next(AiDExistsPred(_list_alarm)).id() << endl;
-
-    r4SessionStore::list_children(*this);
-    cout << "_link_children at offset " << r4SessionStore::ChildrenList::_LINK_OFFSET << endl;
-#endif
+r4Session::~r4Session ()
+{
+    assert(r4SessionStore::list_children(*this).empty());
+    assert(NULL == _link_children.next);
+    //TODO: any cleanup?
 }
 
 void r4Session::release_resource ()

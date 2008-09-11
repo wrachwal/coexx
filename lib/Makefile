@@ -2,57 +2,41 @@
 
 UNAME := $(shell uname -o)
 
-INC_DIRS = ../include ../src
-SRC_DIRS = ..
+inc_dirs := ../include ../src
 
 CXX = g++
-
 CXX += -MMD
-CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${INC_DIRS}) \
-  -Wno-invalid-offsetof -Wno-strict-aliasing
+
+CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${inc_dirs}) \
+  	    -Wno-invalid-offsetof -Wno-strict-aliasing
 
 ifeq ($(UNAME),Solaris)
   CXXFLAGS += -D_POSIX_C_SOURCE
   LDFLAGS  += -lpthread -lrt
 endif
 
-VPATH = $(subst  ,:,${INC_DIRS} ${SRC_DIRS})
+VPATH = $(subst  ,:,${inc_dirs})
 
-program = dynacall
+library := libcoe.a
 
-.DEFAULT: $(program)
+objects := $(patsubst %.cpp,%.o,$(notdir $(wildcard ../src/*.cpp)))
 
-.PHONY: strip test clean
+.DEFAULT: $(library)
 
-objects = \
-  dynacall.o \
-  typeinfo.o \
-  coe--event.o \
-  coe-sys.o \
-  coe-config--d4c.o \
-  coe-thread--d4t.o \
-  coe-kernel.o \
-  coe-kernel--dcl.o \
-  coe-kernel--imp.o \
-  coe-kernel--r4k.o \
-  coe-kernel--s4k.o \
-  coe-session.o \
-  coe-session--r4s.o
+.PHONY: clean realclean strip
 
-$(program): $(objects)
-	$(CXX) -o $@ $^ $(LDFLAGS)
+.INTERMEDIATE: $(objects)
 
-strip: $(program)
-	strip $(program)
-
-test: $(program)
-	./$(program)
-
-check: $(program)
-	./$(program) | diff $(program).log -
+$(library): $(library)($(objects))
 
 clean:
-	-rm core *.o *.d a.out $(program) $(program).exe
+	-rm *.o *.d
+
+realclean: clean
+	-rm $(library)
+
+strip: $(library)
+	strip -x $(library)
 
 -include $(patsubst %.o,%.d,$(objects))
 

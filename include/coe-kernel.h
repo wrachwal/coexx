@@ -1,7 +1,7 @@
 // $Id$
 
 /*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal
+Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,8 @@ enum IO_Mode {
 class Kernel {
 public:
     static Kernel& create_new ();
+
+    KiD ID () const;
 
     void run_event_loop ();
     bool run_event_loop (TiD tid);  // transfer to `tid' thread
