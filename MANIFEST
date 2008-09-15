@@ -5,6 +5,7 @@ MANIFEST
 
 include/coe-sys.h
     src/coe-sys.cpp
+include/coe-misc.h
 
     src/coe--list.h
     src/coe--util.h

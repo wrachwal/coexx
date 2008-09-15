@@ -27,6 +27,10 @@ THE SOFTWARE.
 
 #include <pthread.h>
 
+typedef pthread_mutex_t  Sys_Mutex;
+typedef pthread_rwlock_t Sys_RWLock;
+typedef pthread_cond_t   Sys_CondVar;
+
 // -----------------------------------------------------------------------
 // _Noncopyable
 
@@ -60,20 +64,25 @@ public:
     Mutex ();
     ~Mutex ();
 
-    static Mutex& from_sys (pthread_mutex_t& mutex);
+    static Mutex& from_sys (Sys_Mutex& mutex);
 
     class Guard : public _Guard {
     public:
         Guard (Mutex& mutex);
         Guard (Mutex& mutex, _Guard& parent);   // lock chaining
         ~Guard ();
-    //FIXME: private:
+
+        static void unlock (Guard& guard);  // explicit unlock
+
+    private:
+        friend struct _GuardSpy;
         virtual void _unlock ();
         Mutex&  _mutex;
     };
 
-//FIXME: private:
-    pthread_mutex_t _mutex;
+private:
+    friend struct _GuardSpy;
+    Sys_Mutex   _mutex;
     void   _lock ();
     void _unlock ();
 };
@@ -86,7 +95,7 @@ public:
     RWLock ();
     ~RWLock ();
 
-    static RWLock& from_sys (pthread_rwlock_t& rwlock);
+    static RWLock& from_sys (Sys_RWLock& rwlock);
 
     enum Type { READ, WRITE };
 
@@ -95,13 +104,16 @@ public:
         Guard (RWLock& rwlock, Type type);
         Guard (RWLock& rwlock, Type type, _Guard& parent);  // lock chaining
         ~Guard ();
+
+        static void unlock (Guard& guard);  // explicit unlock
+
     private:
         virtual void _unlock ();
         RWLock& _rwlock;
     };
 
 private:
-    pthread_rwlock_t    _rwlock;
+    Sys_RWLock  _rwlock;
     void   _lock (Type type);
     void _unlock ();
 };
@@ -114,7 +126,7 @@ public:
     CondVar ();
     ~CondVar ();
 
-    static CondVar& from_sys (pthread_cond_t& cond);
+    static CondVar& from_sys (Sys_CondVar& cond);
 
     void wait      (Mutex::Guard& guard);
     bool timedwait (Mutex::Guard& guard, const timespec& abstime);
@@ -123,7 +135,7 @@ public:
     void broadcast ();
 
 private:
-    pthread_cond_t  _cond;
+    Sys_CondVar _cond;
 };
 
 // =======================================================================

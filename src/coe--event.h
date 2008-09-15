@@ -69,6 +69,28 @@ struct DueSidAid_Key {
 
 typedef std::map<DueSidAid_Key, EvAlarm*>   DueSidAid_Map;
 
+// -----------------------------------------------------------------------
+// FdModeSid_Key
+
+struct FdModeSid_Key {
+    FdModeSid_Key () : fd(-1), mode(IO_read) {}
+    FdModeSid_Key (short f, IO_Mode m, const SiD& s)
+        : fd(f), mode(m), sid(s) {}
+    bool operator< (const FdModeSid_Key& rhs) const
+        {
+            return fd   < rhs.fd   || (fd   == rhs.fd
+                && mode < rhs.mode || (mode == rhs.mode
+                && sid  < rhs.sid));
+        }
+    // ------------
+    short   fd;
+    IO_Mode mode;
+    SiD     sid;
+};
+// ------------------------------------
+
+typedef std::map<FdModeSid_Key, EvIO*>  FdModeSid_Map;
+
 // =======================================================================
 // EvCommon
 
@@ -81,7 +103,9 @@ public:
     virtual void dispatch () = 0;
 
     const std::string& name () const { return _name; }
-    PostArg*            arg () const { return _arg; }
+
+    PostArg* arg () const { return _arg; }
+    PostArg* arg (PostArg* new_arg);
 
     r4Session* target () const { return _target; }
     void       target (r4Session* session);
@@ -171,12 +195,28 @@ struct EvAlarmStore {
 class EvIO : public EvCommon {
 public:
     EvIO (const std::string& name, PostArg* arg, SessionContext& cc);
+    ~EvIO ();
 
     /*final*/ void dispatch ();
 
+    void  fd (short f);
+    short fd () const { return _fd; }
+
+    void    mode (IO_Mode m);
+    IO_Mode mode () const { return _mode; }
+
 private:
-    int         _fd;
+    friend struct EvIOStore;
+    dLink<EvIO> _link_evio;
+
+    short       _fd;
     IO_Mode     _mode;
+};
+
+// ------------------------------------
+
+struct EvIOStore {
+    typedef dList<EvIO, offsetof(EvIO, _link_evio)> List;
 };
 
 // =======================================================================

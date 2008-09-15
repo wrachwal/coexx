@@ -2,9 +2,9 @@
 
 #include "coe-session.h"
 #include "coe-thread.h"
+#include "coe-misc.h"   // owned_ptr
 
 #include <iostream>
-#include <memory>       // auto_ptr
 #include <unistd.h>     // sleep() on Linux
 
 using namespace std;
@@ -89,10 +89,10 @@ private:
             cout << "someone knocks to the door..." << endl;
         }
 
-    void on_wife (EvCtx& ctx, auto_ptr<Flowers>& flowers)
+    void on_wife (EvCtx& ctx, owned_ptr<Flowers>& flowers)
         {
             cout << "wife is given " << *flowers << endl;
-            flowers.reset(NULL);
+            delete flowers.release();
             cout << "you know, she was angry ;)" << endl;
         }
 
@@ -145,14 +145,12 @@ void test_my_house ()
 
     kernel.select(0, IO_read,  "room2", vparam(double(666)));   // arg#1 type mismatch
 
-    //XXX   due to auto_ptr's rhs parameter in copy-constructor is not of type *const*
-    //      the following doesn't compile:
-    //kernel.post(tar, "wife", auto_ptr<Flowers>(new Flowers(42, "rose")));
-    //      the solution is to pass auto_ptr in form of auxiliary variable,
-    //      but also requires const_cast<>() in the library,
-    //      which probably is awful.
-    auto_ptr<Flowers>   flowers(new Flowers(42, "rose"));
+#if 0
+    owned_ptr<Flowers>  flowers(new Flowers(42, "rose"));
     kernel.post(tar, "wife", vparam(flowers));
+#else
+    kernel.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
+#endif
 
     int cash = 10;
     kernel.call(tar, "money", rparam(cash));

@@ -58,3 +58,13 @@ void r4Session::release_resource ()
     }
 }
 
+EvIO* r4Session::find_io_watcher (int fd, IO_Mode mode)
+{
+   for (EvIOStore::List::iterator i = _list_evio.begin(); i != _list_evio.end(); ++i) {
+       if ((*i)->fd() == fd && (*i)->mode() == mode) {
+           return *i;
+       }
+   }
+   return NULL;
+}
+

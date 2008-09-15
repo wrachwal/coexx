@@ -184,6 +184,7 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
 
 // -----------------------------------------------------------------------
 
+#if 0
 bool r4Kernel::select__arg (int fd, IO_Mode mode, const string& ev, PostArg* arg)
 {
     //
@@ -203,7 +204,6 @@ bool r4Kernel::select__arg (int fd, IO_Mode mode, const string& ev, PostArg* arg
 
     auto_ptr<PostArg>   __arg(arg);
 
-#if 0
     StateCmd* cmd = find_state_handler(ev);
     if (NULL == cmd) {
         //TODO: errno = ???
@@ -233,9 +233,9 @@ bool r4Kernel::select__arg (int fd, IO_Mode mode, const string& ev, PostArg* arg
     cmd->execute(ctx, &iop, 1, arg);
 
     _current_session = keep;
-#endif
     return true;
 }
+#endif
 
 // -----------------------------------------------------------------------
 
@@ -322,5 +322,39 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 
     //TODO: re-schedule periodic alarm
     delete alarm;
+}
+
+// -----------------------------------------------------------------------
+
+void r4Kernel::dispatch_evio (EvIO* evio)
+{
+    r4Session*  session = evio->target();
+
+    StateCmd* cmd = find_state_handler(session->_sid.id(), evio->name());
+    if (NULL == cmd) {
+        //TODO: call session's default error handling, like _default in POE?
+        return;
+    }
+
+    CCScope __scope(_current_context);
+
+    _current_context.session = session;
+    _current_context.state   = evio->name();
+
+    EvCtx   ctx(*_handle, *_current_context.session->_handle);
+
+    set_heap_ptr(ctx);
+    ctx.state        = _current_context.state;
+    ctx.sender       = session->_sid;
+    ctx.sender_state = evio->sender_state();
+
+    DatIO   dio(evio->fd(), evio->mode());
+
+    ArgTV   iop;
+    iop.set(&typeid(dio), &dio);
+
+    cmd->execute(ctx, &iop, 1, evio->arg());
+
+    //TODO: decrement sender's ref-count
 }
 

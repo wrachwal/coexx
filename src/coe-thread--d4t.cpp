@@ -64,12 +64,14 @@ r4Session* d4Thread::Local::find_session (SiD sid) const
 // d4Thread
 
 d4Thread::d4Thread ()
-  : _event_loop_running(false)
+  : _event_loop_running(false),
+    _msgpipe_rfd(-1)
 {
 }
 
 d4Thread::Sched::Sched ()
-  : state(BUSY),
+  : msgpipe_wfd(-1),
+    state(BUSY),
     io_requests(0)
 {
 }
@@ -95,7 +97,7 @@ void d4Thread::enque_event (EvCommon* ev)
     if (ev->prio_order() < 0) {
         assert(this == get_tls_data());
 
-        sched.lqueue.put_tail(ev);
+        _lqueue.put_tail(ev);
     }
     else {
         // --@@--
@@ -108,7 +110,9 @@ void d4Thread::enque_event (EvCommon* ev)
             // wake up waiting thread
             if (sched.io_requests) {
                 // write a byte to notification pipe
-                //TODO
+                ssize_t nbytes = write(sched.msgpipe_wfd, "@", 1);
+                        nbytes = nbytes;
+                assert(1 == nbytes);
             }
             else {
                 sched.cond.signal();
@@ -122,8 +126,8 @@ void d4Thread::enque_event (EvCommon* ev)
 
 EvCommon* d4Thread::deque_event ()
 {
-    if (! sched.lqueue.empty()) {
-        return sched.lqueue.get_head();
+    if (! _lqueue.empty()) {
+        return _lqueue.get_head();
     }
 
     // --@@--
@@ -136,8 +140,9 @@ EvCommon* d4Thread::deque_event ()
     sched.state = Sched::WAIT;
 
     if (sched.io_requests) {
-        //TODO: unlock guard, then wait on select()
-        //TODO: static void Mutex::Guard::unlock (Mutex::Guard& guard);
+
+        Mutex::Guard::unlock(guard);    // explicit `unlock'
+
         assert(0);
         return NULL;    //FIXME
     }
@@ -304,6 +309,39 @@ AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* ev
     session->_list_alarm.put_head(evalm);
 
     return aid;
+}
+
+// -----------------------------------------------------------------------
+
+bool d4Thread::create_io_watcher (EvIO* new_evio)
+{
+    assert(Sched::BUSY == sched.state);
+
+    r4Session*  session = new_evio->target();
+    assert(NULL != session);
+    short       fd      = new_evio->fd();
+    IO_Mode     mode    = new_evio->mode();
+
+    EvIO* old_evio = session->find_io_watcher(fd, mode);
+
+    if (NULL != old_evio) {
+        delete old_evio->arg(new_evio->arg(NULL));
+        delete new_evio;
+    }
+    else {
+        FdModeSid_Key   fms(fd, mode, session->_sid);
+
+        pair<FdModeSid_Map::iterator, bool> insert =
+            _fms_map.insert(FdModeSid_Map::value_type(fms, new_evio));
+        assert(true == insert.second);
+
+        session->_list_evio.put_tail(new_evio);
+
+        ++ sched.io_requests;
+        //TODO: set invalid flag
+    }
+
+    return true;
 }
 
 // -----------------------------------------------------------------------

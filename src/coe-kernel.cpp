@@ -121,11 +121,33 @@ bool delay_gt0 (const TimeSpec& ts)
     return true;
 }
 
+static inline
+bool fd_valid (int fd)
+{
+    if (fd < 0 || fd >= FD_SETSIZE) {
+        // errno = ???
+        return false;
+    }
+    return true;
+}
+
+static inline
+bool mode_valid (IO_Mode mode)
+{
+    if (IO_read != mode && IO_write != mode && IO_error != mode) {
+        // error = ???
+        return false;
+    }
+    return true;
+}
+
 // -----------------------------------------------------------------------
 
 bool Kernel::anon_post (SiD to, const string& ev, PostArg* vp)
 {
-    if (! target_valid(to) || ! user_evname(ev)) {
+    if (   ! target_valid(to)
+        || ! user_evname(ev))
+    {
         delete vp;
         return false;
     }
@@ -134,7 +156,10 @@ bool Kernel::anon_post (SiD to, const string& ev, PostArg* vp)
 
 bool Kernel::post (SiD to, const string& ev, PostArg* vp)
 {
-    if (! kernel_attached(_r4kernel) || ! target_valid(to) || ! user_evname(ev)) {
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(to)
+        || ! user_evname(ev))
+    {
         delete vp;
         return false;
     }
@@ -143,7 +168,9 @@ bool Kernel::post (SiD to, const string& ev, PostArg* vp)
 
 bool Kernel::yield (const string& ev, PostArg* vp)
 {
-    if (! kernel_attached(_r4kernel) || ! user_evname(ev)) {
+    if (   ! kernel_attached(_r4kernel)
+        || ! user_evname(ev))
+    {
         delete vp;
         return false;
     }
@@ -159,7 +186,10 @@ bool Kernel::yield (const string& ev, PostArg* vp)
 
 bool Kernel::call (SiD on, const string& ev, CallArg* rp)
 {
-    if (! kernel_attached(_r4kernel) || ! target_valid(on) || ! user_evname(ev)) {
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(on)
+        || ! user_evname(ev))
+    {
         delete rp;
         return false;
     }
@@ -170,7 +200,10 @@ bool Kernel::call (SiD on, const string& ev, CallArg* rp)
 
 AiD Kernel::delay_set (const string ev, TimeSpec duration, PostArg* pp)
 {
-    if (! kernel_attached(_r4kernel) || ! delay_gt0(duration) || ! user_evname(ev)) {
+    if (   ! kernel_attached(_r4kernel)
+        || ! delay_gt0(duration)
+        || ! user_evname(ev))
+    {
         delete pp;
         return AiD::NONE();
     }
@@ -185,12 +218,17 @@ AiD Kernel::delay_set (const string ev, TimeSpec duration, PostArg* pp)
 
 bool Kernel::select (int fd, IO_Mode mode, const string ev, PostArg* vp)
 {
-    //TODO: check fd/mode
-    if (! kernel_attached(_r4kernel) || ! user_evname(ev)) {
+    if (   ! kernel_attached(_r4kernel)
+        || ! user_evname(ev)
+        || ! fd_valid(fd)
+        || ! mode_valid(mode))
+    {
         delete vp;
         return false;
     }
-    return _r4kernel->select__arg(fd, mode, ev, vp);
+    return _r4kernel->_thread->create_io_watcher(
+                                    new EvIO(ev, vp, _r4kernel->_current_context)
+                                );
 }
 
 // -----------------------------------------------------------------------

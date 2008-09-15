@@ -46,6 +46,13 @@ EvCommon::~EvCommon ()
     _arg = NULL;    // just in case ;)
 }
 
+PostArg* EvCommon::arg (PostArg* new_arg)
+{
+    PostArg* old_arg = _arg;
+    _arg = new_arg;
+    return old_arg;
+}
+
 void EvCommon::target (r4Session* session)
 {
     assert(NULL == _link_queue.next);
@@ -108,7 +115,7 @@ EvAlarm::~EvAlarm ()
 
 void EvAlarm::aid (AiD a)
 {
-    assert(NULL == _link_queue.next);
+    assert(NULL == _link_alarm.next);
     _aid = a;
 }
 
@@ -131,4 +138,35 @@ void EvAlarm::dispatch ()
 
 // =======================================================================
 // EvIO
+
+EvIO::EvIO (const string& name, PostArg* arg, SessionContext& cc)
+  : EvCommon(name, arg),
+    _fd(-1),
+    _mode(IO_read)
+{
+    _target       = cc.session;
+    _sender_state = cc.state;
+}
+
+EvIO::~EvIO ()
+{
+    assert(NULL == _link_evio.next);
+}
+
+void EvIO::fd (short f)
+{
+    assert(NULL == _link_evio.next);
+    _fd = f;
+}
+
+void EvIO::mode (IO_Mode m)
+{
+    assert(NULL == _link_evio.next);
+    _mode = m;
+}
+
+void EvIO::dispatch ()
+{
+    _target->_kernel->dispatch_evio(this);
+}
 

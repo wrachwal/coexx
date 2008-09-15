@@ -72,7 +72,7 @@ template<class A1>
 class PostArg1 : public EventArg_N<PostArg, 1> {
 public:
     PostArg1 (const A1& a1)
-        : _a1(const_cast<A1&>(a1))  //XXX: temp. trick to make auto_ptr happy
+        : _a1(a1)
         {
             _arg[0].set(&typeid(A1), &_a1);
         }

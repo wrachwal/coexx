@@ -67,11 +67,11 @@ struct r4Kernel {
 
     bool post__arg (SiD to, const std::string& ev, PostArg* arg);
     bool call__arg (SiD on, const std::string& ev, CallArg* arg);
-    bool select__arg (int fd, IO_Mode mode, const std::string& ev, PostArg* arg);
     void state__cmd (const std::string& ev, StateCmd* cmd);
 
     void dispatch_evmsg (EvMsg* evmsg);
     void dispatch_alarm (EvAlarm* alarm);
+    void dispatch_evio  (EvIO* evio);
 };
 
 // =======================================================================

@@ -55,6 +55,8 @@ struct d4Thread {
     };
     AiD create_alarm (SetupAlarmMode mode, const TimeSpec& spec, EvAlarm* evalm);
 
+    bool create_io_watcher (EvIO* evio);
+
     static d4Thread* get_tls_data ();
     static void      set_tls_data (d4Thread* d4t);
 
@@ -107,36 +109,54 @@ struct d4Thread {
     } local;
 
     // --------------------------------
-
-    pthread_t       os_thread;
-    TiD             tid;
-    bool            _event_loop_running;
-
+    //
     struct Sched {
 
         Sched ();
 
         Mutex   mutex;
         CondVar cond;
+        int     msgpipe_wfd;
 
         enum State {
             BUSY,
             WAIT
         } state;
 
-        EvCommonStore::Queue    lqueue;
         EvCommonStore::Queue    pqueue; //TODO: change to priority queue
 
         int         io_requests;
 
         TimeSpec    timestamp;
 
+        // --------
+
+        struct Trans {
+            EvCommonStore::Queue    queue;
+            DueSidAid_Map           dsa_map;
+            FdModeSid_Map           fms_map;
+        } trans;
+
     } sched;
+
+    // --------------------------------
+
+    TiD             tid;
+    pthread_t       os_thread;
+    bool            _event_loop_running;
+
+    EvCommonStore::Queue    _lqueue;
+    int                     _msgpipe_rfd;
 
     /*
      * alarms
      */
     DueSidAid_Map   _dsa_map;
+
+    /*
+     * I/O
+     */
+    FdModeSid_Map   _fms_map;
 };
 
 // =======================================================================

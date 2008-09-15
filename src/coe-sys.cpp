@@ -46,15 +46,23 @@ _Guard::~_Guard ()
 }
 
 // -----------------------------------------------------------------------
-// _SpyGuard
+// _GuardSpy
 
 struct _GuardSpy {
     static void unlock (_Guard& guard);
+    static Sys_Mutex& sys_mutex (Mutex::Guard& guard);
 };
+
+// ------------------------------------
 
 void _GuardSpy::unlock (_Guard& guard)
 {
     guard._unlock();
+}
+
+Sys_Mutex& _GuardSpy::sys_mutex (Mutex::Guard& guard)
+{
+    return guard._mutex._mutex;
 }
 
 // =======================================================================
@@ -76,7 +84,7 @@ Mutex::~Mutex ()
     }
 }
 
-Mutex& Mutex::from_sys (pthread_mutex_t& mutex)
+Mutex& Mutex::from_sys (Sys_Mutex& mutex)
 {
     return reinterpret_cast<Mutex&>(mutex);
 }
@@ -120,6 +128,11 @@ Mutex::Guard::~Guard ()
     _unlock();  //FIXME: pure virtual, or scoped?
 }
 
+void Mutex::Guard::unlock (Guard& guard)
+{
+    guard._unlock();
+}
+
 void Mutex::Guard::_unlock ()
 {
     if (_locked) {
@@ -147,7 +160,7 @@ RWLock::~RWLock ()
     }
 }
 
-RWLock& RWLock::from_sys (pthread_rwlock_t& rwlock)
+RWLock& RWLock::from_sys (Sys_RWLock& rwlock)
 {
     return reinterpret_cast<RWLock&>(rwlock);
 }
@@ -199,6 +212,11 @@ RWLock::Guard::~Guard ()
     _unlock();  //FIXME: pure virtual, or scoped?
 }
 
+void RWLock::Guard::unlock (Guard& guard)
+{
+    guard._unlock();
+}
+
 void RWLock::Guard::_unlock ()
 {
     if (_locked) {
@@ -226,14 +244,14 @@ CondVar::~CondVar ()
     }
 }
 
-CondVar& CondVar::from_sys (pthread_cond_t& cond)
+CondVar& CondVar::from_sys (Sys_CondVar& cond)
 {
     return reinterpret_cast<CondVar&>(cond);
 }
 
 void CondVar::wait (Mutex::Guard& guard)
 {
-    int status = pthread_cond_wait(&_cond, &guard._mutex._mutex);
+    int status = pthread_cond_wait(&_cond, &_GuardSpy::sys_mutex(guard));
     if (status != 0) {
         raise_error(status, "pthread_cond_wait");
     }
@@ -241,7 +259,7 @@ void CondVar::wait (Mutex::Guard& guard)
 
 bool CondVar::timedwait (Mutex::Guard& guard, const timespec& abstime)
 {
-    int status = pthread_cond_timedwait(&_cond, &guard._mutex._mutex, &abstime);
+    int status = pthread_cond_timedwait(&_cond, &_GuardSpy::sys_mutex(guard), &abstime);
     if (status == 0) {
         return true;
     }

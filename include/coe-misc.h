@@ -22,78 +22,64 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************************************/
 
-#ifndef __COE_SESSION__R4S_H
-#define __COE_SESSION__R4S_H
-
-#include "coe--event.h"
-#include "coe--util.h"
-#include <functional>
+#ifndef __COE_MISC_H
+#define __COE_MISC_H
 
 // =======================================================================
-// r4Session
+// owned_ptr<T>
 
-struct r4Session {
+template<class T>
+class owned_ptr {
+public:
+             owned_ptr ()       : _ptr(0)   {}
+    explicit owned_ptr (T* ptr) : _ptr(ptr) {}
 
-    Session*    _handle;
-    SiD         _sid;
+    owned_ptr (const owned_ptr& rhs) : _ptr(rhs.release()) {}
+    owned_ptr& operator= (const owned_ptr& rhs)
+        {
+            if (this != &rhs) {
+                delete _ptr;
+                _ptr = rhs.release();
+            }
+            return *this;
+        }
 
-    void*       _heap;
+    T& operator*  () const { return *_ptr; }
+    T* operator-> () const { return _ptr; }
 
-    r4Kernel*   _kernel;
-
-    // related sessions
-    r4Session*          _parent;
-    dList<void, 0>      _list_children;
-
-    // alarms
-    IdentGenerator<AiD> _aid_generator;
-    EvAlarmStore::List  _list_alarm;
-
-    // i/o
-    EvIOStore::List     _list_evio;
-
-    // --------------------------------
-
-    r4Session ();
-    ~r4Session ();
-
-    void release_resource ();
-
-    EvIO* find_io_watcher (int fd, IO_Mode mode);
+    T*     get () const { return _ptr; }
+    T* release () const { T* tmp = _ptr; _ptr = 0; return tmp; }
 
 private:
-    friend struct r4SessionStore;
-    dLink<r4Session>    _link_children;
-};
-
-// ------------------------------------
-
-struct r4SessionStore {
-    typedef dList<r4Session, offsetof(r4Session, _link_children)> ChildrenList;
-
-    // -Wno-strict-aliasing
-    static ChildrenList& list_children (r4Session& session)
-        { return reinterpret_cast<ChildrenList&>(session._list_children); }
+    mutable T*  _ptr;
 };
 
 // -----------------------------------------------------------------------
-// AiDExistsPred
+// owned_array_ptr<T>
 
-class AiDExistsPred : public std::unary_function<AiD, bool> {
+template<class T>
+class owned_array_ptr {
 public:
-    AiDExistsPred (EvAlarmStore::List& list) : _list(list) {}
-    bool operator() (AiD aid) const
+             owned_array_ptr ()       : _tab(0)   {}
+    explicit owned_array_ptr (T* tab) : _tab(tab) {}
+
+    owned_array_ptr (const owned_array_ptr& rhs) : _tab(rhs.release()) {}
+    owned_array_ptr& operator= (const owned_array_ptr& rhs)
         {
-            EvAlarmStore::List::iterator i = _list.begin();
-            while (i != _list.end()) {
-                if ((*i)->aid() == aid)
-                    return true;
-                ++ i;
+            if (this != &rhs) {
+                delete[] _tab;
+                _tab = rhs.release();
             }
-            return false;
+            return *this;
         }
+
+    T& operator[] (int i) const { return _tab[i]; }
+
+    T*     get () const { return _tab; }
+    T* release () const { T* tmp = _tab; _tab = 0; return tmp; }
+
 private:
-    EvAlarmStore::List& _list;
+    mutable T*  _tab;
 };
 
 // =======================================================================
