@@ -74,7 +74,7 @@ typedef std::map<DueSidAid_Key, EvAlarm*>   DueSidAid_Map;
 
 struct FdModeSid_Key {
     FdModeSid_Key () : fd(-1), mode(IO_read) {}
-    FdModeSid_Key (short f, IO_Mode m, const SiD& s)
+    FdModeSid_Key (int f, IO_Mode m, const SiD& s)
         : fd(f), mode(m), sid(s) {}
     bool operator< (const FdModeSid_Key& rhs) const
         {
@@ -83,7 +83,7 @@ struct FdModeSid_Key {
                 && sid  < rhs.sid));
         }
     // ------------
-    short   fd;
+    int     fd;
     IO_Mode mode;
     SiD     sid;
 };
@@ -101,6 +101,8 @@ public:
     virtual ~EvCommon ();
 
     virtual void dispatch () = 0;
+
+    bool enqueued () const { return NULL != _link_queue.next; }
 
     const std::string& name () const { return _name; }
 
@@ -199,18 +201,22 @@ public:
 
     /*final*/ void dispatch ();
 
-    void  fd (short f);
-    short fd () const { return _fd; }
+    void  fd (int f);
+    int   fd () const { return _fd; }
 
     void    mode (IO_Mode m);
     IO_Mode mode () const { return _mode; }
+
+    void active (bool a);
+    bool active () const { return _active; }
 
 private:
     friend struct EvIOStore;
     dLink<EvIO> _link_evio;
 
-    short       _fd;
-    IO_Mode     _mode;
+    int     _fd;
+    IO_Mode _mode;
+    bool    _active;
 };
 
 // ------------------------------------

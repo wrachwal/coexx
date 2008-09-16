@@ -38,14 +38,17 @@ struct r4Session;
 struct d4Thread {
 
     d4Thread ();
+    ~d4Thread ();
 
     void run_event_loop ();
-    void      enque_event (EvCommon* ev);
+    void      enque_msg_event (EvMsg* evmsg);
     EvCommon* deque_event ();
+    bool remove_enqueued_event (EvCommon* ev);
 
     static TimeSpec get_current_time ();
 
     void _queue_expired_alarms();
+    bool _select_io (const TimeSpec* due);
 
     static bool anon_post_event (                 SiD to, EvMsg* evmsg);
     static bool      post_event (d4Thread* local, SiD to, EvMsg* evmsg);
@@ -56,6 +59,7 @@ struct d4Thread {
     AiD create_alarm (SetupAlarmMode mode, const TimeSpec& spec, EvAlarm* evalm);
 
     bool create_io_watcher (EvIO* evio);
+    bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
 
     static d4Thread* get_tls_data ();
     static void      set_tls_data (d4Thread* d4t);
@@ -141,12 +145,22 @@ struct d4Thread {
 
     // --------------------------------
 
-    TiD             tid;
-    pthread_t       os_thread;
+    TiD             _tid;
+    pthread_t       _os_thread;
     bool            _event_loop_running;
 
     EvCommonStore::Queue    _lqueue;
     int                     _msgpipe_rfd;
+
+    struct FdSet {
+        struct fd_set   lval;
+        int             max_fd;
+        // --------
+        void    zero     ();
+        void    add_fd   (int fd);
+        fd_set* sel_set  ();
+        bool    fd_isset (int fd) const;
+    } _fdset[3];
 
     /*
      * alarms

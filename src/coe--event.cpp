@@ -142,7 +142,8 @@ void EvAlarm::dispatch ()
 EvIO::EvIO (const string& name, PostArg* arg, SessionContext& cc)
   : EvCommon(name, arg),
     _fd(-1),
-    _mode(IO_read)
+    _mode(IO_read),
+    _active(true)
 {
     _target       = cc.session;
     _sender_state = cc.state;
@@ -153,7 +154,7 @@ EvIO::~EvIO ()
     assert(NULL == _link_evio.next);
 }
 
-void EvIO::fd (short f)
+void EvIO::fd (int f)
 {
     assert(NULL == _link_evio.next);
     _fd = f;
@@ -163,6 +164,11 @@ void EvIO::mode (IO_Mode m)
 {
     assert(NULL == _link_evio.next);
     _mode = m;
+}
+
+void EvIO::active (bool a)
+{
+    _active = a;
 }
 
 void EvIO::dispatch ()

@@ -64,56 +64,50 @@ public:
     SiD start_session (Session*);
 
     /*
-     * post (SiD, EV_NAME[, PARAM...])
+     * Asynchronous Messages
      */
            bool      post (SiD to, const std::string& ev, PostArg* pp=0);
     static bool anon_post (SiD to, const std::string& ev, PostArg* pp=0);
+           bool     yield (        const std::string& ev, PostArg* pp=0);
 
     /*
-     * yield (EV_NAME[, PARAM...]])
+     * Synchronous Messages
      */
-    bool yield (const std::string& ev, PostArg* pp=0);
+    bool call (SiD on, const std::string& ev, CallArg* cp=0);
 
     /*
-     * call (SiD, EV_NAME[, PARAM...])
+     * Timer Events (Delayed Messages)
      */
-    bool call (SiD on, const std::string& ev, CallArg* cp);
-
-    /*
-     * Name-Based Timers
-     */
+    // Name-Based Timers
     bool alarm     (const std::string ev);          // reset
     bool alarm     (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
     bool alarm_add (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
     bool delay     (const std::string ev, TimeSpec duration, PostArg* pp=0);
     bool delay_add (const std::string ev, TimeSpec duration, PostArg* pp=0);
-
-    /*
-     * Identifier-Based Timers
-     */
+    //
+    // Identifier-Based Timers
     AiD  alarm_remove (AiD aid);                    // reset
     AiD  alarm_set    (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
     bool alarm_adjust (AiD aid, TimeSpec delta_secs);
     AiD  delay_set    (const std::string ev, TimeSpec duration, PostArg* pp=0);
     bool delay_adjust (AiD aid, TimeSpec secs_from_now);
-
+    //
+    // Periodicity
+    bool set_periodic       (AiD aid, TimeSpec interval);
+    bool     periodic_clear (AiD aid);
+    //
     void alarm_remove_all ();
 
     /*
-     * select        (FD, MODE)                 -- reset
-     * select        (FD, MODE, EV_NAME[, PARAM...])
-     * select_pause  (FD, MODE)
-     * select_resume (FD, MODE)
+     * I/O Watchers (Selects)
      */
     bool select (int fd, IO_Mode mode);         // reset
-    bool select (int fd, IO_Mode mode, const std::string ev, PostArg* pp=0);
+    bool select (int fd, IO_Mode mode, const std::string& ev, PostArg* pp=0);
     bool select_pause  (int fd, IO_Mode mode);
     bool select_resume (int fd, IO_Mode mode);
 
     /*
-     * state (EV_NAME)                          -- reset
-     * state (EV_NAME, OBJECT, METHOD)
-     * state (EV_NAME, FUNCTION)
+     * Event Handler Management
      */
     void state (const std::string& ev);         // reset
     void state (const std::string& ev, StateCmd* handler);
@@ -138,7 +132,7 @@ public:
     std::string state;
     SiD         sender;
     std::string sender_state;
-    //TODO:     alarm_id;   // set if timer event
+    AiD         alarm_id;   // set if timer event
 private:
     friend struct r4Kernel;
     EvCtx (Kernel& k, Session& s);
@@ -203,32 +197,32 @@ TimeSpec operator+ (const TimeSpec& lhs, const TimeSpec& rhs);
 TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs);
 
 // =======================================================================
-// vparam (p1[, ...])
+// pparam (p1[, ...])
 
 template<class P1>
-PostArg* vparam (const P1&);
+PostArg* pparam (const P1&);
 template<class P1, class P2>
-PostArg* vparam (const P1&, const P2&);
+PostArg* pparam (const P1&, const P2&);
 template<class P1, class P2, class P3>
-PostArg* vparam (const P1&, const P2&, const P3&);
+PostArg* pparam (const P1&, const P2&, const P3&);
 template<class P1, class P2, class P3, class P4>
-PostArg* vparam (const P1&, const P2&, const P3&, const P4&);
+PostArg* pparam (const P1&, const P2&, const P3&, const P4&);
 template<class P1, class P2, class P3, class P4, class P5>
-PostArg* vparam (const P1&, const P2&, const P3&, const P4&, const P5&);
+PostArg* pparam (const P1&, const P2&, const P3&, const P4&, const P5&);
 
 // -----------------------------------------------------------------------
-// rparam (p1[, ...])
+// cparam (p1[, ...])
 
 template<class P1>
-CallArg* rparam (P1&);
+CallArg* cparam (P1&);
 template<class P1, class P2>
-CallArg* rparam (P1&, P2&);
+CallArg* cparam (P1&, P2&);
 template<class P1, class P2, class P3>
-CallArg* rparam (P1&, P2&, P3&);
+CallArg* cparam (P1&, P2&, P3&);
 template<class P1, class P2, class P3, class P4>
-CallArg* rparam (P1&, P2&, P3&, P4&);
+CallArg* cparam (P1&, P2&, P3&, P4&);
 template<class P1, class P2, class P3, class P4, class P5>
-CallArg* rparam (P1&, P2&, P3&, P4&, P5&);
+CallArg* cparam (P1&, P2&, P3&, P4&, P5&);
 
 // -----------------------------------------------------------------------
 // handler (obj, memfun)

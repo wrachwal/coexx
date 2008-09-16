@@ -143,57 +143,57 @@ bool mode_valid (IO_Mode mode)
 
 // -----------------------------------------------------------------------
 
-bool Kernel::anon_post (SiD to, const string& ev, PostArg* vp)
+bool Kernel::anon_post (SiD to, const string& ev, PostArg* pp)
 {
     if (   ! target_valid(to)
         || ! user_evname(ev))
     {
-        delete vp;
+        delete pp;
         return false;
     }
-    return d4Thread::anon_post_event(to, new EvMsg(ev, vp));
+    return d4Thread::anon_post_event(to, new EvMsg(ev, pp));
 }
 
-bool Kernel::post (SiD to, const string& ev, PostArg* vp)
+bool Kernel::post (SiD to, const string& ev, PostArg* pp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(to)
         || ! user_evname(ev))
     {
-        delete vp;
+        delete pp;
         return false;
     }
-    return _r4kernel->post__arg(to, ev, vp);
+    return _r4kernel->post__arg(to, ev, pp);
 }
 
-bool Kernel::yield (const string& ev, PostArg* vp)
+bool Kernel::yield (const string& ev, PostArg* pp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! user_evname(ev))
     {
-        delete vp;
+        delete pp;
         return false;
     }
     SiD to = _r4kernel->_current_context.session->_sid;
     if (! target_valid(to)) {
-        delete vp;
+        delete pp;
         return false;
     }
-    return _r4kernel->post__arg(to, ev, vp);
+    return _r4kernel->post__arg(to, ev, pp);
 }
 
 // -----------------------------------------------------------------------
 
-bool Kernel::call (SiD on, const string& ev, CallArg* rp)
+bool Kernel::call (SiD on, const string& ev, CallArg* cp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
         || ! user_evname(ev))
     {
-        delete rp;
+        delete cp;
         return false;
     }
-    return _r4kernel->call__arg(on, ev, rp);
+    return _r4kernel->call__arg(on, ev, cp);
 }
 
 // -----------------------------------------------------------------------
@@ -216,19 +216,38 @@ AiD Kernel::delay_set (const string ev, TimeSpec duration, PostArg* pp)
 
 // -----------------------------------------------------------------------
 
-bool Kernel::select (int fd, IO_Mode mode, const string ev, PostArg* vp)
+bool Kernel::select (int fd, IO_Mode mode)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! fd_valid(fd)
+        || ! mode_valid(mode))
+    {
+        return false;
+    }
+    return _r4kernel->_thread->delete_io_watcher(
+                                    fd,
+                                    mode,
+                                    _r4kernel->_current_context.session
+                                );
+}
+
+bool Kernel::select (int fd, IO_Mode mode, const string& ev, PostArg* pp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! user_evname(ev)
         || ! fd_valid(fd)
         || ! mode_valid(mode))
     {
-        delete vp;
+        delete pp;
         return false;
     }
-    return _r4kernel->_thread->create_io_watcher(
-                                    new EvIO(ev, vp, _r4kernel->_current_context)
-                                );
+
+    EvIO*   evio = new EvIO(ev, pp, _r4kernel->_current_context);
+
+    evio->fd(fd);
+    evio->mode(mode);
+
+    return _r4kernel->_thread->create_io_watcher(evio);
 }
 
 // -----------------------------------------------------------------------

@@ -57,7 +57,7 @@ r4Kernel::r4Kernel ()
 
     if (NULL == _thread) {  // thread's event loop has not been run yet
         _thread = new d4Thread;
-        _thread->os_thread = pthread_self();
+        _thread->_os_thread = pthread_self();
         d4Thread::set_tls_data(_thread);
         _thread->_allocate_tid();           // --@@--
     }
@@ -148,11 +148,52 @@ bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
 
 bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
 {
-    //
-    // FIXME: now it's loopback -- dispatched immediately to itself.
-    //
-
     auto_ptr<CallArg>   __arg(arg);
+
+    // assertions confirm what have been validated by a caller
+    assert(NULL != _thread);
+    assert(on.valid());
+
+    if (on.kid() == _kid) {
+
+        StateCmd* cmd = find_state_handler(on.id(), ev);
+        if (NULL == cmd) {
+            //TODO: call session's default error handling, like _default in POE?
+            //errno = ???
+            return false;
+        }
+
+        //TODO
+#if 0
+        CCScope __scope(_current_context);
+
+        _current_context.session = on ======> r4Session*
+        _current_context.state   = ev;
+
+        EvCtx   ctx(*_handle, *_current_context.session->_handle);
+
+        set_heap_ptr(ctx);
+        ctx.state        = _current_context.state;
+        ctx.sender       = XXX;
+        ctx.sender_state = XXX;
+
+        cmd->execute(ctx, NULL, 0, arg);
+#endif
+
+        return true;
+    }
+    else {
+
+        r4Kernel* that = _thread->local.find_kernel(on.kid());
+
+        if (NULL == that) {
+            //TODO: call session's default error handling, like _default in POE?
+            //errno = ???
+            return false;
+        }
+
+        return that->call__arg(on, ev, __arg.release());
+    }
 
 #if 0
     StateCmd* cmd = find_state_handler(ev);
@@ -178,64 +219,10 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
     cmd->execute(ctx, NULL, 0, arg);
 
     _current_session = keep;
-#endif
+
     return true;
-}
-
-// -----------------------------------------------------------------------
-
-#if 0
-bool r4Kernel::select__arg (int fd, IO_Mode mode, const string& ev, PostArg* arg)
-{
-    //
-    // similar to post__arg above, however with differencies:
-    //
-    // a) EvMessage is IOWatcher
-    // b) IOWatcher is always local
-    // c) Signalled is a thread controlling this Kernel
-    //    (note more Kernels can be under such a thread)
-    //
-
-    // *******************************************************************
-
-    //
-    // FIXME: now it's loopback -- dispatched immediately to itself.
-    //
-
-    auto_ptr<PostArg>   __arg(arg);
-
-    StateCmd* cmd = find_state_handler(ev);
-    if (NULL == cmd) {
-        //TODO: errno = ???
-        return false;
-    }
-
-    //
-    //FIXME:
-    //  1) what to verify? _kernel, _current_session, etc...
-    //  2) SiD, heap -- need to set correct values
-    //
-
-    r4Session*  keep = _current_session;
-    _current_session = ::s_LAST_SESSION;
-
-    EvCtx   ctx(*_handle, *_current_session->_handle);
-
-    set_heap_ptr(ctx);
-    ctx.state  = ev;
-    ctx.sender = SiD(0,1);
-
-    DatIO   dio(fd, mode);
-
-    ArgTV   iop;
-    iop.set(&typeid(dio), &dio);
-
-    cmd->execute(ctx, &iop, 1, arg);
-
-    _current_session = keep;
-    return true;
-}
 #endif
+}
 
 // -----------------------------------------------------------------------
 

@@ -5,7 +5,7 @@
 #include "coe-misc.h"   // owned_ptr
 
 #include <iostream>
-#include <unistd.h>     // sleep() on Linux
+#include <unistd.h>     // read() on Linux
 
 using namespace std;
 
@@ -55,10 +55,34 @@ private:
             ctx.kernel.state("knock",   handler(*this,    &MyHouse::on_knock));
             ctx.kernel.state("wife",    handler(*this,    &MyHouse::on_wife));
             ctx.kernel.state("money",   handler(*this,    &MyHouse::on_money));
+
+            ctx.kernel.state("command", handler(*this,    &MyHouse::on_command));
+            ctx.kernel.select(0, IO_read, "command", pparam(0));
         }
 
     void print_msg (string& msg)
         { cout << _name << " << " << msg << endl; }
+
+    void on_command (EvCtx& ctx, DatIO& io, int& count)
+        {
+            char    buf[256];
+
+            ssize_t nbytes = read(io.filedes, buf, sizeof(buf)-1);
+
+            if (nbytes <= 0) {
+                ctx.kernel.select(io.filedes, io.mode);
+            }
+            else {
+                buf[nbytes] = 0;
+                count += 1;
+                cout << count << "> " << buf;
+
+                if (0 == strncmp(buf, "close", 5)) {
+                    cout << "### leaving out command prompt" << endl;
+                    ctx.kernel.select(io.filedes, io.mode);
+                }
+            }
+        }
 
     void on_leaving_msg (EvCtx& ctx, string& msg)
         {
@@ -94,6 +118,16 @@ private:
             cout << "wife is given " << *flowers << endl;
             delete flowers.release();
             cout << "you know, she was angry ;)" << endl;
+
+            // ------------------------
+
+            int cash = 10;
+            ctx.kernel.call(ID(), "money", cparam(cash));
+            cout << "and she now have " << cash << "." << endl;
+
+            cash = 1;
+            ctx.kernel.call(ID(), "money", cparam(cash));
+            cout << "and she now have " << cash << "." << endl;
         }
 
     void on_money (EvCtx& ctx, int& pln)
@@ -109,68 +143,49 @@ private:
 
 // =======================================================================
 
-void type_info_show ();
+#define TABLEN(tab)     int(sizeof(tab) / sizeof((tab)[0]))
 
 void test_my_house ()
 {
+    TiD tid[10];
+
+    for (int i = 0; i < 10; ++i) {
+        tid[i] = Thread::spawn_new();
+        cout << "created " << tid[i] << " thread." << endl;
+    }
+
+    // ================================
+
     Kernel& kernel = Kernel::create_new();
 
     SiD tar = MyHouse::spawn(kernel, "waldy");
 
-    kernel.post(tar, "leaving", vparam(string("it's the string argument ;)")));
+    kernel.post(tar, "leaving", pparam(string("it's the string argument ;)")));
 
     //GOOD: I had to add (char*) cast to prevent from below the error.
     // dynacall.cpp: In constructor 'PostArgs1<A1>::PostArgs1(const A1&) [with A1 = char [22]]':
     // dynacall.cpp:192:   instantiated from 'bool Kernel::post(SiD, const std::string&, const A1&) [with A1 = char [22]]'
     // dynacall.cpp:307:   instantiated from here
     // dynacall.cpp:148: error: ISO C++ forbids assignment of arrays
-    kernel.post(tar, "leaving", vparam((char*)"raw C-style string :("));
+    kernel.post(tar, "leaving", pparam((char*)"raw C-style string :("));
 
-    kernel.post(tar, "leaving", vparam(string("once again with valid string type :)")));
+    kernel.post(tar, "leaving", pparam(string("once again with valid string type :)")));
 
-    //FIXME: on_coridor_msg: TEvCtx<MyHouse> -> 0
-    //exit(0);
-
-    kernel.post(tar, "coridor", vparam(string("and to the coridor... :)")));
+    kernel.post(tar, "coridor", pparam(string("and to the coridor... :)")));
 
     kernel.post(tar, "coridor");   // :( mismatch number of params
 
     kernel.post(tar, "knock");
-    kernel.post(tar, "knock", vparam((char*)"excessive argument!"));
-
-    kernel.run_event_loop();    // ***
-
-    kernel.select(1, IO_write, "room2", vparam(string("polling WRITE to stdout :)")));
-    kernel.select(2, IO_read,  "room2", vparam(string("polling READ for stderr :)")));
-
-    kernel.select(0, IO_read,  "room2", vparam(double(666)));   // arg#1 type mismatch
+    kernel.post(tar, "knock", pparam((char*)"excessive argument!"));
 
 #if 0
     owned_ptr<Flowers>  flowers(new Flowers(42, "rose"));
-    kernel.post(tar, "wife", vparam(flowers));
+    kernel.post(tar, "wife", pparam(flowers));
 #else
-    kernel.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
+    kernel.post(tar, "wife", pparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
 #endif
 
-    int cash = 10;
-    kernel.call(tar, "money", rparam(cash));
-    cout << "and she now have " << cash << "." << endl;
-
-    cash = 1;
-    kernel.call(tar, "money", rparam(cash));
-    cout << "and she now have " << cash << "." << endl;
-
-
-    // ================================
-
-    for (int i = 0; i < 10; ++i) {
-        Thread::spawn_new();
-    }
-
-    while(1) {
-        sleep(2);
-        cout << endl;
-    }
+    kernel.run_event_loop();    // *** block in main thread
 }
 
 // =======================================================================

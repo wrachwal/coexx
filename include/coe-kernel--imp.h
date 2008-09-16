@@ -535,51 +535,51 @@ private:
 };
 
 // =======================================================================
-// vparam (p1[, ...])
+// pparam (p1[, ...])
 // =======================================================================
 
 template<class P1>
-PostArg* vparam (const P1& p1)
+PostArg* pparam (const P1& p1)
     { return new PostArg1<P1>(p1); }
 
 template<class P1, class P2>
-PostArg* vparam (const P1& p1, const P2& p2)
+PostArg* pparam (const P1& p1, const P2& p2)
     { return new PostArg2<P1, P2>(p1, p2); }
 
 template<class P1, class P2, class P3>
-PostArg* vparam (const P1& p1, const P2& p2, const P3& p3)
+PostArg* pparam (const P1& p1, const P2& p2, const P3& p3)
     { return new PostArg3<P1, P2, P3>(p1, p2, p3); }
 
 template<class P1, class P2, class P3, class P4>
-PostArg* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4)
+PostArg* pparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4)
     { return new PostArg4<P1, P2, P3, P4>(p1, p2, p3, p4); }
 
 template<class P1, class P2, class P3, class P4, class P5>
-PostArg* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
+PostArg* pparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
     { return new PostArg5<P1, P2, P3, P4, P5>(p1, p2, p3, p4, p5); }
 
 // =======================================================================
-// rparam (p1[, ...])
+// cparam (p1[, ...])
 // =======================================================================
 
 template<class P1>
-CallArg* rparam (P1& p1)
+CallArg* cparam (P1& p1)
     { return new CallArg1(p1); }
 
 template<class P1, class P2>
-CallArg* rparam (P1& p1, P2& p2)
+CallArg* cparam (P1& p1, P2& p2)
     { return new CallArg2(p1, p2); }
 
 template<class P1, class P2, class P3>
-CallArg* rparam (P1& p1, P2& p2, P3& p3)
+CallArg* cparam (P1& p1, P2& p2, P3& p3)
     { return new CallArg3(p1, p2, p3); }
 
 template<class P1, class P2, class P3, class P4>
-CallArg* rparam (P1& p1, P2& p2, P3& p3, P4& p4)
+CallArg* cparam (P1& p1, P2& p2, P3& p3, P4& p4)
     { return new CallArg4(p1, p2, p3, p4); }
 
 template<class P1, class P2, class P3, class P4, class P5>
-CallArg* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
+CallArg* cparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
     { return new CallArg5(p1, p2, p3, p4, p5); }
 
 // =======================================================================

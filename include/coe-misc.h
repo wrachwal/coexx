@@ -34,7 +34,8 @@ public:
              owned_ptr ()       : _ptr(0)   {}
     explicit owned_ptr (T* ptr) : _ptr(ptr) {}
 
-    owned_ptr (const owned_ptr& rhs) : _ptr(rhs.release()) {}
+    owned_ptr (const owned_ptr& rhs)
+        : _ptr(rhs.release()) {}
     owned_ptr& operator= (const owned_ptr& rhs)
         {
             if (this != &rhs) {
@@ -63,7 +64,8 @@ public:
              owned_array_ptr ()       : _tab(0)   {}
     explicit owned_array_ptr (T* tab) : _tab(tab) {}
 
-    owned_array_ptr (const owned_array_ptr& rhs) : _tab(rhs.release()) {}
+    owned_array_ptr (const owned_array_ptr& rhs)
+        : _tab(rhs.release()) {}
     owned_array_ptr& operator= (const owned_array_ptr& rhs)
         {
             if (this != &rhs) {
