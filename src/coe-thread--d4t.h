@@ -153,8 +153,8 @@ struct d4Thread {
     int                     _msgpipe_rfd;
 
     struct FdSet {
-        struct fd_set   lval;
-        int             max_fd;
+        fd_set  lval;
+        int     max_fd;
         // --------
         void    zero     ();
         void    add_fd   (int fd);

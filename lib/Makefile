@@ -10,9 +10,13 @@ CXX += -MMD
 CXXFLAGS += -g -O2 -Wall -pedantic -ansi $(patsubst %,-I%,${inc_dirs}) \
   	    -Wno-invalid-offsetof -Wno-strict-aliasing
 
-ifeq ($(UNAME),Solaris)
+ifeq (Solaris,$(UNAME))
   CXXFLAGS += -D_POSIX_C_SOURCE
   LDFLAGS  += -lpthread -lrt
+else
+ifeq (Linux,$(findstring Linux,$(UNAME)))
+  LDFLAGS  += -lpthread -lrt
+endif
 endif
 
 VPATH = $(subst  ,:,${inc_dirs})
