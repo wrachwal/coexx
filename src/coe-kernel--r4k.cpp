@@ -32,19 +32,45 @@ using namespace std;
 
 // -----------------------------------------------------------------------
 
-class CCScope {
-public:
-    CCScope (SessionContext& orig) : _orig(orig) { _swap(); }
-    ~CCScope () { _swap(); }
-private:
-    void _swap ()
-        {
-            swap(_orig.session, _keep.session);
-            _orig.state.swap(_keep.state);
-        }
-    SessionContext& _orig;
-    SessionContext  _keep;
-};
+namespace {
+
+    class CCScope {
+    public:
+        CCScope (r4Kernel* target,
+                 r4Session* session,
+                 const string& state) : _kernel(target),
+                                        _old_ctx(target->_current_context),
+                                        _new_ctx(session, state)
+            {
+                assert(target == session->_kernel);
+                _new_ctx.parent = target->_current_context;
+                target->_current_context = &_new_ctx;
+            }
+
+        CCScope (r4Kernel* target,
+                 r4Kernel* source,
+                 r4Session* session,
+                 const string& state) : _kernel(target),
+                                        _old_ctx(target->_current_context),
+                                        _new_ctx(session, state)
+            {
+                assert(target == session->_kernel);
+                _new_ctx.parent = (source ? source : target)->_current_context;
+                target->_current_context = &_new_ctx;
+            }
+
+        ~CCScope ()
+            {
+                _kernel->_current_context = _old_ctx;
+            }
+
+    private:
+        r4Kernel*       _kernel;
+        SessionContext* _old_ctx;
+        SessionContext  _new_ctx;
+    };
+
+}
 
 // =======================================================================
 
@@ -70,13 +96,16 @@ r4Kernel::r4Kernel ()
     //
     // create and start the kernel session
     //
+    _current_context = &_kernel_session_context;
+
     _s4kernel = new s4Kernel;
 
     start_session(_s4kernel);               // --@@--
 
     assert(_s4kernel->ID().is_kernel());
+    assert(NULL == _s4kernel->_r4session->_parent);
 
-    _current_context.session = _s4kernel->_r4session;
+    _kernel_session_context.session = _s4kernel->_r4session;
 }
 
 // -----------------------------------------------------------------------
@@ -92,30 +121,25 @@ SiD r4Kernel::start_session (Session* s)
 
     r4s->_handle = s;   // attach resource now
     r4s->_kernel = this;
-    r4s->_parent = _current_context.session;
+    r4s->_parent = _current_context->session;
 
     d4Thread::_allocate_sid(*r4s);          // --@@--
 
-    CCScope __scope(_current_context);
+    CCScope __scope(this, r4s, ".start");
 
-    _current_context.session = r4s;
-    _current_context.state   = ".start";
+    EvCtx   ctx(this);
 
-    EvCtx   ctx(*_handle, *s);
+    if (NULL != r4s->_parent) {
+        ctx.sender       = _current_context->parent->session->_sid;
+        ctx.sender_state = _current_context->parent->state;
+    }
+    else {
+        ctx.sender = SiD(_kid, 0);  // pre-kernel session sid (invalid)
+    }
 
-    set_heap_ptr(ctx);
-    //TODO: ev?, ...
-    //ctx.sender = SiD(0,1);  // keep->_sid;
     s->_start(ctx);
 
     return r4s->_sid;
-}
-
-// -----------------------------------------------------------------------
-
-void r4Kernel::set_heap_ptr (EvCtx& ctx)
-{
-    ctx.heap = ctx.session.get_heap();
 }
 
 // -----------------------------------------------------------------------
@@ -134,7 +158,7 @@ bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
     assert(NULL != _thread);
     assert(to.valid());
 
-    EvMsg*  evmsg = new EvMsg(ev, arg, _current_context);
+    EvMsg*  evmsg = new EvMsg(ev, arg, *_current_context);
 
     if (to.kid() == _kid || NULL != _thread->local.find_kernel(to.kid())) {
         return d4Thread::post_event(_thread, to, evmsg);
@@ -154,74 +178,42 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
     assert(NULL != _thread);
     assert(on.valid());
 
-    if (on.kid() == _kid) {
+    r4Session*  session = NULL;
 
-        StateCmd* cmd = find_state_handler(on.id(), ev);
-        if (NULL == cmd) {
-            //TODO: call session's default error handling, like _default in POE?
-            //errno = ???
-            return false;
-        }
-
-        //TODO
-#if 0
-        CCScope __scope(_current_context);
-
-        _current_context.session = on ======> r4Session*
-        _current_context.state   = ev;
-
-        EvCtx   ctx(*_handle, *_current_context.session->_handle);
-
-        set_heap_ptr(ctx);
-        ctx.state        = _current_context.state;
-        ctx.sender       = XXX;
-        ctx.sender_state = XXX;
-
-        cmd->execute(ctx, NULL, 0, arg);
-#endif
-
-        return true;
+    // check if `on' is the current session
+    if (on == _current_context->session->_sid) {
+        session = _current_context->session;
+        assert(NULL != session);
     }
     else {
-
-        r4Kernel* that = _thread->local.find_kernel(on.kid());
-
-        if (NULL == that) {
+        session = _thread->local.find_session(on);
+        if (NULL == session) {
             //TODO: call session's default error handling, like _default in POE?
             //errno = ???
             return false;
         }
-
-        return that->call__arg(on, ev, __arg.release());
     }
 
-#if 0
-    StateCmd* cmd = find_state_handler(ev);
+    StateCmd* cmd = find_state_handler(on.id(), ev);
     if (NULL == cmd) {
-        //TODO: errno = ???
+        //TODO: call session's default error handling, like _default in POE?
+        //errno = ???
         return false;
     }
 
-    //
-    //FIXME:
-    //  1) what to verify? _kernel, _current_session, etc...
-    //  2) to, heap -- need to set correct values
-    //
+    r4Kernel*   target = session->_kernel;
+    assert(NULL != target);
 
-    r4Session*  keep = _current_session;
-    _current_session = ::s_LAST_SESSION;
+    CCScope __scope(target, this/*source*/, session, ev);
 
-    EvCtx   ctx(*_handle, *_current_session->_handle);
+    EvCtx   ctx(target);
 
-    set_heap_ptr(ctx);
-    ctx.state = ev;
+    ctx.sender       = _current_context->parent->session->_sid;
+    ctx.sender_state = _current_context->parent->state;
 
     cmd->execute(ctx, NULL, 0, arg);
 
-    _current_session = keep;
-
     return true;
-#endif
 }
 
 // -----------------------------------------------------------------------
@@ -230,7 +222,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 {
     //TODO: check if _current_session is allowable to accept Kernel::state()
 
-    S1Ev    s1ev(_current_context.session->_sid.id(), ev);
+    S1Ev    s1ev(_current_context->session->_sid.id(), ev);
 
     S1Ev_Cmd::iterator  kv = _s1ev_cmd.find(s1ev);
 
@@ -257,15 +249,10 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
         return;
     }
 
-    CCScope __scope(_current_context);
+    CCScope __scope(this, evmsg->target(), evmsg->name());
 
-    _current_context.session = evmsg->target();
-    _current_context.state   = evmsg->name();
+    EvCtx   ctx(this);
 
-    EvCtx   ctx(*_handle, *_current_context.session->_handle);
-
-    set_heap_ptr(ctx);
-    ctx.state        = _current_context.state;
     ctx.sender       = evmsg->sender();
     ctx.sender_state = evmsg->sender_state();
 
@@ -289,17 +276,13 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
         return;
     }
 
-    CCScope __scope(_current_context);
+    CCScope __scope(this, session, alarm->name());
 
-    _current_context.session = session;
-    _current_context.state   = alarm->name();
+    EvCtx   ctx(this);
 
-    EvCtx   ctx(*_handle, *_current_context.session->_handle);
-
-    set_heap_ptr(ctx);
-    ctx.state        = _current_context.state;
     ctx.sender       = session->_sid;
     ctx.sender_state = alarm->sender_state();
+    ctx.alarm_id     = alarm->aid();
 
     cmd->execute(ctx, NULL, 0, alarm->arg());
 
@@ -323,15 +306,10 @@ void r4Kernel::dispatch_evio (EvIO* evio)
         return;
     }
 
-    CCScope __scope(_current_context);
+    CCScope __scope(this, session, evio->name());
 
-    _current_context.session = session;
-    _current_context.state   = evio->name();
+    EvCtx   ctx(this);
 
-    EvCtx   ctx(*_handle, *_current_context.session->_handle);
-
-    set_heap_ptr(ctx);
-    ctx.state        = _current_context.state;
     ctx.sender       = session->_sid;
     ctx.sender_state = evio->sender_state();
 

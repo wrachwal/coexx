@@ -54,6 +54,7 @@ private:
     Session (const Session&);           // prohibited
     void operator= (const Session&);    // prohibited
 
+    friend class EvCtx;                 // get_heap()
     friend struct r4Kernel;
     friend struct r4Session;
     r4Session*   _r4session;

@@ -32,17 +32,20 @@ using namespace std;
 // =======================================================================
 // EvCtx
 
-EvCtx::EvCtx (Kernel& k, Session& s)
-    : kernel(k), session(s)
+EvCtx::EvCtx (r4Kernel* k)
+  : kernel (*k->_handle),
+    session(*k->_current_context->session->_handle),
+    state  ( k->_current_context->state)
 {
-    heap = NULL;
+    heap = session.get_heap();
 }
 
 // -----------------------------------------------------------------------
 // DatIO
 
 DatIO::DatIO (int f, IO_Mode m)
-    : filedes(f), mode(m)
+  : filedes(f),
+    mode(m)
 {
 }
 
@@ -174,7 +177,7 @@ bool Kernel::yield (const string& ev, PostArg* pp)
         delete pp;
         return false;
     }
-    SiD to = _r4kernel->_current_context.session->_sid;
+    SiD to = _r4kernel->_current_context->session->_sid;
     if (! target_valid(to)) {
         delete pp;
         return false;
@@ -210,7 +213,7 @@ AiD Kernel::delay_set (const string ev, TimeSpec duration, PostArg* pp)
     return _r4kernel->_thread->create_alarm(
                                     d4Thread::_DELAY_SET,
                                     duration,
-                                    new EvAlarm(ev, pp, _r4kernel->_current_context)
+                                    new EvAlarm(ev, pp, *_r4kernel->_current_context)
                                 );
 }
 
@@ -227,7 +230,7 @@ bool Kernel::select (int fd, IO_Mode mode)
     return _r4kernel->_thread->delete_io_watcher(
                                     fd,
                                     mode,
-                                    _r4kernel->_current_context.session
+                                    _r4kernel->_current_context->session
                                 );
 }
 
@@ -242,10 +245,7 @@ bool Kernel::select (int fd, IO_Mode mode, const string& ev, PostArg* pp)
         return false;
     }
 
-    EvIO*   evio = new EvIO(ev, pp, _r4kernel->_current_context);
-
-    evio->fd(fd);
-    evio->mode(mode);
+    EvIO*   evio = new EvIO(fd, mode, ev, pp, *_r4kernel->_current_context);
 
     return _r4kernel->_thread->create_io_watcher(evio);
 }

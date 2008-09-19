@@ -134,8 +134,8 @@ public:
     std::string sender_state;
     AiD         alarm_id;   // set if timer event
 private:
-    friend struct r4Kernel;
-    EvCtx (Kernel& k, Session& s);
+    friend struct   r4Kernel;
+    explicit EvCtx (r4Kernel* k);
     EvCtx (const EvCtx&);           // prohibited
     void operator= (const EvCtx&);  // prohibited
 };

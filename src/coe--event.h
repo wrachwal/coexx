@@ -41,9 +41,13 @@ class EvCommon;
 struct r4Session;
 
 struct SessionContext {
-    SessionContext () : session(NULL) {}
-    r4Session*  session;
-    std::string state;
+    SessionContext ()
+        : parent(NULL), session(NULL) {}
+    SessionContext (r4Session* session, const std::string& state)
+        : parent(NULL), session(session), state(state) {}
+    SessionContext* parent;
+    r4Session*      session;
+    std::string     state;
 };
 
 // -----------------------------------------------------------------------
@@ -196,15 +200,12 @@ struct EvAlarmStore {
 
 class EvIO : public EvCommon {
 public:
-    EvIO (const std::string& name, PostArg* arg, SessionContext& cc);
+    EvIO (int fd, IO_Mode mode, const std::string& name, PostArg* arg, SessionContext& cc);
     ~EvIO ();
 
     /*final*/ void dispatch ();
 
-    void  fd (int f);
-    int   fd () const { return _fd; }
-
-    void    mode (IO_Mode m);
+    int     fd   () const { return _fd; }
     IO_Mode mode () const { return _mode; }
 
     void active (bool a);

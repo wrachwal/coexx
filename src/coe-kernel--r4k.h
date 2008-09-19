@@ -40,7 +40,7 @@ struct s4Kernel;
 
 struct r4Kernel {
 
-    d4Thread*           _thread;    // controlling thread
+    d4Thread*           _thread;    // driving thread
     Kernel*             _handle;
 
     KiD                 _kid;
@@ -48,7 +48,8 @@ struct r4Kernel {
 
     s4Kernel*           _s4kernel;
 
-    SessionContext      _current_context;
+    SessionContext*     _current_context;
+    SessionContext      _kernel_session_context;
 
     // _s1ev_cmd : sid/1 x ev-name --> StateCmd*
     typedef std::pair<SiD::IntType, std::string> S1Ev;
@@ -61,7 +62,6 @@ struct r4Kernel {
 
     SiD get_next_unique_sid ();
     SiD start_session (Session* s);
-    void set_heap_ptr (EvCtx& ctx);
 
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
 
