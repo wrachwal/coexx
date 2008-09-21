@@ -74,20 +74,22 @@ SiD Kernel::start_session (Session* s)
     return _r4kernel->start_session(s);
 }
 
-void Kernel::run_event_loop ()
-{
-    if (NULL != _r4kernel && NULL != _r4kernel->_thread) {
-        // blocks only if loop has not been run yet
-        _r4kernel->_thread->run_event_loop();
-    }
-}
-
 // -----------------------------------------------------------------------
 
 static inline
 bool kernel_attached (r4Kernel* r4k)
 {
     if (NULL == r4k || NULL == r4k->_thread) {
+        // errno = ???  //TODO
+        return false;
+    }
+    return true;
+}
+
+static inline
+bool target_valid (TiD target)
+{
+    if (! target.valid()) {
         // errno = ???  //TODO
         return false;
     }
@@ -142,6 +144,32 @@ bool mode_valid (IO_Mode mode)
         return false;
     }
     return true;
+}
+
+// -----------------------------------------------------------------------
+
+void Kernel::run_event_loop ()
+{
+    if (NULL != _r4kernel && NULL != _r4kernel->_thread) {
+        // blocks only if loop has not been run yet
+        _r4kernel->_thread->run_event_loop();
+    }
+}
+
+bool Kernel::run_event_loop (TiD tid)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(tid))
+    {
+        return false;
+    }
+    if (tid == _r4kernel->_thread->_tid) {  // remain in the same thread
+        return true;
+    }
+    else {
+        //FIXME: update of _current_context may be needed before return!
+        return _r4kernel->_thread->move_to_other_thread(_r4kernel, tid);
+    }
 }
 
 // -----------------------------------------------------------------------

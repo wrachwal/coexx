@@ -69,6 +69,8 @@ struct d4Thread {
     static void  _allocate_kid (r4Kernel& r4k);
     static void  _allocate_sid (r4Session& r4s);
 
+    bool move_to_other_thread (r4Kernel* kernel, TiD target_tid);
+
     // --------------------------------
     //         | rwlock |
     // thread  |  R | W |

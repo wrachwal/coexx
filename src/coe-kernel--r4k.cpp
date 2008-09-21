@@ -134,7 +134,7 @@ SiD r4Kernel::start_session (Session* s)
         ctx.sender_state = _current_context->parent->state;
     }
     else {
-        ctx.sender = SiD(_kid, 0);  // pre-kernel session sid (invalid)
+        ctx.sender = SiD(_kid, 1);  // kernel session (itself)
     }
 
     s->_start(ctx);
@@ -148,6 +148,28 @@ StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
 {
     S1Ev_Cmd::iterator  sh = _s1ev_cmd.find(make_pair(sid1, ev));
     return (sh == _s1ev_cmd.end()) ? NULL : (*sh).second;
+}
+
+// -----------------------------------------------------------------------
+
+void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
+{
+    //TODO: check if _current_session is allowable to accept Kernel::state()
+
+    S1Ev    s1ev(_current_context->session->_sid.id(), ev);
+
+    S1Ev_Cmd::iterator  kv = _s1ev_cmd.find(s1ev);
+
+    if (kv != _s1ev_cmd.end()) {
+        swap(cmd, (*kv).second);
+        delete cmd;
+        if (NULL == (*kv).second)
+            _s1ev_cmd.erase(kv);
+    }
+    else
+    if (NULL != cmd) {
+        _s1ev_cmd.insert(S1Ev_Cmd::value_type(s1ev, cmd));
+    }
 }
 
 // -----------------------------------------------------------------------
@@ -214,28 +236,6 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
     cmd->execute(ctx, NULL, 0, arg);
 
     return true;
-}
-
-// -----------------------------------------------------------------------
-
-void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
-{
-    //TODO: check if _current_session is allowable to accept Kernel::state()
-
-    S1Ev    s1ev(_current_context->session->_sid.id(), ev);
-
-    S1Ev_Cmd::iterator  kv = _s1ev_cmd.find(s1ev);
-
-    if (kv != _s1ev_cmd.end()) {
-        swap(cmd, (*kv).second);
-        delete cmd;
-        if (NULL == (*kv).second)
-            _s1ev_cmd.erase(kv);
-    }
-    else
-    if (NULL != cmd) {
-        _s1ev_cmd.insert(S1Ev_Cmd::value_type(s1ev, cmd));
-    }
 }
 
 // -----------------------------------------------------------------------

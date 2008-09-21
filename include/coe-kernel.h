@@ -73,7 +73,7 @@ public:
     /*
      * Synchronous Messages
      */
-    bool call (SiD on, const std::string& ev, CallArg* cp=0);
+           bool      call (SiD on, const std::string& ev, CallArg* cp=0);
 
     /*
      * Timer Events (Delayed Messages)

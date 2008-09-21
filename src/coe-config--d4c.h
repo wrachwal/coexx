@@ -38,7 +38,7 @@ struct d4Config {
 
 private:
     d4Config ();
-    static d4Config* _instance;
+    static d4Config* _instance; //FIXME: needs to be a volatile?
 };
 
 // =======================================================================

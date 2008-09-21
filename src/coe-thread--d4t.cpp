@@ -119,6 +119,8 @@ d4Thread::~d4Thread ()
     }
 }
 
+// -----------------------------------------------------------------------
+
 void d4Thread::run_event_loop ()
 {
     if (! _event_loop_running) {
@@ -134,6 +136,8 @@ void d4Thread::run_event_loop ()
         _event_loop_running = false;
     }
 }
+
+// -----------------------------------------------------------------------
 
 void d4Thread::enque_msg_event (EvMsg* evmsg)
 {
@@ -254,6 +258,8 @@ bool d4Thread::remove_enqueued_event (EvCommon* ev)
     }
 }
 
+// -----------------------------------------------------------------------
+
 TimeSpec d4Thread::get_current_time ()
 {
     //
@@ -293,6 +299,8 @@ void d4Thread::_queue_expired_alarms ()     // --@@--
 
     _dsa_map.erase(_dsa_map.begin(), upr);  // complexity at most O(log(size()) + N)
 }
+
+// -----------------------------------------------------------------------
 
 bool d4Thread::_select_io (const TimeSpec* due)
 {
@@ -606,6 +614,20 @@ void d4Thread::_allocate_sid (r4Session& r4s)
     r4s._sid = kernel->_sid_generator.generate_next(thread->local.sid_map);
 
     thread->local.sid_map[r4s._sid] = &r4s;
+}
+
+// -----------------------------------------------------------------------
+
+bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
+{
+    assert(NULL != kernel);
+    assert(this == kernel->_thread);
+
+    TiD source_tid = kernel->_thread->_tid;
+
+    //TODO
+    //errno = ???
+    return false;
 }
 
 // -----------------------------------------------------------------------
