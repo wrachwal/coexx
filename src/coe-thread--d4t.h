@@ -29,8 +29,15 @@ THE SOFTWARE.
 #include "coe--event.h"
 #include "coe--util.h"
 
+struct d4Thread;
 struct r4Kernel;
 struct r4Session;
+
+// -----------------------------------------------------------------------
+
+typedef std::map<TiD, d4Thread*>  Tid_Map;
+typedef std::map<KiD, r4Kernel*>  Kid_Map;
+typedef std::map<SiD, r4Session*> Sid_Map;
 
 // =======================================================================
 // d4Thread
@@ -50,8 +57,9 @@ struct d4Thread {
     void _queue_expired_alarms();
     bool _select_io (const TimeSpec* due);
 
-    static bool anon_post_event (                 SiD to, EvMsg* evmsg);
-    static bool      post_event (d4Thread* local, SiD to, EvMsg* evmsg);
+    static bool anon_post_event (                              SiD to, EvMsg* evmsg);
+    static bool      post_event (d4Thread* source,             SiD to, EvMsg* evmsg);
+    static bool      post_event (d4Thread* target, r4Session* session, EvMsg* evmsg);
 
     enum SetupAlarmMode {
         _DELAY_SET
@@ -72,40 +80,32 @@ struct d4Thread {
     bool move_to_other_thread (r4Kernel* kernel, TiD target_tid);
 
     // --------------------------------
-    //         | rwlock |
-    // thread  |  R | W |
-    // ------------------
-    //   all   |  R | W |
     //
     static struct Glob {
 
-        RWLock                      rwlock;
+        RWLock                  rwlock;
 
-        IdentGenerator<TiD>         tid_generator;
-        std::map<TiD, d4Thread*>    tid_map;        //TODO: hash_map
+        IdentGenerator<TiD>     tid_generator;
+        Tid_Map                 tid_map;        //TODO: hash_map
 
-        IdentGenerator<KiD>         kid_generator;
-        std::map<KiD, r4Kernel*>    kid_map;        //TODO: hash_map
+        IdentGenerator<KiD>     kid_generator;
+        Kid_Map                 kid_map;        //TODO: hash_map
 
         // --------
 
+        d4Thread* find_thread (TiD kid) const;
         r4Kernel* find_kernel (KiD kid) const;
 
     } glob;
 
     // --------------------------------
-    //         | rwlock |
-    // thread  |  R | W |
-    // ------------------
-    //  local  |  0 | W |
-    // foreign |  R | ! |
     //
     struct Local {
 
-        RWLock                      rwlock;
+        RWLock                  rwlock;
 
-        std::map<KiD, r4Kernel*>    kid_map;        //TODO: hash_map
-        std::map<SiD, r4Session*>   sid_map;        //TODO: hash_map
+        Kid_Map                 kid_map;        //TODO: hash_map
+        Sid_Map                 sid_map;        //TODO: hash_map
 
         // --------
 

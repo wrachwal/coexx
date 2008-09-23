@@ -40,6 +40,7 @@ public:
     IntType id () const { return _t; }
 
     bool operator== (const TiD& rhs) const { return _t == rhs._t; }
+    bool operator!= (const TiD& rhs) const { return _t != rhs._t; }
     bool operator<  (const TiD& rhs) const { return _t <  rhs._t; }
 
     static TiD NONE () { return TiD(); }
@@ -65,6 +66,7 @@ public:
     IntType id () const { return _k; }
 
     bool operator== (const KiD& rhs) const { return _k == rhs._k; }
+    bool operator!= (const KiD& rhs) const { return _k != rhs._k; }
     bool operator<  (const KiD& rhs) const { return _k <  rhs._k; }
 
     static KiD NONE () { return KiD(); }
@@ -94,6 +96,8 @@ public:
 
     bool operator== (const SiD& rhs) const
         { return _k == rhs._k && _s == rhs._s; }
+    bool operator!= (const SiD& rhs) const
+        { return _k != rhs._k || _s != rhs._s; }
     bool operator<  (const SiD& rhs) const
         { return _k < rhs._k || _k == rhs._k && _s < rhs._s; }
 
@@ -121,6 +125,7 @@ public:
     IntType id () const { return _a; }
 
     bool operator== (const AiD& rhs) const { return _a == rhs._a; }
+    bool operator!= (const AiD& rhs) const { return _a != rhs._a; }
     bool operator<  (const AiD& rhs) const { return _a <  rhs._a; }
 
     static AiD NONE () { return AiD(); }

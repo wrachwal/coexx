@@ -42,9 +42,15 @@ d4Thread::Glob  d4Thread::glob;
 // -----------------------------------------------------------------------
 // d4Thread::Glob
 
+d4Thread* d4Thread::Glob::find_thread (TiD tid) const
+{
+    Tid_Map::const_iterator i = tid_map.find(tid);
+    return i == tid_map.end() ? NULL : (*i).second;
+}
+
 r4Kernel* d4Thread::Glob::find_kernel (KiD kid) const
 {
-    map<KiD, r4Kernel*>::const_iterator i = kid_map.find(kid);
+    Kid_Map::const_iterator i = kid_map.find(kid);
     return i == kid_map.end() ? NULL : (*i).second;
 }
 
@@ -53,13 +59,13 @@ r4Kernel* d4Thread::Glob::find_kernel (KiD kid) const
 
 r4Kernel* d4Thread::Local::find_kernel (KiD kid) const
 {
-    map<KiD, r4Kernel*>::const_iterator i = kid_map.find(kid);
+    Kid_Map::const_iterator i = kid_map.find(kid);
     return i == kid_map.end() ? NULL : (*i).second;
 }
 
 r4Session* d4Thread::Local::find_session (SiD sid) const
 {
-    map<SiD, r4Session*>::const_iterator i = sid_map.find(sid);
+    Sid_Map::const_iterator i = sid_map.find(sid);
     return i == sid_map.end() ? NULL : (*i).second;
 }
 
@@ -397,55 +403,53 @@ bool d4Thread::_select_io (const TimeSpec* due)
 
 bool d4Thread::anon_post_event (SiD to, EvMsg *evmsg)
 {
-    d4Thread*   thread = get_tls_data();
-    if (NULL != thread) {
-        if (thread->local.kid_map.find(to.kid()) != thread->local.kid_map.end()) {
-            return post_event(thread, to, evmsg);
-        }
-    }
-    return post_event(NULL, to, evmsg);
+    return post_event(get_tls_data(), to, evmsg);
 }
 
-bool d4Thread::post_event (d4Thread* local, SiD to, EvMsg* evmsg)
+// ------------------------------------
+
+bool d4Thread::post_event (d4Thread* source, SiD to, EvMsg* evmsg)
 {
-    if (NULL != local) {
+    if (NULL != source) {
 
-        r4Session*  session = local->local.find_session(to);
+        r4Session*  session = NULL;
+
+        // --@@--
+        {
+            RWLock::Guard   guard(source->local.rwlock, RWLock::READ);
+
+            session = source->local.find_session(to);
+        }   // being in `source' thread we can release the lock now
+
         if (NULL != session) {
-
-            evmsg->target(session);
-
-            // --@@--
-            local->enque_msg_event(evmsg);
-            return true;
+            return post_event(source, session, evmsg);  // --@@--
         }
     }
-    else {
+
+    // --@@--
+    RWLock::Guard   guard(glob.rwlock, RWLock::READ);
+
+    r4Kernel*   kernel = glob.find_kernel(to.kid());
+    if (NULL != kernel &&
+        NULL != kernel->_thread)
+    {
+        d4Thread*   target = kernel->_thread;
+
         // --@@--
-        RWLock::Guard   guard(glob.rwlock, RWLock::READ);
+        RWLock::Guard   guard(target->local.rwlock, RWLock::READ);
 
-        r4Kernel*   kernel = glob.find_kernel(to.kid());
-        if (NULL != kernel &&
-            NULL != kernel->_thread)
-        {
-            // --@@--
-            d4Thread*   thread = kernel->_thread;
-            RWLock::Guard   guard(thread->local.rwlock, RWLock::READ);
+        r4Session*  session = target->local.find_session(to);
+        if (NULL != session) {
 
-            r4Session*  session = thread->local.find_session(to);
-            if (NULL != session) {
+            // case of inter-thread post
 
-                evmsg->target(session);
-                evmsg->source(NULL);    // source and target in different threads
+            evmsg->source(NULL);
 
-                if (evmsg->prio_order() < 0) {
-                    evmsg->prio_order(0);   //TODO: get from config
-                }
-
-                // --@@--
-                thread->enque_msg_event(evmsg);
-                return true;
+            if (evmsg->prio_order() < 0) {
+                evmsg->prio_order(0);   //TODO: get from config
             }
+
+            return post_event(target, session, evmsg);  // --@@--
         }
     }
 
@@ -453,6 +457,23 @@ bool d4Thread::post_event (d4Thread* local, SiD to, EvMsg* evmsg)
     //errno = ???   //TODO
     delete evmsg;
     return false;
+}
+
+// ------------------------------------
+
+bool d4Thread::post_event (d4Thread* target, r4Session* session, EvMsg* evmsg)
+{
+    // quite a bunch of paranoic checks
+    assert(NULL != target);
+    assert(NULL != session);
+    assert(NULL != session->_kernel);
+    assert(target == session->_kernel->_thread);
+
+    evmsg->target(session); // target session must be always known
+
+    target->enque_msg_event(evmsg); // --@@--
+
+    return true;
 }
 
 // -----------------------------------------------------------------------
@@ -624,6 +645,76 @@ bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
     assert(this == kernel->_thread);
 
     TiD source_tid = kernel->_thread->_tid;
+    assert(target_tid != source_tid);
+
+    /**********************************
+                    lock
+     **********************************/
+
+    // --@@--
+    // RWLock::WRITE due to kernel's thread re-assignment
+    RWLock::Guard   gg_guard(glob.rwlock, RWLock::WRITE);
+
+    d4Thread*   source = this;
+    d4Thread*   target = glob.find_thread(target_tid);
+    if (NULL == target) {
+        //errno = ???
+        return false;
+    }
+
+    // enforce strict locking hierarchy between two (equivalent) threads
+    d4Thread*   tt[2] = { source, target };
+    assert(tt[0] != tt[1]);
+    if (tt[1] < tt[0]) {
+        swap(tt[0], tt[1]); // order based on d4Thread* values
+    }
+
+    // --@@--
+    RWLock::Guard   l0_guard(tt[0]->local.rwlock, RWLock::WRITE);
+    RWLock::Guard   l1_guard(tt[1]->local.rwlock, RWLock::WRITE);
+
+    // --@@--
+    Mutex::Guard    s0_guard(tt[0]->sched.mutex);
+    Mutex::Guard    s1_guard(tt[1]->sched.mutex);
+
+    /**********************************
+                    move
+     **********************************/
+
+    kernel->_thread = target;   // thread re-assignment
+
+    //      source          target
+    //      ======   --->   ======
+    // (1)  local.kid_map   local.kid_map
+    // (2)  local.sid_map   local.sid_map
+    // (3)  _lqueue         sched.trans.queue
+    // (4)  sched.pqueue    sched.trans.queue
+    // (5)  _dsa_map        sched.trans.dsa_map
+    // (6)  _fms_map        sched.trans.fms_map
+
+    // (1)
+    target->local.kid_map      [kernel->_kid] = kernel;
+    source->local.kid_map.erase(kernel->_kid);
+
+    // (2)
+    {
+        Sid_Map::iterator i = source->local.sid_map.begin();
+        while (i != source->local.sid_map.end()) {
+            if ((*i).second->_kernel == kernel) {
+                target->local.sid_map.insert(*i);
+                source->local.sid_map. erase( i++);
+            }
+            else {
+                ++i;
+            }
+        }
+    }
+
+    //TODO
+    // (3)
+    // (4)
+    // (5)
+    // (6)
 
     //TODO
     //errno = ???

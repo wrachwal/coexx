@@ -164,7 +164,8 @@ bool Kernel::run_event_loop (TiD tid)
         return false;
     }
     if (tid == _r4kernel->_thread->_tid) {  // remain in the same thread
-        return true;
+        //errno = ???
+        return false;
     }
     else {
         //FIXME: update of _current_context may be needed before return!
@@ -194,7 +195,19 @@ bool Kernel::post (SiD to, const string& ev, PostArg* pp)
         delete pp;
         return false;
     }
-    return _r4kernel->post__arg(to, ev, pp);
+    assert(NULL != _r4kernel->_current_context);
+    assert(NULL != _r4kernel->_current_context->session);
+
+    EvMsg*  evmsg = new EvMsg(ev, pp, *_r4kernel->_current_context);
+
+    r4Session*  current_session = _r4kernel->_current_context->session;
+
+    if (to == current_session->_sid) {
+        return d4Thread::post_event(_r4kernel->_thread, current_session, evmsg);
+    }
+    else {
+        return d4Thread::post_event(_r4kernel->_thread,              to, evmsg);
+    }
 }
 
 bool Kernel::yield (const string& ev, PostArg* pp)
@@ -205,12 +218,14 @@ bool Kernel::yield (const string& ev, PostArg* pp)
         delete pp;
         return false;
     }
-    SiD to = _r4kernel->_current_context->session->_sid;
-    if (! target_valid(to)) {
-        delete pp;
-        return false;
-    }
-    return _r4kernel->post__arg(to, ev, pp);
+    assert(NULL != _r4kernel->_current_context);
+    assert(NULL != _r4kernel->_current_context->session);
+
+    return d4Thread::post_event(
+                        _r4kernel->_thread,
+                        _r4kernel->_current_context->session,
+                        new EvMsg(ev, pp, *_r4kernel->_current_context)
+                    );
 }
 
 // -----------------------------------------------------------------------

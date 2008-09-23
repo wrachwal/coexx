@@ -174,24 +174,6 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 // -----------------------------------------------------------------------
 
-bool r4Kernel::post__arg (SiD to, const string& ev, PostArg* arg)
-{
-    // assertions confirm what have been validated by a caller
-    assert(NULL != _thread);
-    assert(to.valid());
-
-    EvMsg*  evmsg = new EvMsg(ev, arg, *_current_context);
-
-    if (to.kid() == _kid || NULL != _thread->local.find_kernel(to.kid())) {
-        return d4Thread::post_event(_thread, to, evmsg);
-    }
-    else {
-        return d4Thread::post_event(NULL, to, evmsg);
-    }
-}
-
-// -----------------------------------------------------------------------
-
 bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
 {
     auto_ptr<CallArg>   __arg(arg);
@@ -208,6 +190,9 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
         assert(NULL != session);
     }
     else {
+        // --@@--
+        RWLock::Guard   guard(_thread->local.rwlock, RWLock::READ);
+
         session = _thread->local.find_session(on);
         if (NULL == session) {
             //TODO: call session's default error handling, like _default in POE?
