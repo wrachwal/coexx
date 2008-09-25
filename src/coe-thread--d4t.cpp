@@ -55,21 +55,6 @@ r4Kernel* d4Thread::Glob::find_kernel (KiD kid) const
 }
 
 // -----------------------------------------------------------------------
-// d4Thread::Local
-
-r4Kernel* d4Thread::Local::find_kernel (KiD kid) const
-{
-    Kid_Map::const_iterator i = kid_map.find(kid);
-    return i == kid_map.end() ? NULL : (*i).second;
-}
-
-r4Session* d4Thread::Local::find_session (SiD sid) const
-{
-    Sid_Map::const_iterator i = sid_map.find(sid);
-    return i == sid_map.end() ? NULL : (*i).second;
-}
-
-// -----------------------------------------------------------------------
 // d4Thread::Sched
 
 d4Thread::Sched::Sched ()
@@ -156,11 +141,11 @@ void d4Thread::enque_msg_event (EvMsg* evmsg)
         // --@@--
         Mutex::Guard    guard(sched.mutex);
 
+        sched.pqueue.put_tail(evmsg);
+
+        // wake up waiting thread
         if (Sched::WAIT == sched.state && sched.pqueue.empty()) {
 
-            sched.pqueue.put_tail(evmsg);
-
-            // wake up waiting thread
             if (sched.io_requests) {
                 // write a byte to notification pipe
                 ssize_t nbytes = write(sched.msgpipe_wfd, "@", 1);
@@ -170,9 +155,6 @@ void d4Thread::enque_msg_event (EvMsg* evmsg)
             else {
                 sched.cond.signal();
             }
-        }
-        else {
-            sched.pqueue.put_tail(evmsg);
         }
     }
 }
@@ -403,24 +385,16 @@ bool d4Thread::_select_io (const TimeSpec* due)
 
 bool d4Thread::anon_post_event (SiD to, EvMsg *evmsg)
 {
-    return post_event(get_tls_data(), to, evmsg);
+    return post_event(NULL/*source-kernel*/, to, evmsg);
 }
 
 // ------------------------------------
 
-bool d4Thread::post_event (d4Thread* source, SiD to, EvMsg* evmsg)
+bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
 {
     if (NULL != source) {
 
-        r4Session*  session = NULL;
-
-        // --@@--
-        {
-            RWLock::Guard   guard(source->local.rwlock, RWLock::READ);
-
-            session = source->local.find_session(to);
-        }   // being in `source' thread we can release the lock now
-
+        r4Session*  session = source->local.find_session(to);
         if (NULL != session) {
             return post_event(source, session, evmsg);  // --@@--
         }
@@ -429,12 +403,10 @@ bool d4Thread::post_event (d4Thread* source, SiD to, EvMsg* evmsg)
     // --@@--
     RWLock::Guard   guard(glob.rwlock, RWLock::READ);
 
-    r4Kernel*   kernel = glob.find_kernel(to.kid());
-    if (NULL != kernel &&
-        NULL != kernel->_thread)
+    r4Kernel*   target = glob.find_kernel(to.kid());
+    if (NULL != target &&
+        NULL != target->_thread)
     {
-        d4Thread*   target = kernel->_thread;
-
         // --@@--
         RWLock::Guard   guard(target->local.rwlock, RWLock::READ);
 
@@ -461,17 +433,17 @@ bool d4Thread::post_event (d4Thread* source, SiD to, EvMsg* evmsg)
 
 // ------------------------------------
 
-bool d4Thread::post_event (d4Thread* target, r4Session* session, EvMsg* evmsg)
+bool d4Thread::post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg)
 {
     // quite a bunch of paranoic checks
     assert(NULL != target);
+    assert(NULL != target->_thread);
     assert(NULL != session);
-    assert(NULL != session->_kernel);
-    assert(target == session->_kernel->_thread);
+    assert(target == session->_kernel);
 
-    evmsg->target(session); // target session must be always known
+    evmsg->target(session);     // target session must be always known
 
-    target->enque_msg_event(evmsg); // --@@--
+    target->_thread->enque_msg_event(evmsg);    // --@@--
 
     return true;
 }
@@ -612,29 +584,13 @@ void d4Thread::_allocate_kid (r4Kernel& r4k)
     assert(NULL != r4k._thread);
 
     // --@@--
-    RWLock::Guard   g_guard(glob.rwlock, RWLock::WRITE);
+    RWLock::Guard   g_guard(              glob.rwlock, RWLock::WRITE);
     RWLock::Guard   l_guard(r4k._thread->local.rwlock, RWLock::WRITE);
 
     r4k._kid = glob.kid_generator.generate_next(glob.kid_map);
 
-                  glob.kid_map[r4k._kid] = &r4k;
-    r4k._thread->local.kid_map[r4k._kid] = &r4k;
-}
-
-void d4Thread::_allocate_sid (r4Session& r4s)
-{
-    assert(NULL != r4s._kernel);
-    assert(NULL != r4s._kernel->_thread);
-
-    r4Kernel*   kernel = r4s._kernel;
-    d4Thread*   thread = kernel->_thread;
-
-    // --@@--
-    RWLock::Guard   guard(thread->local.rwlock, RWLock::WRITE);
-
-    r4s._sid = kernel->_sid_generator.generate_next(thread->local.sid_map);
-
-    thread->local.sid_map[r4s._sid] = &r4s;
+    glob.kid_map[r4k._kid] = &r4k;
+    r4k._thread->local.list_kernel.put_tail(&r4k);
 }
 
 // -----------------------------------------------------------------------
@@ -683,38 +639,20 @@ bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
 
     kernel->_thread = target;   // thread re-assignment
 
-    //      source          target
-    //      ======   --->   ======
-    // (1)  local.kid_map   local.kid_map
-    // (2)  local.sid_map   local.sid_map
-    // (3)  _lqueue         sched.trans.queue
-    // (4)  sched.pqueue    sched.trans.queue
-    // (5)  _dsa_map        sched.trans.dsa_map
-    // (6)  _fms_map        sched.trans.fms_map
-
-    // (1)
-    target->local.kid_map      [kernel->_kid] = kernel;
-    source->local.kid_map.erase(kernel->_kid);
-
-    // (2)
-    {
-        Sid_Map::iterator i = source->local.sid_map.begin();
-        while (i != source->local.sid_map.end()) {
-            if ((*i).second->_kernel == kernel) {
-                target->local.sid_map.insert(*i);
-                source->local.sid_map. erase( i++);
-            }
-            else {
-                ++i;
-            }
-        }
-    }
+    //      source              target
+    //      ======     --->     ======
+    // (1)  local.list_kernel   local.list_kernel
+    // (2)  sched.pqueue        sched.pqueue
+    // (3)  _lqueue             sched.trans.lqueue
+    // (4)  _dsa_map            sched.trans.dsa_map
+    // (5)  _fms_map            sched.trans.fms_map
 
     //TODO
+    // (1)
+    // (2)
     // (3)
     // (4)
     // (5)
-    // (6)
 
     //TODO
     //errno = ???

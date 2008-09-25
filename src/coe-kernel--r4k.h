@@ -25,20 +25,45 @@ THE SOFTWARE.
 #ifndef __COE_KERNEL__R4K_H
 #define __COE_KERNEL__R4K_H
 
-#include <map>
-
 #include "coe--event.h"
-#include "coe-thread--d4t.h"
+#include "coe--util.h"          // IdentGenerator<>
+#include "coe-sys.h"            // RWLock, ...
 
 class Kernel;
 class Session;
 class StateCmd;
 
+struct d4Thread;
 struct s4Kernel;
+
+// -----------------------------------------------------------------------
+
+typedef std::map<SiD, r4Session*> Sid_Map;
 
 // =======================================================================
 
 struct r4Kernel {
+
+    // --------------------------------
+    //         | rwlock |
+    // thread  |  R | W |
+    // ------------------
+    //  local  |  0 | W |
+    // foreign |  R | ! |
+    //
+    struct Local {
+
+        RWLock          rwlock;
+
+        Sid_Map         sid_map;    //TODO: hash_map
+
+        // --------
+
+        r4Session* find_session (SiD sid) const;
+
+    } local;
+
+    // --------------------------------
 
     d4Thread*           _thread;    // driving thread
     Kernel*             _handle;
@@ -47,6 +72,8 @@ struct r4Kernel {
     IdentGenerator<SiD> _sid_generator;
 
     s4Kernel*           _s4kernel;
+
+    dLink<r4Kernel>     _link_kernel;
 
     SessionContext*     _current_context;
     SessionContext      _kernel_session_context;
@@ -60,8 +87,8 @@ struct r4Kernel {
 
     r4Kernel ();
 
-    SiD get_next_unique_sid ();
     SiD start_session (Session* s);
+    void _allocate_sid (r4Session* r4s);
 
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
     void state__cmd (const std::string& ev, StateCmd* cmd);
@@ -71,6 +98,12 @@ struct r4Kernel {
     void dispatch_evmsg (EvMsg* evmsg);
     void dispatch_alarm (EvAlarm* alarm);
     void dispatch_evio  (EvIO* evio);
+};
+
+// -----------------------------------------------------------------------
+
+struct r4KernelStore {
+    typedef dList<r4Kernel, offsetof(r4Kernel, _link_kernel)> List;
 };
 
 // =======================================================================

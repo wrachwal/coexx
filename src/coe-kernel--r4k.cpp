@@ -22,10 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************************************/
 
-#include "coe-session.h"
 #include "coe-kernel--r4k.h"
+#include "coe-thread--d4t.h"
 #include "coe-kernel--s4k.h"
+#include "coe-session.h"
 #include "coe-session--r4s.h"
+
 #include <cassert>
 
 using namespace std;
@@ -47,18 +49,6 @@ namespace {
                 target->_current_context = &_new_ctx;
             }
 
-        CCScope (r4Kernel* target,
-                 r4Kernel* source,
-                 r4Session* session,
-                 const string& state) : _kernel(target),
-                                        _old_ctx(target->_current_context),
-                                        _new_ctx(session, state)
-            {
-                assert(target == session->_kernel);
-                _new_ctx.parent = (source ? source : target)->_current_context;
-                target->_current_context = &_new_ctx;
-            }
-
         ~CCScope ()
             {
                 _kernel->_current_context = _old_ctx;
@@ -70,6 +60,15 @@ namespace {
         SessionContext  _new_ctx;
     };
 
+}
+
+// -----------------------------------------------------------------------
+// d4Thread::Local
+
+r4Session* r4Kernel::Local::find_session (SiD sid) const
+{
+    Sid_Map::const_iterator i = sid_map.find(sid);
+    return i == sid_map.end() ? NULL : (*i).second;
 }
 
 // =======================================================================
@@ -123,7 +122,7 @@ SiD r4Kernel::start_session (Session* s)
     r4s->_kernel = this;
     r4s->_parent = _current_context->session;
 
-    d4Thread::_allocate_sid(*r4s);          // --@@--
+    _allocate_sid(r4s);                     // --@@--
 
     CCScope __scope(this, r4s, ".start");
 
@@ -140,6 +139,17 @@ SiD r4Kernel::start_session (Session* s)
     s->_start(ctx);
 
     return r4s->_sid;
+}
+
+// -----------------------------------------------------------------------
+
+void r4Kernel::_allocate_sid (r4Session* r4s)
+{
+    // --@@--
+    RWLock::Guard   guard(local.rwlock, RWLock::WRITE);
+
+    r4s->_sid = _sid_generator.generate_next(local.sid_map);
+    local.sid_map[r4s->_sid] = r4s;
 }
 
 // -----------------------------------------------------------------------
@@ -180,7 +190,7 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
 
     // assertions confirm what have been validated by a caller
     assert(NULL != _thread);
-    assert(on.valid());
+    assert(on.kid() == _kid);
 
     r4Session*  session = NULL;
 
@@ -190,16 +200,15 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
         assert(NULL != session);
     }
     else {
-        // --@@--
-        RWLock::Guard   guard(_thread->local.rwlock, RWLock::READ);
-
-        session = _thread->local.find_session(on);
-        if (NULL == session) {
-            //TODO: call session's default error handling, like _default in POE?
-            //errno = ???
-            return false;
-        }
+        session = local.find_session(on);
     }
+
+    if (NULL == session) {
+        //TODO: call session's default error handling, like _default in POE?
+        //errno = ???
+        return false;
+    }
+    assert(this == session->_kernel);
 
     StateCmd* cmd = find_state_handler(on.id(), ev);
     if (NULL == cmd) {
@@ -208,12 +217,9 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
         return false;
     }
 
-    r4Kernel*   target = session->_kernel;
-    assert(NULL != target);
+    CCScope __scope(this, session, ev);
 
-    CCScope __scope(target, this/*source*/, session, ev);
-
-    EvCtx   ctx(target);
+    EvCtx   ctx(this);
 
     ctx.sender       = _current_context->parent->session->_sid;
     ctx.sender_state = _current_context->parent->state;

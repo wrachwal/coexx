@@ -25,9 +25,7 @@ THE SOFTWARE.
 #ifndef __COE_THREAD__D4T_H
 #define __COE_THREAD__D4T_H
 
-#include "coe-sys.h"
-#include "coe--event.h"
-#include "coe--util.h"
+#include "coe-kernel--r4k.h"
 
 struct d4Thread;
 struct r4Kernel;
@@ -35,9 +33,8 @@ struct r4Session;
 
 // -----------------------------------------------------------------------
 
-typedef std::map<TiD, d4Thread*>  Tid_Map;
-typedef std::map<KiD, r4Kernel*>  Kid_Map;
-typedef std::map<SiD, r4Session*> Sid_Map;
+typedef std::map<TiD, d4Thread*> Tid_Map;
+typedef std::map<KiD, r4Kernel*> Kid_Map;
 
 // =======================================================================
 // d4Thread
@@ -58,8 +55,8 @@ struct d4Thread {
     bool _select_io (const TimeSpec* due);
 
     static bool anon_post_event (                              SiD to, EvMsg* evmsg);
-    static bool      post_event (d4Thread* source,             SiD to, EvMsg* evmsg);
-    static bool      post_event (d4Thread* target, r4Session* session, EvMsg* evmsg);
+    static bool      post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
+    static bool      post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg);
 
     enum SetupAlarmMode {
         _DELAY_SET
@@ -75,7 +72,6 @@ struct d4Thread {
     static void* _thread_entry (void* arg);
            void  _allocate_tid ();
     static void  _allocate_kid (r4Kernel& r4k);
-    static void  _allocate_sid (r4Session& r4s);
 
     bool move_to_other_thread (r4Kernel* kernel, TiD target_tid);
 
@@ -104,13 +100,7 @@ struct d4Thread {
 
         RWLock                  rwlock;
 
-        Kid_Map                 kid_map;        //TODO: hash_map
-        Sid_Map                 sid_map;        //TODO: hash_map
-
-        // --------
-
-        r4Kernel*  find_kernel  (KiD kid) const;
-        r4Session* find_session (SiD sid) const;
+        r4KernelStore::List     list_kernel;
 
     } local;
 
@@ -138,7 +128,7 @@ struct d4Thread {
         // --------
 
         struct Trans {
-            EvCommonStore::Queue    queue;
+            EvCommonStore::Queue    lqueue;
             DueSidAid_Map           dsa_map;
             FdModeSid_Map           fms_map;
         } trans;
@@ -151,18 +141,10 @@ struct d4Thread {
     pthread_t       _os_thread;
     bool            _event_loop_running;
 
+    /*
+     * intra-kernel messages
+     */
     EvCommonStore::Queue    _lqueue;
-    int                     _msgpipe_rfd;
-
-    struct FdSet {
-        fd_set  lval;
-        int     max_fd;
-        // --------
-        void    zero     ();
-        void    add_fd   (int fd);
-        fd_set* sel_set  ();
-        bool    fd_isset (int fd) const;
-    } _fdset[3];
 
     /*
      * alarms
@@ -173,6 +155,19 @@ struct d4Thread {
      * I/O
      */
     FdModeSid_Map   _fms_map;
+
+    struct FdSet {
+        fd_set  lval;
+        int     max_fd;
+        // --------
+        void    zero     ();
+        void    add_fd   (int fd);
+        fd_set* sel_set  ();
+        bool    fd_isset (int fd) const;
+
+    }               _fdset[3];
+
+    int             _msgpipe_rfd;
 };
 
 // =======================================================================
