@@ -44,15 +44,23 @@ struct d4Thread {
     d4Thread ();
     ~d4Thread ();
 
-    void run_event_loop ();
-    void      enque_msg_event (EvMsg* evmsg);
-    EvCommon* deque_event ();
-    bool remove_enqueued_event (EvCommon* ev);
+    static d4Thread* get_tls_data ();
+    static void      set_tls_data (d4Thread* d4t);
+
+    static void allocate_kid (r4Kernel& r4k);
+           void allocate_tid ();
 
     static TimeSpec get_current_time ();
 
+    void run_event_loop ();
+
+    void enqueue_msg_event (EvMsg* evmsg);
+    void _wakeup_waiting_thread ();
+    bool remove_enqueued_event (EvCommon* ev);
+
+    EvCommon* dequeue_event ();
+    void _select_io (const TimeSpec* due);
     void _queue_expired_alarms();
-    bool _select_io (const TimeSpec* due);
 
     static bool anon_post_event (                              SiD to, EvMsg* evmsg);
     static bool      post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
@@ -66,14 +74,10 @@ struct d4Thread {
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
 
-    static d4Thread* get_tls_data ();
-    static void      set_tls_data (d4Thread* d4t);
+    static bool move_to_other_thread (r4Kernel* kernel, TiD target_tid);
+    bool _move_trans_to_local_data ();
 
     static void* _thread_entry (void* arg);
-           void  _allocate_tid ();
-    static void  _allocate_kid (r4Kernel& r4k);
-
-    bool move_to_other_thread (r4Kernel* kernel, TiD target_tid);
 
     // --------------------------------
     //
@@ -121,13 +125,13 @@ struct d4Thread {
 
         EvCommonStore::Queue    pqueue; //TODO: change to priority queue
 
-        int         io_requests;
-
-        TimeSpec    timestamp;
+        int     io_requests;
 
         // --------
 
         struct Trans {
+            Trans ();
+            bool                    ready;
             EvCommonStore::Queue    lqueue;
             DueSidAid_Map           dsa_map;
             FdModeSid_Map           fms_map;
@@ -139,6 +143,8 @@ struct d4Thread {
 
     TiD             _tid;
     pthread_t       _os_thread;
+    TimeSpec        _timestamp;
+
     bool            _event_loop_running;
 
     /*
@@ -168,6 +174,7 @@ struct d4Thread {
     }               _fdset[3];
 
     int             _msgpipe_rfd;
+
 };
 
 // =======================================================================

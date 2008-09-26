@@ -84,10 +84,10 @@ r4Kernel::r4Kernel ()
         _thread = new d4Thread;
         _thread->_os_thread = pthread_self();
         d4Thread::set_tls_data(_thread);
-        _thread->_allocate_tid();           // --@@--
+        _thread->allocate_tid();            // --@@--
     }
 
-    d4Thread::_allocate_kid(*this);         // --@@--
+    d4Thread::allocate_kid(*this);          // --@@--
 
     // once `kid' is known, setup sid_generator
     _sid_generator = IdentGenerator<SiD>(SiD(_kid, 0));

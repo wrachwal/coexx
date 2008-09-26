@@ -64,6 +64,14 @@ d4Thread::Sched::Sched ()
 {
 }
 
+// ------------------------------------
+// d4Thread::Sched::Trans
+
+d4Thread::Sched::Trans::Trans ()
+  : ready(false)
+{
+}
+
 // -----------------------------------------------------------------------
 // d4Thread::FdSet
 
@@ -96,7 +104,10 @@ d4Thread::d4Thread ()
   : _event_loop_running(false),
     _msgpipe_rfd(-1)
 {
+    _timestamp = get_current_time();
 }
+
+// ------------------------------------
 
 d4Thread::~d4Thread ()
 {
@@ -112,138 +123,52 @@ d4Thread::~d4Thread ()
 
 // -----------------------------------------------------------------------
 
-void d4Thread::run_event_loop ()
+d4Thread* d4Thread::get_tls_data ()
 {
-    if (! _event_loop_running) {
-        _event_loop_running = true;
+    d4Config*   cfg = d4Config::instance();
+    return static_cast<d4Thread*>(pthread_getspecific(cfg->key_d4t));
+}
 
-        sched.timestamp = get_current_time();
+// ------------------------------------
 
-        EvCommon*   ev;
-        while ((ev = deque_event()) != NULL) {
-            ev->dispatch();
-        }
-
-        _event_loop_running = false;
+void d4Thread::set_tls_data (d4Thread* d4t)
+{
+    d4Config*   cfg = d4Config::instance();
+    int status = pthread_setspecific(cfg->key_d4t, (void*)d4t);
+    if (status != 0) {
+        perror("pthread_setspecific");  //TODO: appropriate error-handling
+        abort();
     }
 }
 
 // -----------------------------------------------------------------------
 
-void d4Thread::enque_msg_event (EvMsg* evmsg)
+void d4Thread::allocate_tid ()
 {
-    if (evmsg->prio_order() < 0) {
-        assert(this == get_tls_data());
+    assert(_tid == TiD::NONE());
+    // --@@--
+    RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
 
-        _lqueue.put_tail(evmsg);
-    }
-    else {
-        // --@@--
-        Mutex::Guard    guard(sched.mutex);
+    _tid = glob.tid_generator.generate_next(glob.tid_map);
 
-        sched.pqueue.put_tail(evmsg);
-
-        // wake up waiting thread
-        if (Sched::WAIT == sched.state && sched.pqueue.empty()) {
-
-            if (sched.io_requests) {
-                // write a byte to notification pipe
-                ssize_t nbytes = write(sched.msgpipe_wfd, "@", 1);
-                        nbytes = nbytes;
-                assert(1 == nbytes);
-            }
-            else {
-                sched.cond.signal();
-            }
-        }
-    }
+    glob.tid_map[_tid] = this;
 }
 
-EvCommon* d4Thread::deque_event ()
+// ------------------------------------
+
+void d4Thread::allocate_kid (r4Kernel& r4k)
 {
-    if (! _lqueue.empty()) {
-        return _lqueue.get_head();
-    }
+    assert(r4k._kid == KiD::NONE());
+    assert(NULL != r4k._thread);
 
     // --@@--
-    Mutex::Guard    guard(sched.mutex);
+    RWLock::Guard   g_guard(              glob.rwlock, RWLock::WRITE);
+    RWLock::Guard   l_guard(r4k._thread->local.rwlock, RWLock::WRITE);
 
-    if (! sched.pqueue.empty()) {
-        return sched.pqueue.get_head();
-    }
+    r4k._kid = glob.kid_generator.generate_next(glob.kid_map);
 
-    sched.state = Sched::WAIT;
-
-    if (sched.io_requests) {
-
-        if (_msgpipe_rfd < 0) {
-            int fd[2];
-            int status = pipe(fd);
-            if (status != 0) {
-                perror("pipe");
-                abort();
-            }
-            _msgpipe_rfd      = fd[0];
-            sched.msgpipe_wfd = fd[1];
-        }
-
-        Mutex::Guard::unlock(guard);    // explicit `unlock'
-
-        if (_dsa_map.empty()) {
-            while (! _select_io(NULL))  // --@@--
-                ;
-        }
-        else {
-            TimeSpec due = (*_dsa_map.begin()).first.due;
-            while (! _select_io(&due))  // --@@--
-                ;
-        }
-
-        return sched.pqueue.get_head();
-    }
-    else {
-
-        if (_dsa_map.empty()) {
-            while (sched.pqueue.empty()) {  // test predicate
-                sched.cond.wait(guard);
-            }
-            sched.timestamp = get_current_time();
-        }
-        else {
-            TimeSpec due = (*_dsa_map.begin()).first.due;
-            while (sched.pqueue.empty()) {  // test predicate
-                //FIXME: what clock is being used??!!
-                if (! sched.cond.timedwait(guard, due)) {
-                    _queue_expired_alarms();
-                }
-                else {
-                    sched.timestamp = get_current_time();
-                }
-            }
-        }
-
-        sched.state = Sched::BUSY;
-
-        return sched.pqueue.get_head();
-    }
-}
-
-bool d4Thread::remove_enqueued_event (EvCommon* ev)
-{
-    if (ev->enqueued()) {
-        if (ev->prio_order() < 0) {
-            _lqueue.remove(ev);
-        }
-        else {
-            // --@@--
-            Mutex::Guard    guard(sched.mutex);
-            sched.pqueue.remove(ev);
-        }
-        return true;
-    }
-    else {
-        return false;
-    }
+    glob.kid_map[r4k._kid] = &r4k;
+    r4k._thread->local.list_kernel.put_tail(&r4k);
 }
 
 // -----------------------------------------------------------------------
@@ -269,15 +194,304 @@ TimeSpec d4Thread::get_current_time ()
     return now;
 }
 
+// -----------------------------------------------------------------------
+
+void d4Thread::run_event_loop ()
+{
+    if (! _event_loop_running) {
+        _event_loop_running = true;
+
+        EvCommon*   ev;
+        while ((ev = dequeue_event()) != NULL) {
+            ev->dispatch();
+        }
+
+        _event_loop_running = false;
+    }
+}
+
+// -----------------------------------------------------------------------
+
+void d4Thread::enqueue_msg_event (EvMsg* evmsg)
+{
+    if (evmsg->prio_order() < 0) {
+        assert(this == get_tls_data());
+
+        _lqueue.put_tail(evmsg);
+    }
+    else {
+        // --@@--
+        Mutex::Guard    guard(sched.mutex);
+
+        bool was_empty = sched.pqueue.empty();
+
+        sched.pqueue.put_tail(evmsg);
+
+        //
+        // Check condition to kick the thread *only once*
+        // (excessive wakeup notifications could block post'ers on `_msgpipe_wfd').
+        //
+        if (   Sched::WAIT == sched.state
+            && was_empty                    /* and now it isn't */
+            && ! sched.trans.ready)
+        {
+            _wakeup_waiting_thread();
+        }
+    }
+}
+
+// ------------------------------------
+
+void d4Thread::_wakeup_waiting_thread ()    // --@@--
+{
+    if (sched.io_requests) {
+        // write a byte to notification pipe
+        ssize_t nbytes = write(sched.msgpipe_wfd, "@", 1);
+                nbytes = nbytes;
+        assert(1 == nbytes);
+    }
+    else {
+        sched.cond.signal();
+    }
+}
+
+// ------------------------------------
+
+bool d4Thread::remove_enqueued_event (EvCommon* ev)
+{
+    if (ev->enqueued()) {
+        if (ev->prio_order() < 0) {
+            _lqueue.remove(ev);
+        }
+        else {
+            // --@@--
+            Mutex::Guard    guard(sched.mutex);
+            sched.pqueue.remove(ev);
+        }
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+EvCommon* d4Thread::dequeue_event ()
+{
+    for (;;) {
+
+        /******************************
+                    taking
+         ******************************/
+
+        if (! _lqueue.empty()) {
+            assert(Sched::BUSY == sched.state);
+            _timestamp = get_current_time();
+            return _lqueue.get_head();
+        }
+
+        // --@@--
+        Mutex::Guard    guard(sched.mutex);
+
+        if (_move_trans_to_local_data()) {
+            if (! _lqueue.empty()) {
+                sched.state = Sched::BUSY;
+                continue;
+            }
+        }
+
+        if (! sched.pqueue.empty()) {
+            sched.state = Sched::BUSY;
+            _timestamp = get_current_time();
+            return sched.pqueue.get_head();
+        }
+
+        /******************************
+                    waiting...
+         ******************************/
+
+        sched.state = Sched::WAIT;          // no queued event (must wait)
+
+        if (sched.io_requests) {
+
+            if (_msgpipe_rfd < 0) {
+                int fd[2];
+                int status = pipe(fd);
+                if (status != 0) {
+                    perror("pipe");
+                    abort();
+                }
+                _msgpipe_rfd      = fd[0];
+                sched.msgpipe_wfd = fd[1];
+            }
+
+            Mutex::Guard::unlock(guard);    // `unlock' before select()
+
+            if (_dsa_map.empty()) {
+                _select_io(NULL);           // --@@--
+            }
+            else {
+                TimeSpec due = (*_dsa_map.begin()).first.due;
+                _select_io(&due);           // --@@--
+            }
+
+            //
+            // _select_io() is in charge to change `sched.state'
+            //
+        }
+        else {
+
+            for (;;) {
+
+                if (_dsa_map.empty()) {
+                    sched.cond.wait(guard);
+                }
+                else {
+                    TimeSpec due = (*_dsa_map.begin()).first.due;
+                    if (! sched.cond.timedwait(guard, due)) {
+                        _queue_expired_alarms();
+                    }
+                }
+
+                bool local_update = _move_trans_to_local_data();
+
+                if (! _lqueue.empty() || ! sched.pqueue.empty()) {
+                    sched.state = Sched::BUSY;
+                    break;
+                }
+
+                if (local_update) {
+                    break;
+                }
+            } ///// for (;;)
+        }
+
+    } ///// for (;;)
+}
+
+// ------------------------------------
+
+void d4Thread::_select_io (const TimeSpec* due)
+{
+    assert(     _msgpipe_rfd >= 0);
+    assert(sched.msgpipe_wfd >= 0);
+
+    for (;;) {
+
+        /******************************
+                    select
+         ******************************/
+
+        for (int i = 0; i < TABLEN(_fdset); ++i)
+            _fdset[i].zero();
+
+        for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
+            EvIO*   evio = (*i).second;
+            if (evio->active()) {
+                _fdset[evio->mode()].add_fd(evio->fd());
+            }
+        }
+
+        assert(0 == FD_ISSET(     _msgpipe_rfd, &_fdset[IO_read ].lval));
+        assert(0 == FD_ISSET(sched.msgpipe_wfd, &_fdset[IO_write].lval));
+
+        _fdset[IO_read].add_fd(_msgpipe_rfd);
+
+        int max_fd = -1;
+        for (int i = 0; i < TABLEN(_fdset); ++i)
+            max_fd = max(max_fd, _fdset[i].max_fd);
+
+        struct timeval  tmo;
+
+        if (NULL != due) {
+            TimeSpec    delta = *due - get_current_time();
+            if (delta > TimeSpec::ZERO()) {
+                delta += TimeSpec(0, 999);
+                tmo.tv_sec  = delta.tv_sec;
+                tmo.tv_usec = delta.tv_nsec / 1000;
+            }
+            else {
+                tmo.tv_sec  = 0;
+                tmo.tv_usec = 0;
+            }
+        }
+
+        int result = select(max_fd + 1,
+                            _fdset[IO_read ].sel_set(),
+                            _fdset[IO_write].sel_set(),
+                            _fdset[IO_error].sel_set(),
+                            (due ? &tmo : NULL));
+
+        if (result == -1 && EINTR == errno) {
+            continue;
+        }
+
+        if (result < 0) {
+            perror("select");   //TODO
+            abort();
+        }
+
+        /******************************
+                update (guarded)
+         ******************************/
+
+        // --@@--
+        Mutex::Guard    guard(sched.mutex);
+
+        if (result == 0) {
+            _queue_expired_alarms();
+        }
+        else {
+
+            // read a byte from the notification pipe
+            if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
+                char    buf[32];
+                ssize_t nbytes = read(_msgpipe_rfd, buf, 8);    // try 8, but 1 expected
+                        nbytes = nbytes;
+                assert(1 == nbytes);
+                -- result;
+            }
+
+            // enqueue I/O events
+            if (result > 0) {
+                for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
+                    EvIO*   evio = (*i).second;
+                    if (evio->active() && _fdset[evio->mode()].fd_isset(evio->fd())) {
+                        sched.pqueue.put_tail(evio);
+                    }
+                }
+            }
+        }
+
+        bool local_update = _move_trans_to_local_data();
+
+        if (! _lqueue.empty() || ! sched.pqueue.empty()) {
+            // Makeing it BUSY under guarded mutex is important, because this prevents
+            // from signalling the thread by potential foreign post'ers
+            // (at extreme they eventually could fill up `_msgpipe' and block).
+            sched.state = Sched::BUSY;
+            break;
+        }
+
+        if (local_update) {
+            // Even if queues are empty new local data might have different timeout
+            // and/or i/o watchers added.
+            break;
+        }
+
+    } ///// for (;;)
+}
+
+// ------------------------------------
+
 void d4Thread::_queue_expired_alarms ()     // --@@--
 {
-    sched.timestamp = get_current_time();
-
     // add 1ns to construct fine upper bound key
-    TimeSpec    upr_due = sched.timestamp + TimeSpec(0, 1);
+    TimeSpec    now = get_current_time() + TimeSpec(0, 1);
 
     DueSidAid_Map::iterator upr =
-        _dsa_map.upper_bound(DueSidAid_Key(upr_due, SiD::NONE(), AiD::NONE()));
+        _dsa_map.upper_bound(DueSidAid_Key(now, SiD::NONE(), AiD::NONE()));
 
     assert(upr != _dsa_map.begin());
 
@@ -286,99 +500,6 @@ void d4Thread::_queue_expired_alarms ()     // --@@--
     }
 
     _dsa_map.erase(_dsa_map.begin(), upr);  // complexity at most O(log(size()) + N)
-}
-
-// -----------------------------------------------------------------------
-
-bool d4Thread::_select_io (const TimeSpec* due)
-{
-    assert(     _msgpipe_rfd >= 0);
-    assert(sched.msgpipe_wfd >= 0);
-
-    for (int i = 0; i < TABLEN(_fdset); ++i)
-        _fdset[i].zero();
-
-    for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
-        EvIO*   evio = (*i).second;
-        if (evio->active()) {
-            _fdset[evio->mode()].add_fd(evio->fd());
-        }
-    }
-
-    assert(0 == FD_ISSET(     _msgpipe_rfd, &_fdset[IO_read ].lval));
-    assert(0 == FD_ISSET(sched.msgpipe_wfd, &_fdset[IO_write].lval));
-
-    _fdset[IO_read].add_fd(_msgpipe_rfd);
-
-    int max_fd = -1;
-    for (int i = 0; i < TABLEN(_fdset); ++i)
-        max_fd = max(max_fd, _fdset[i].max_fd);
-
-    struct timeval  tmo;
-
-    if (NULL != due) {
-        TimeSpec    delta = *due - get_current_time();
-        if (delta > TimeSpec::ZERO()) {
-            delta += TimeSpec(0, 999);
-            tmo.tv_sec  = delta.tv_sec;
-            tmo.tv_usec = delta.tv_nsec / 1000;
-        }
-        else {
-            tmo.tv_sec  = 0;
-            tmo.tv_usec = 0;
-        }
-    }
-
-    int result = select(max_fd + 1,
-                        _fdset[IO_read ].sel_set(),
-                        _fdset[IO_write].sel_set(),
-                        _fdset[IO_error].sel_set(),
-                        (due ? &tmo : NULL));
-
-    if (result == -1) {
-        if (EINTR == errno)
-            return false;
-        perror("select");   //TODO
-        abort();
-    }
-
-    // --@@--
-    Mutex::Guard    guard(sched.mutex);
-
-    if (result == 0) {
-        _queue_expired_alarms();
-    }
-    else {
-
-        // read a byte from the notification pipe
-        if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
-            char    buf[32];
-            ssize_t nbytes = read(_msgpipe_rfd, buf, 8);    // try 8, but 1 expected
-                    nbytes = nbytes;
-            assert(1 == nbytes);
-            -- result;
-        }
-
-        // enqueue I/O events
-        if (result > 0) {
-            for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
-                EvIO*   evio = (*i).second;
-                if (evio->active() && _fdset[evio->mode()].fd_isset(evio->fd())) {
-                    sched.pqueue.put_tail(evio);
-                }
-            }
-        }
-
-        sched.timestamp = get_current_time();
-    }
-
-    if (sched.pqueue.empty()) {
-        return false;
-    }
-
-    sched.state = Sched::BUSY;
-
-    return true;
 }
 
 // -----------------------------------------------------------------------
@@ -443,7 +564,7 @@ bool d4Thread::post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg)
 
     evmsg->target(session);     // target session must be always known
 
-    target->_thread->enque_msg_event(evmsg);    // --@@--
+    target->_thread->enqueue_msg_event(evmsg);          // --@@--
 
     return true;
 }
@@ -465,7 +586,8 @@ AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* ev
     TimeSpec    due;
 
     if (mode == _DELAY_SET) {
-        due = sched.timestamp + ts;
+        //FIXME: get_current_time() or _timestamp
+        due = _timestamp + ts;
     }
     else {
         assert(0);
@@ -520,6 +642,8 @@ bool d4Thread::create_io_watcher (EvIO* new_evio)
     return true;
 }
 
+// ------------------------------------
+
 bool d4Thread::delete_io_watcher (int fd, IO_Mode mode, r4Session* session)
 {
     assert(NULL != session);
@@ -549,58 +673,13 @@ bool d4Thread::delete_io_watcher (int fd, IO_Mode mode, r4Session* session)
 
 // -----------------------------------------------------------------------
 
-d4Thread* d4Thread::get_tls_data ()
-{
-    d4Config*   cfg = d4Config::instance();
-    return static_cast<d4Thread*>(pthread_getspecific(cfg->key_d4t));
-}
-
-void d4Thread::set_tls_data (d4Thread* d4t)
-{
-    d4Config*   cfg = d4Config::instance();
-    int status = pthread_setspecific(cfg->key_d4t, (void*)d4t);
-    if (status != 0) {
-        perror("pthread_setspecific");  //TODO: appropriate error-handling
-        abort();
-    }
-}
-
-// =======================================================================
-
-void d4Thread::_allocate_tid ()
-{
-    assert(_tid == TiD::NONE());
-    // --@@--
-    RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
-
-    _tid = glob.tid_generator.generate_next(glob.tid_map);
-
-    glob.tid_map[_tid] = this;
-}
-
-void d4Thread::_allocate_kid (r4Kernel& r4k)
-{
-    assert(r4k._kid == KiD::NONE());
-    assert(NULL != r4k._thread);
-
-    // --@@--
-    RWLock::Guard   g_guard(              glob.rwlock, RWLock::WRITE);
-    RWLock::Guard   l_guard(r4k._thread->local.rwlock, RWLock::WRITE);
-
-    r4k._kid = glob.kid_generator.generate_next(glob.kid_map);
-
-    glob.kid_map[r4k._kid] = &r4k;
-    r4k._thread->local.list_kernel.put_tail(&r4k);
-}
-
-// -----------------------------------------------------------------------
-
 bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
 {
     assert(NULL != kernel);
-    assert(this == kernel->_thread);
 
-    TiD source_tid = kernel->_thread->_tid;
+    d4Thread*   source     = kernel->_thread;
+    TiD         source_tid = source->_tid;
+
     assert(target_tid != source_tid);
 
     /**********************************
@@ -611,7 +690,6 @@ bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
     // RWLock::WRITE due to kernel's thread re-assignment
     RWLock::Guard   gg_guard(glob.rwlock, RWLock::WRITE);
 
-    d4Thread*   source = this;
     d4Thread*   target = glob.find_thread(target_tid);
     if (NULL == target) {
         //errno = ???
@@ -647,16 +725,49 @@ bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
     // (4)  _dsa_map            sched.trans.dsa_map
     // (5)  _fms_map            sched.trans.fms_map
 
-    //TODO
     // (1)
+    target->local.list_kernel.put_tail(
+        source->local.list_kernel.remove(kernel));
+    assert(target->local.list_kernel.peek_tail() == kernel);
+
     // (2)
+    bool    was_empty = target->sched.pqueue.empty();
+
+    bool    change = false;
+
+    //TODO
     // (3)
     // (4)
     // (5)
 
-    //TODO
-    //errno = ???
-    return false;
+    if (Sched::WAIT == target->sched.state) {
+
+        if (                       was_empty   && ! target->sched.trans.ready   // before
+            && (! target->sched.pqueue.empty() ||   change))                    // now
+        {
+            target->_wakeup_waiting_thread();
+        }
+    }
+
+    if (change && ! target->sched.trans.ready) {
+        target->sched.trans.ready = true;
+    }
+
+    return true;
+}
+
+// ------------------------------------
+
+bool d4Thread::_move_trans_to_local_data ()
+{
+    if (sched.trans.ready) {
+        sched.trans.ready = false;
+        //TODO
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 // -----------------------------------------------------------------------
@@ -671,6 +782,8 @@ namespace {
     };
 }
 
+// ------------------------------------
+
 void* d4Thread::_thread_entry (void* arg)
 {
     _Arg*   init = (_Arg*)arg;
@@ -679,7 +792,7 @@ void* d4Thread::_thread_entry (void* arg)
 
     pthread_detach(pthread_self());
     d4Thread::set_tls_data(d4t);
-    d4t->_allocate_tid();           // --@@--
+    d4t->allocate_tid();            // --@@--
 
     // notify the creator
     init->tid = d4t->_tid;  // set predicate
@@ -687,14 +800,14 @@ void* d4Thread::_thread_entry (void* arg)
 
     //
     // Now we can start running event loop (forever)
-    // Before we enter deque_event(), the `sched.state' is in safe BUSY state.
+    // Before we enter dequeue_event(), the `sched.state' is in safe BUSY state.
     //
     d4t->run_event_loop();
 
     return NULL;
 }
 
-// -----------------------------------------------------------------------
+// =======================================================================
 
 TiD Thread::spawn_new ()
 {
