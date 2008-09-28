@@ -108,6 +108,31 @@ public:
 
     bool enqueued () const { return NULL != _link_queue.next; }
 
+    int  prio_order () const { return _prio_order; }
+    void prio_order (int po);
+
+protected:
+    EvCommon () : _prio_order(-1) {}    // default is to favor local queue
+
+    friend struct EvCommonStore;
+    dLink<EvCommon> _link_queue;
+
+    int         _prio_order;    // [ -1, 0 .. PQLen )
+};
+
+// ------------------------------------
+
+struct EvCommonStore {
+    typedef dList<EvCommon, offsetof(EvCommon, _link_queue)> Queue;
+};
+
+// -----------------------------------------------------------------------
+// EvUser
+
+class EvUser : public EvCommon {
+public:
+    ~EvUser ();
+
     const std::string& name () const { return _name; }
 
     PostArg* arg () const { return _arg; }
@@ -118,32 +143,19 @@ public:
 
     const std::string& sender_state () const { return _sender_state; }
 
-    short prio_order () const { return _prio_order; }
-    void  prio_order (int po);
-
 protected:
-    EvCommon (const std::string& name, PostArg* arg);
-
-    friend struct EvCommonStore;
-    dLink<EvCommon> _link_queue;
+    EvUser (const std::string& name, PostArg* arg);
 
     r4Session*  _target;
     std::string _sender_state;
-    short       _prio_order;    // [ -1, 0 .. PQLen )
     std::string _name;
     PostArg*    _arg;
 };
 
-// ------------------------------------
-
-struct EvCommonStore {
-    typedef dList<EvCommon, offsetof(EvCommon, _link_queue)> Queue;
-};
-
-// -----------------------------------------------------------------------
+// =======================================================================
 // EvMsg
 
-class EvMsg : public EvCommon {
+class EvMsg : public EvUser {
 public:
     EvMsg (const std::string& name, PostArg* arg, SessionContext& cc);  // post
     EvMsg (const std::string& name, PostArg* arg);                 // anon_post
@@ -156,15 +168,19 @@ public:
 
     SiD sender () const { return _sender; }
 
+    PostArg* pfx () const { return _prefix; }
+    PostArg* pfx (PostArg* new_pfx);
+
 private:
     r4Session*  _source;
     SiD         _sender;
+    PostArg*    _prefix;    // used by postback(s)
 };
 
 // -----------------------------------------------------------------------
 // EvAlarm
 
-class EvAlarm : public EvCommon {
+class EvAlarm : public EvUser {
 public:
     EvAlarm (const std::string& name, PostArg* arg, SessionContext& cc);
     ~EvAlarm ();
@@ -198,7 +214,7 @@ struct EvAlarmStore {
 // -----------------------------------------------------------------------
 // EvIO
 
-class EvIO : public EvCommon {
+class EvIO : public EvUser {
 public:
     EvIO (int fd, IO_Mode mode, const std::string& name, PostArg* arg, SessionContext& cc);
     ~EvIO ();

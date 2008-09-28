@@ -58,6 +58,8 @@ public:
 
     KiD ID () const;
 
+    TimeSpec timestamp () const;
+
     void run_event_loop ();
     bool run_event_loop (TiD tid);  // transfer to `tid' thread
 

@@ -356,7 +356,7 @@ EvCommon* d4Thread::dequeue_event ()
 
                 bool local_update = _move_trans_to_local_data();
 
-                if (! _lqueue.empty() || ! sched.pqueue.empty()) {
+                if (! sched.pqueue.empty() || ! _lqueue.empty()) {
                     sched.state = Sched::BUSY;
                     break;
                 }
@@ -364,6 +364,7 @@ EvCommon* d4Thread::dequeue_event ()
                 if (local_update) {
                     break;
                 }
+
             } ///// for (;;)
         }
 
@@ -466,7 +467,7 @@ void d4Thread::_select_io (const TimeSpec* due)
 
         bool local_update = _move_trans_to_local_data();
 
-        if (! _lqueue.empty() || ! sched.pqueue.empty()) {
+        if (! sched.pqueue.empty() || ! _lqueue.empty()) {
             // Makeing it BUSY under guarded mutex is important, because this prevents
             // from signalling the thread by potential foreign post'ers
             // (at extreme they eventually could fill up `_msgpipe' and block).
@@ -504,45 +505,45 @@ void d4Thread::_queue_expired_alarms ()     // --@@--
 
 // -----------------------------------------------------------------------
 
-bool d4Thread::anon_post_event (SiD to, EvMsg *evmsg)
-{
-    return post_event(NULL/*source-kernel*/, to, evmsg);
-}
-
-// ------------------------------------
-
 bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
 {
-    if (NULL != source) {
+    if (NULL != source && to.kid() == source->_kid) {
 
-        r4Session*  session = source->local.find_session(to);
+        r4Session*  session = source->_current_context->session;
+        if (to == session->_sid) {
+            return post_event(source, session, evmsg);  // --@@--
+        }
+
+        session = source->local.find_session(to);
         if (NULL != session) {
             return post_event(source, session, evmsg);  // --@@--
         }
     }
+    else {
 
-    // --@@--
-    RWLock::Guard   guard(glob.rwlock, RWLock::READ);
-
-    r4Kernel*   target = glob.find_kernel(to.kid());
-    if (NULL != target &&
-        NULL != target->_thread)
-    {
         // --@@--
-        RWLock::Guard   guard(target->local.rwlock, RWLock::READ);
+        RWLock::Guard   guard(glob.rwlock, RWLock::READ);
 
-        r4Session*  session = target->local.find_session(to);
-        if (NULL != session) {
+        r4Kernel*   target = glob.find_kernel(to.kid());
+        if (NULL != target &&
+            NULL != target->_thread)
+        {
+            // --@@--
+            RWLock::Guard   guard(target->local.rwlock, RWLock::READ);
 
-            // case of inter-thread post
+            r4Session*  session = target->local.find_session(to);
+            if (NULL != session) {
 
-            evmsg->source(NULL);
+                // case of inter-thread post
 
-            if (evmsg->prio_order() < 0) {
-                evmsg->prio_order(0);   //TODO: get from config
+                evmsg->source(NULL);
+
+                if (evmsg->prio_order() < 0) {
+                    evmsg->prio_order(0);   //TODO: get from config
+                }
+
+                return post_event(target, session, evmsg);  // --@@--
             }
-
-            return post_event(target, session, evmsg);  // --@@--
         }
     }
 
@@ -673,17 +674,22 @@ bool d4Thread::delete_io_watcher (int fd, IO_Mode mode, r4Session* session)
 
 // -----------------------------------------------------------------------
 
-bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
+void d4Thread::_move_to_target_thread (r4Kernel* kernel)
 {
     assert(NULL != kernel);
+    TiD         target_tid = kernel->_target_thread;
+
+    kernel->_target_thread = TiD::NONE();
 
     d4Thread*   source     = kernel->_thread;
     TiD         source_tid = source->_tid;
 
-    assert(target_tid != source_tid);
+    if (! target_tid.valid() || target_tid == source_tid) {
+        return;
+    }
 
     /**********************************
-                    lock
+            lock (hierarchy)
      **********************************/
 
     // --@@--
@@ -692,8 +698,7 @@ bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
 
     d4Thread*   target = glob.find_thread(target_tid);
     if (NULL == target) {
-        //errno = ???
-        return false;
+        return;
     }
 
     // enforce strict locking hierarchy between two (equivalent) threads
@@ -733,7 +738,7 @@ bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
     // (2)
     bool    was_empty = target->sched.pqueue.empty();
 
-    bool    change = false;
+    bool    is_change = false;
 
     //TODO
     // (3)
@@ -743,17 +748,15 @@ bool d4Thread::move_to_other_thread (r4Kernel* kernel, TiD target_tid)
     if (Sched::WAIT == target->sched.state) {
 
         if (                       was_empty   && ! target->sched.trans.ready   // before
-            && (! target->sched.pqueue.empty() ||   change))                    // now
+            && (! target->sched.pqueue.empty() ||   is_change))                 // now
         {
             target->_wakeup_waiting_thread();
         }
     }
 
-    if (change && ! target->sched.trans.ready) {
+    if (is_change && ! target->sched.trans.ready) {
         target->sched.trans.ready = true;
     }
-
-    return true;
 }
 
 // ------------------------------------

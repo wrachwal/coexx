@@ -62,9 +62,8 @@ struct d4Thread {
     void _select_io (const TimeSpec* due);
     void _queue_expired_alarms();
 
-    static bool anon_post_event (                              SiD to, EvMsg* evmsg);
-    static bool      post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
-    static bool      post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg);
+    static bool post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
+    static bool post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg);
 
     enum SetupAlarmMode {
         _DELAY_SET
@@ -74,7 +73,7 @@ struct d4Thread {
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
 
-    static bool move_to_other_thread (r4Kernel* kernel, TiD target_tid);
+    static void _move_to_target_thread (r4Kernel* kernel);
     bool _move_trans_to_local_data ();
 
     static void* _thread_entry (void* arg);

@@ -69,6 +69,11 @@ KiD Kernel::ID () const
     return _r4kernel ? _r4kernel->_kid : KiD::NONE();
 }
 
+TimeSpec Kernel::timestamp () const
+{
+    return _r4kernel->_thread->_timestamp;
+}
+
 SiD Kernel::start_session (Session* s)
 {
     return _r4kernel->start_session(s);
@@ -178,8 +183,11 @@ bool Kernel::run_event_loop (TiD tid)
         return false;
     }
     else {
-        //FIXME: update of _current_context may be needed before return!
-        return _r4kernel->_thread->move_to_other_thread(_r4kernel, tid);
+        //TODO:
+        // 1) check `tid' and set _target_thread
+        // 2) put_head EvSys_Transfer to _lqueue
+        // 3) on event dispatch call d4Thread::_move_to_target_thread(_r4kernel);
+        return false;
     }
 }
 
@@ -193,7 +201,7 @@ bool Kernel::anon_post (SiD to, const string& ev, PostArg* pp)
         delete pp;
         return false;
     }
-    return d4Thread::anon_post_event(to, new EvMsg(ev, pp));
+    return d4Thread::post_event(NULL/*source-kernel*/, to, new EvMsg(ev, pp));
 }
 
 bool Kernel::post (SiD to, const string& ev, PostArg* pp)
@@ -208,16 +216,11 @@ bool Kernel::post (SiD to, const string& ev, PostArg* pp)
     assert(NULL != _r4kernel->_current_context);
     assert(NULL != _r4kernel->_current_context->session);
 
-    EvMsg*  evmsg = new EvMsg(ev, pp, *_r4kernel->_current_context);
-
-    r4Session*  current_session = _r4kernel->_current_context->session;
-
-    if (to == current_session->_sid) {
-        return d4Thread::post_event(_r4kernel, current_session, evmsg);
-    }
-    else {
-        return d4Thread::post_event(_r4kernel,              to, evmsg);
-    }
+    return d4Thread::post_event(
+                            _r4kernel,
+                            to,                                     // SiD
+                            new EvMsg(ev, pp, *_r4kernel->_current_context)
+                        );
 }
 
 bool Kernel::yield (const string& ev, PostArg* pp)
@@ -232,10 +235,10 @@ bool Kernel::yield (const string& ev, PostArg* pp)
     assert(NULL != _r4kernel->_current_context->session);
 
     return d4Thread::post_event(
-                        _r4kernel,
-                        _r4kernel->_current_context->session,
-                        new EvMsg(ev, pp, *_r4kernel->_current_context)
-                    );
+                            _r4kernel,
+                            _r4kernel->_current_context->session,   // r4Session*
+                            new EvMsg(ev, pp, *_r4kernel->_current_context)
+                        );
 }
 
 // -----------------------------------------------------------------------
@@ -250,7 +253,7 @@ bool Kernel::call (SiD on, const string& ev, CallArg* cp)
         delete cp;
         return false;
     }
-    return _r4kernel->call__arg(on, ev, cp);
+    return _r4kernel->call__arg(on, ev, NULL, cp);
 }
 
 // -----------------------------------------------------------------------

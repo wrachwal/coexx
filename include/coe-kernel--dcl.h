@@ -76,7 +76,11 @@ public:
 // PostArg
 // CallArg
 
-class PostArg : public EventArg {}; //TODO: add cloning capability
+class PostArg : public EventArg {
+public:
+    virtual PostArg* clone () const = 0;
+};
+
 class CallArg : public EventArg {};
 
 // ------------------------------------

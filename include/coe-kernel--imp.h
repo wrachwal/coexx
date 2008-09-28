@@ -76,6 +76,8 @@ public:
         {
             _arg[0].set(&typeid(A1), &_a1);
         }
+    PostArg* clone () const
+        { return new PostArg1(_a1); }
 private:
     A1  _a1;
 };
@@ -91,6 +93,8 @@ public:
             _arg[0].set(&typeid(A1), &_a1);
             _arg[1].set(&typeid(A2), &_a2);
         }
+    PostArg* clone () const
+        { return new PostArg2(_a1, _a2); }
 private:
     A1  _a1;
     A2  _a2;
@@ -108,6 +112,8 @@ public:
             _arg[1].set(&typeid(A2), &_a2);
             _arg[2].set(&typeid(A3), &_a3);
         }
+    PostArg* clone () const
+        { return new PostArg3(_a1, _a2, _a3); }
 private:
     A1  _a1;
     A2  _a2;
@@ -127,6 +133,8 @@ public:
             _arg[2].set(&typeid(A3), &_a3);
             _arg[3].set(&typeid(A4), &_a4);
         }
+    PostArg* clone () const
+        { return new PostArg4(_a1, _a2, _a3, _a4); }
 private:
     A1  _a1;
     A2  _a2;
@@ -148,6 +156,8 @@ public:
             _arg[3].set(&typeid(A4), &_a4);
             _arg[4].set(&typeid(A5), &_a5);
         }
+    PostArg* clone () const
+        { return new PostArg5(_a1, _a2, _a3, _a4, _a5); }
 private:
     A1  _a1;
     A2  _a2;

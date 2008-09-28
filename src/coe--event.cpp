@@ -31,32 +31,9 @@ using namespace std;
 // =======================================================================
 // EvCommon
 
-EvCommon::EvCommon (const string& name, PostArg* arg)
-  : _target(NULL),
-    _prio_order(-1),    // default is to favor local queue
-    _name(name),
-    _arg(arg)
-{
-}
-
 EvCommon::~EvCommon ()
 {
     assert(NULL == _link_queue.next);
-    delete _arg;
-    _arg = NULL;    // just in case ;)
-}
-
-PostArg* EvCommon::arg (PostArg* new_arg)
-{
-    PostArg* old_arg = _arg;
-    _arg = new_arg;
-    return old_arg;
-}
-
-void EvCommon::target (r4Session* session)
-{
-    assert(NULL == _link_queue.next);
-    _target = session;
 }
 
 void EvCommon::prio_order (int po)
@@ -67,10 +44,40 @@ void EvCommon::prio_order (int po)
 }
 
 // =======================================================================
+// EvUser
+
+EvUser::EvUser (const string& name, PostArg* arg)
+  : _target(NULL),
+    _name(name),
+    _arg(arg)
+{
+}
+
+EvUser::~EvUser ()
+{
+    delete _arg;
+    _arg = NULL;    // just in case
+}
+
+PostArg* EvUser::arg (PostArg* new_arg)
+{
+    PostArg* old_arg = _arg;
+    _arg = new_arg;
+    return old_arg;
+}
+
+void EvUser::target (r4Session* session)
+{
+    assert(NULL == _link_queue.next);
+    _target = session;
+}
+
+// =======================================================================
 // EvMsg
 
 EvMsg::EvMsg (const string& name, PostArg* arg, SessionContext& cc)
-  : EvCommon(name, arg)
+  : EvUser(name, arg),
+    _prefix(NULL)
 {
     _source       = cc.session;
     _sender       = cc.session->_sid;
@@ -78,19 +85,29 @@ EvMsg::EvMsg (const string& name, PostArg* arg, SessionContext& cc)
 }
 
 EvMsg::EvMsg (const string& name, PostArg* arg)
-  : EvCommon(name, arg),
-    _source(NULL)
+  : EvUser(name, arg),
+    _source(NULL),
+    _prefix(NULL)
 {
 }
 
 EvMsg::~EvMsg ()
 {
+    delete _prefix;
+    _prefix = NULL;     // just in case
 }
 
 void EvMsg::source (r4Session* session)
 {
     assert(NULL == _link_queue.next);
     _source = session;
+}
+
+PostArg* EvMsg::pfx (PostArg* new_pfx)
+{
+    PostArg* old_prefix = _prefix;
+    _prefix = new_pfx;
+    return old_prefix;
 }
 
 void EvMsg::dispatch ()
@@ -102,7 +119,7 @@ void EvMsg::dispatch ()
 // EvAlarm
 
 EvAlarm::EvAlarm (const string& name, PostArg* arg, SessionContext& cc)
-  : EvCommon(name, arg)
+  : EvUser(name, arg)
 {
     _target       = cc.session;
     _sender_state = cc.state;
@@ -140,7 +157,7 @@ void EvAlarm::dispatch ()
 // EvIO
 
 EvIO::EvIO (int fd, IO_Mode mode, const string& name, PostArg* arg, SessionContext& cc)
-  : EvCommon(name, arg),
+  : EvUser(name, arg),
     _fd(fd),
     _mode(mode),
     _active(true)

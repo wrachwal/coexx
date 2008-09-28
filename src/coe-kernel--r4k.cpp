@@ -184,7 +184,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 // -----------------------------------------------------------------------
 
-bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
+bool r4Kernel::call__arg (SiD on, const string& ev, PostArg* pfx, CallArg* arg)
 {
     auto_ptr<CallArg>   __arg(arg);
 
@@ -224,7 +224,14 @@ bool r4Kernel::call__arg (SiD on, const string& ev, CallArg* arg)
     ctx.sender       = _current_context->parent->session->_sid;
     ctx.sender_state = _current_context->parent->state;
 
-    cmd->execute(ctx, NULL, 0, arg);
+    if (NULL != pfx) {
+        int xN;
+        const ArgTV* xA = pfx->arg_list(xN);
+        cmd->execute(ctx, xA, xN, arg);     // callback
+    }
+    else {
+        cmd->execute(ctx, NULL, 0, arg);
+    }
 
     return true;
 }
@@ -247,7 +254,14 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
     ctx.sender       = evmsg->sender();
     ctx.sender_state = evmsg->sender_state();
 
-    cmd->execute(ctx, NULL, 0, evmsg->arg());
+    if (NULL != evmsg->pfx()) {
+        int xN;
+        const ArgTV* xA = evmsg->pfx()->arg_list(xN);
+        cmd->execute(ctx, xA, xN, evmsg->arg());    // postback
+    }
+    else {
+        cmd->execute(ctx, NULL, 0, evmsg->arg());
+    }
 
     //TODO: decrement sender's ref-count
 
