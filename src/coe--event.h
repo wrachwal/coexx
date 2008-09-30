@@ -105,6 +105,7 @@ public:
     virtual ~EvCommon ();
 
     virtual void dispatch () = 0;
+    virtual bool is_event_of (KiD kernel) const = 0;
 
     bool enqueued () const { return NULL != _link_queue.next; }
 
@@ -132,6 +133,8 @@ struct EvCommonStore {
 class EvUser : public EvCommon {
 public:
     ~EvUser ();
+
+    /*final*/ bool is_event_of (KiD kernel) const;
 
     const std::string& name () const { return _name; }
 
@@ -231,15 +234,30 @@ private:
     friend struct EvIOStore;
     dLink<EvIO> _link_evio;
 
-    int     _fd;
-    IO_Mode _mode;
-    bool    _active;
+    int         _fd;
+    IO_Mode     _mode;
+    bool        _active;
 };
 
 // ------------------------------------
 
 struct EvIOStore {
     typedef dList<EvIO, offsetof(EvIO, _link_evio)> List;
+};
+
+// =======================================================================
+// EvSys_Transfer
+
+class EvSys_Transfer : public EvCommon {
+public:
+    EvSys_Transfer (r4Kernel *kernel) : _kernel(kernel) {}
+    ~EvSys_Transfer ();
+
+    /*final*/ void dispatch ();
+    /*final*/ bool is_event_of (KiD kernel) const;
+
+private:
+    r4Kernel*   _kernel;
 };
 
 // =======================================================================

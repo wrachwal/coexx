@@ -184,9 +184,9 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 // -----------------------------------------------------------------------
 
-bool r4Kernel::call__arg (SiD on, const string& ev, PostArg* pfx, CallArg* arg)
+bool r4Kernel::call__arg (SiD on, const string& ev, PostArg* pfx, EventArg* arg)
 {
-    auto_ptr<CallArg>   __arg(arg);
+    auto_ptr<EventArg>  __arg(arg);
 
     // assertions confirm what have been validated by a caller
     assert(NULL != _thread);

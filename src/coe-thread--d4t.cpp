@@ -679,7 +679,7 @@ void d4Thread::_move_to_target_thread (r4Kernel* kernel)
     assert(NULL != kernel);
     TiD         target_tid = kernel->_target_thread;
 
-    kernel->_target_thread = TiD::NONE();
+    kernel->_target_thread = TiD::NONE();   // reset member data
 
     d4Thread*   source     = kernel->_thread;
     TiD         source_tid = source->_tid;
@@ -738,12 +738,68 @@ void d4Thread::_move_to_target_thread (r4Kernel* kernel)
     // (2)
     bool    was_empty = target->sched.pqueue.empty();
 
+    for (EvCommonStore::Queue::iterator i = source->sched.pqueue.begin();
+         i != source->sched.pqueue.end();
+         /*empty*/)
+    {
+        if ((*i)->is_event_of(kernel->_kid)) {
+            target->sched.pqueue.put_tail(              //TODO: put_tail --> insert
+                source->sched.pqueue.remove(*i++));
+        }
+        else {
+            ++i;
+        }
+    }
+
+    // (3 .. 5)
     bool    is_change = false;
 
-    //TODO
     // (3)
+    for (EvCommonStore::Queue::iterator i = source->_lqueue.begin();
+         i != source->_lqueue.end();
+         /*empty*/)
+    {
+        if ((*i)->is_event_of(kernel->_kid)) {
+            target->sched.trans.lqueue.put_tail(
+                source->_lqueue.remove(*i++));
+            is_change = true;
+        }
+        else {
+            ++i;
+        }
+    }
+
     // (4)
+    for (DueSidAid_Map::iterator i = source->_dsa_map.begin();
+         i != source->_dsa_map.end();
+         /*empty*/)
+    {
+        if ((*i).first.sid.kid() == kernel->_kid) {
+            target->sched.trans.dsa_map.insert(*i);
+            source->_dsa_map.erase(i++);
+            is_change = true;
+        }
+        else {
+            ++i;
+        }
+    }
+
     // (5)
+    for (FdModeSid_Map::iterator i = source->_fms_map.begin();
+         i != source->_fms_map.end();
+         /*empty*/)
+    {
+        if ((*i).first.sid.kid() == kernel->_kid) {
+            target->sched.trans.fms_map.insert(*i);
+            if ((*i).second->active())
+                -- source->sched.io_requests;
+            source->_fms_map.erase(i++);
+            is_change = true;
+        }
+        else {
+            ++i;
+        }
+    }
 
     if (Sched::WAIT == target->sched.state) {
 
@@ -754,7 +810,7 @@ void d4Thread::_move_to_target_thread (r4Kernel* kernel)
         }
     }
 
-    if (is_change && ! target->sched.trans.ready) {
+    if (is_change) {
         target->sched.trans.ready = true;
     }
 }
@@ -763,14 +819,45 @@ void d4Thread::_move_to_target_thread (r4Kernel* kernel)
 
 bool d4Thread::_move_trans_to_local_data ()
 {
-    if (sched.trans.ready) {
-        sched.trans.ready = false;
-        //TODO
-        return true;
-    }
-    else {
+    if (! sched.trans.ready) {
         return false;
     }
+
+    sched.trans.ready = false;  // reset flag
+
+    // (3) sched.trans.lqueue ---> _lqueue
+    for (EvCommonStore::Queue::iterator i = sched.trans.lqueue.begin();
+         i != sched.trans.lqueue.end();
+         /*empty*/)
+    {
+        _lqueue.put_tail(sched.trans.lqueue.remove(*i++));
+    }
+
+    // (4) sched.trans.dsa_map ---> _dsa_map
+    for (DueSidAid_Map::iterator i = sched.trans.dsa_map.begin();
+         i != sched.trans.dsa_map.end();
+         ++i)
+    {
+        pair<DueSidAid_Map::iterator, bool> insert = _dsa_map.insert(*i);
+        (*i).second->dsa_iter(insert.first);
+    }
+    sched.trans.dsa_map.clear();
+
+    // (5) sched.trans.fms_map ---> _fms_map
+    for (FdModeSid_Map::iterator i = sched.trans.fms_map.begin();
+         i != sched.trans.fms_map.end();
+         ++i)
+    {
+        _fms_map.insert(*i);
+        if ((*i).second->active())
+            ++ sched.io_requests;
+    }
+    sched.trans.fms_map.clear();
+
+    assert(sched.trans.lqueue.empty());
+    assert(sched.trans.dsa_map.empty());
+    assert(sched.trans.fms_map.empty());
+    return true;
 }
 
 // -----------------------------------------------------------------------

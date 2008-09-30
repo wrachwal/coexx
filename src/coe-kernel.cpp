@@ -178,17 +178,30 @@ bool Kernel::run_event_loop (TiD tid)
     {
         return false;
     }
-    if (tid == _r4kernel->_thread->_tid) {  // remain in the same thread
+
+    if (tid == _r4kernel->_thread->_tid) {
+        _r4kernel->_target_thread = TiD::NONE();    // reset (could be set earlier)
         //errno = ???
         return false;
     }
-    else {
-        //TODO:
-        // 1) check `tid' and set _target_thread
-        // 2) put_head EvSys_Transfer to _lqueue
-        // 3) on event dispatch call d4Thread::_move_to_target_thread(_r4kernel);
+
+    RWLock::Guard   guard(d4Thread::glob.rwlock, RWLock::READ);
+
+    if (NULL == d4Thread::glob.find_thread(tid)) {
+        //errno = ???
         return false;
     }
+
+    if (_r4kernel->_target_thread.valid()) {
+        _r4kernel->_target_thread = tid;
+    }
+    else {
+        _r4kernel->_target_thread = tid;
+        //TODO: increment refcount of the kernel session
+        _r4kernel->_thread->_lqueue.put_head(new EvSys_Transfer(_r4kernel));
+    }
+
+    return true;
 }
 
 // -----------------------------------------------------------------------
@@ -243,6 +256,18 @@ bool Kernel::yield (const string& ev, PostArg* pp)
 
 // -----------------------------------------------------------------------
 
+bool Kernel::call (SiD on, const string& ev)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(on)
+        || ! kernel_equal(_r4kernel, on)
+        || ! user_evname(ev))
+    {
+        return false;
+    }
+    return _r4kernel->call__arg(on, ev, NULL, NULL);
+}
+
 bool Kernel::call (SiD on, const string& ev, CallArg* cp)
 {
     if (   ! kernel_attached(_r4kernel)
@@ -254,6 +279,19 @@ bool Kernel::call (SiD on, const string& ev, CallArg* cp)
         return false;
     }
     return _r4kernel->call__arg(on, ev, NULL, cp);
+}
+
+bool Kernel::call (SiD on, const string& ev, PostArg* pp)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(on)
+        || ! kernel_equal(_r4kernel, on)
+        || ! user_evname(ev))
+    {
+        delete pp;
+        return false;
+    }
+    return _r4kernel->call__arg(on, ev, NULL, pp);
 }
 
 // -----------------------------------------------------------------------

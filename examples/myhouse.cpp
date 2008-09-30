@@ -4,8 +4,9 @@
 #include "coe-thread.h"
 #include "coe-misc.h"   // owned_ptr
 
-#include <iostream>
 #include <unistd.h>     // read() on Linux
+#include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -178,11 +179,12 @@ void test_my_house ()
     kernel.post(tar, "knock");
     kernel.post(tar, "knock", pparam((char*)"excessive argument!"));
 
-#if 0
-    owned_ptr<Flowers>  flowers(new Flowers(42, "rose"));
-    kernel.post(tar, "wife", pparam(flowers));
-#else
     kernel.post(tar, "wife", pparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
+
+#if 1
+    bool trans = kernel.run_event_loop(tid[0]);
+         trans = trans;
+    assert(trans);
 #endif
 
     kernel.run_event_loop();    // *** block in main thread

@@ -23,7 +23,7 @@ THE SOFTWARE.
 *************************************************************************/
 
 #include "coe--event.h"
-#include "coe-kernel--r4k.h"
+#include "coe-thread--d4t.h"
 #include "coe-session--r4s.h"
 
 using namespace std;
@@ -70,6 +70,13 @@ void EvUser::target (r4Session* session)
 {
     assert(NULL == _link_queue.next);
     _target = session;
+}
+
+bool EvUser::is_event_of (KiD kernel) const
+{
+    assert(NULL != _target);
+    assert(NULL != _target->_kernel);
+    return _target->_kernel->_kid == kernel;
 }
 
 // =======================================================================
@@ -179,5 +186,23 @@ void EvIO::active (bool a)
 void EvIO::dispatch ()
 {
     _target->_kernel->dispatch_evio(this);
+}
+
+// =======================================================================
+// EvSys_Transfer
+
+EvSys_Transfer::~EvSys_Transfer ()
+{
+}
+
+void EvSys_Transfer::dispatch ()
+{
+    d4Thread::_move_to_target_thread(_kernel);
+    delete this;
+}
+
+bool EvSys_Transfer::is_event_of (KiD kernel) const
+{
+    return _kernel->_kid == kernel;
 }
 

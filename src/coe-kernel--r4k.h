@@ -94,7 +94,7 @@ struct r4Kernel {
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
     void state__cmd (const std::string& ev, StateCmd* cmd);
 
-    bool call__arg (SiD on, const std::string& ev, PostArg* pfx, CallArg* arg);
+    bool call__arg (SiD on, const std::string& ev, PostArg* pfx, EventArg* arg);
 
     void dispatch_evmsg (EvMsg* evmsg);
     void dispatch_alarm (EvAlarm* alarm);
