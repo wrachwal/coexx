@@ -5,8 +5,7 @@ UNAME := $(shell uname -o)
 CXX = g++
 CXX += -MMD
 
-CXXFLAGS += -g -O2 -Wall -pedantic -ansi -Wno-invalid-offsetof -Wno-strict-aliasing \
-	    -Iinclude
+CXXFLAGS += -g -O2 -Wall -pedantic -ansi -Iinclude
 
 ifeq (Solaris,$(UNAME))
   CXXFLAGS += -D_POSIX_C_SOURCE
@@ -25,12 +24,14 @@ tests    := $(addprefix test/,typeinfo list cond)
 
 objects_all := $(objects) $(patsubst %.cpp,%.o,$(wildcard examples/*.cpp test/*.cpp))
 
-.PHONY: all examples tests strip clean realclean
+.PHONY: all examples tests clean realclean
 
 .INTERMEDIATE: $(objects)
 
-lib/%.o: src/%.cpp
+lib/%.o: src/%.cpp 
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+lib/%.o: CXXFLAGS += -Wno-invalid-offsetof -Wno-strict-aliasing
 
 $(library): $(library)($(objects))
 
@@ -43,16 +44,14 @@ tests: $(tests)
 $(addsuffix .o,$(examples) $(tests)): %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+test/list.o: CXXFLAGS += -Wno-invalid-offsetof
+test/cond.o: CXXFLAGS += -Wno-missing-braces
+
 $(examples) $(tests): %: %.o
 	$(CXX) $(LDFLAGS) $< $(LDLIBS) -o $@
 
 $(examples) $(tests): $(library)
 $(examples) $(tests): LDLIBS += -Llib -lcoe
-
-test/cond.o: CXXFLAGS += -Wno-missing-braces
-
-strip: $(library)
-	strip -x $(library)
 
 clean:
 ifeq (Cygwin,$(UNAME))
