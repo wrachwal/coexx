@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <iostream>
 
 using namespace std;
+using namespace coe;
 
 // =======================================================================
 
@@ -41,7 +42,7 @@ r4Session::r4Session ()
 
 r4Session::~r4Session ()
 {
-    assert(r4SessionStore::list_children(*this).empty());
+    assert(_r4Session::list_children(*this).empty());
     assert(NULL == _link_children.next);
     //TODO: any cleanup?
 }
@@ -60,7 +61,7 @@ void r4Session::release_resource ()
 
 EvIO* r4Session::find_io_watcher (int fd, IO_Mode mode)
 {
-   for (EvIOStore::List::iterator i = _list_evio.begin(); i != _list_evio.end(); ++i) {
+   for (_EvIO::List::iterator i = _list_evio.begin(); i != _list_evio.end(); ++i) {
        if ((*i)->fd() == fd && (*i)->mode() == mode) {
            return *i;
        }

@@ -22,12 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************************************/
 
+#ifndef __COE__LIST_H
+#define __COE__LIST_H
+
 #include <cstdlib>
 #include <cassert>
 #include <iterator>
 
-#ifndef __COE__LIST_H
-#define __COE__LIST_H
+namespace coe { /////
 
 // =======================================================================
 
@@ -262,6 +264,8 @@ T* dList<T, LinkOffset>::remove (T* data)
 }
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

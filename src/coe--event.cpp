@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 
 using namespace std;
+using namespace coe;
 
 // =======================================================================
 // EvCommon
@@ -46,7 +47,7 @@ void EvCommon::prio_order (int po)
 // =======================================================================
 // EvUser
 
-EvUser::EvUser (const string& name, PostArg* arg)
+EvUser::EvUser (const string& name, ValParam* arg)
   : _target(NULL),
     _name(name),
     _arg(arg)
@@ -59,9 +60,9 @@ EvUser::~EvUser ()
     _arg = NULL;    // just in case
 }
 
-PostArg* EvUser::arg (PostArg* new_arg)
+ValParam* EvUser::arg (ValParam* new_arg)
 {
-    PostArg* old_arg = _arg;
+    ValParam* old_arg = _arg;
     _arg = new_arg;
     return old_arg;
 }
@@ -82,7 +83,7 @@ bool EvUser::is_event_of (KiD kernel) const
 // =======================================================================
 // EvMsg
 
-EvMsg::EvMsg (const string& name, PostArg* arg, SessionContext& cc)
+EvMsg::EvMsg (const string& name, ValParam* arg, SessionContext& cc)
   : EvUser(name, arg),
     _prefix(NULL)
 {
@@ -91,7 +92,7 @@ EvMsg::EvMsg (const string& name, PostArg* arg, SessionContext& cc)
     _sender_state = cc.state;
 }
 
-EvMsg::EvMsg (const string& name, PostArg* arg)
+EvMsg::EvMsg (const string& name, ValParam* arg)
   : EvUser(name, arg),
     _source(NULL),
     _prefix(NULL)
@@ -110,9 +111,9 @@ void EvMsg::source (r4Session* session)
     _source = session;
 }
 
-PostArg* EvMsg::pfx (PostArg* new_pfx)
+ValParam* EvMsg::pfx (ValParam* new_pfx)
 {
-    PostArg* old_prefix = _prefix;
+    ValParam* old_prefix = _prefix;
     _prefix = new_pfx;
     return old_prefix;
 }
@@ -125,7 +126,7 @@ void EvMsg::dispatch ()
 // =======================================================================
 // EvAlarm
 
-EvAlarm::EvAlarm (const string& name, PostArg* arg, SessionContext& cc)
+EvAlarm::EvAlarm (const string& name, ValParam* arg, SessionContext& cc)
   : EvUser(name, arg)
 {
     _target       = cc.session;
@@ -163,7 +164,7 @@ void EvAlarm::dispatch ()
 // =======================================================================
 // EvIO
 
-EvIO::EvIO (int fd, IO_Mode mode, const string& name, PostArg* arg, SessionContext& cc)
+EvIO::EvIO (int fd, IO_Mode mode, const string& name, ValParam* arg, SessionContext& cc)
   : EvUser(name, arg),
     _fd(fd),
     _mode(mode),

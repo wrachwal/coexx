@@ -31,7 +31,7 @@ using namespace std;
 // =======================================================================
 // TiD
 
-ostream& operator<< (ostream& os, TiD tid)
+ostream& coe::operator<< (ostream& os, TiD tid)
 {
     if (tid.id())
         os << "{t" << tid.id() << '}';
@@ -43,7 +43,7 @@ ostream& operator<< (ostream& os, TiD tid)
 // -----------------------------------------------------------------------
 // KiD
 
-ostream& operator<< (ostream& os, KiD kid)
+ostream& coe::operator<< (ostream& os, KiD kid)
 {
     if (kid.id())
         os << "{k" << kid.id() << '}';
@@ -55,7 +55,7 @@ ostream& operator<< (ostream& os, KiD kid)
 // -----------------------------------------------------------------------
 // SiD
 
-ostream& operator<< (ostream& os, const SiD& sid)
+ostream& coe::operator<< (ostream& os, const SiD& sid)
 {
     SiD::IntType    s = sid.id();
     KiD::IntType    k = sid.kid().id();
@@ -83,7 +83,7 @@ ostream& operator<< (ostream& os, const SiD& sid)
 // -----------------------------------------------------------------------
 // AiD
 
-ostream& operator<< (ostream& os, AiD aid)
+ostream& coe::operator<< (ostream& os, AiD aid)
 {
     if (aid.id())
         os << "<a" << aid.id() << '>';

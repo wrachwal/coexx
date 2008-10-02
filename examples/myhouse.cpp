@@ -9,6 +9,7 @@
 #include <cassert>
 
 using namespace std;
+using namespace coe;
 
 // =======================================================================
 
@@ -58,7 +59,7 @@ private:
             ctx.kernel.state("money",   handler(*this,    &MyHouse::on_money));
 
             ctx.kernel.state("command", handler(*this,    &MyHouse::on_command));
-            ctx.kernel.select(0, IO_read, "command", pparam(0));
+            ctx.kernel.select(0, IO_read, "command", vparam(0));
         }
 
     void print_msg (string& msg)
@@ -123,11 +124,11 @@ private:
             // ------------------------
 
             int cash = 10;
-            ctx.kernel.call(ID(), "money", cparam(cash));
+            ctx.kernel.call(ID(), "money", rparam(cash));
             cout << "and she now have " << cash << "." << endl;
 
             cash = 1;
-            ctx.kernel.call(ID(), "money", cparam(cash));
+            ctx.kernel.call(ID(), "money", rparam(cash));
             cout << "and she now have " << cash << "." << endl;
         }
 
@@ -161,25 +162,25 @@ void test_my_house ()
 
     SiD tar = MyHouse::spawn(kernel, "waldy");
 
-    kernel.post(tar, "leaving", pparam(string("it's the string argument ;)")));
+    kernel.post(tar, "leaving", vparam(string("it's the string argument ;)")));
 
     //GOOD: I had to add (char*) cast to prevent from below the error.
     // dynacall.cpp: In constructor 'PostArgs1<A1>::PostArgs1(const A1&) [with A1 = char [22]]':
     // dynacall.cpp:192:   instantiated from 'bool Kernel::post(SiD, const std::string&, const A1&) [with A1 = char [22]]'
     // dynacall.cpp:307:   instantiated from here
     // dynacall.cpp:148: error: ISO C++ forbids assignment of arrays
-    kernel.post(tar, "leaving", pparam((char*)"raw C-style string :("));
+    kernel.post(tar, "leaving", vparam((char*)"raw C-style string :("));
 
-    kernel.post(tar, "leaving", pparam(string("once again with valid string type :)")));
+    kernel.post(tar, "leaving", vparam(string("once again with valid string type :)")));
 
-    kernel.post(tar, "coridor", pparam(string("and to the coridor... :)")));
+    kernel.post(tar, "coridor", vparam(string("and to the coridor... :)")));
 
     kernel.post(tar, "coridor");   // :( mismatch number of params
 
     kernel.post(tar, "knock");
-    kernel.post(tar, "knock", pparam((char*)"excessive argument!"));
+    kernel.post(tar, "knock", vparam((char*)"excessive argument!"));
 
-    kernel.post(tar, "wife", pparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
+    kernel.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
 
 #if 1
     bool trans = kernel.run_event_loop(tid[0]);

@@ -27,11 +27,13 @@ THE SOFTWARE.
 
 #include "coe-kernel--r4k.h"
 
+namespace coe { /////
+
+// -----------------------------------------------------------------------
+
 struct d4Thread;
 struct r4Kernel;
 struct r4Session;
-
-// -----------------------------------------------------------------------
 
 typedef std::map<TiD, d4Thread*> Tid_Map;
 typedef std::map<KiD, r4Kernel*> Kid_Map;
@@ -82,13 +84,13 @@ struct d4Thread {
     //
     static struct Glob {
 
-        RWLock                  rwlock;
+        RWLock              rwlock;
 
-        IdentGenerator<TiD>     tid_generator;
-        Tid_Map                 tid_map;        //TODO: hash_map
+        IdentGenerator<TiD> tid_generator;
+        Tid_Map             tid_map;        //TODO: hash_map
 
-        IdentGenerator<KiD>     kid_generator;
-        Kid_Map                 kid_map;        //TODO: hash_map
+        IdentGenerator<KiD> kid_generator;
+        Kid_Map             kid_map;        //TODO: hash_map
 
         // --------
 
@@ -101,9 +103,9 @@ struct d4Thread {
     //
     struct Local {
 
-        RWLock                  rwlock;
+        RWLock              rwlock;
 
-        r4KernelStore::List     list_kernel;
+        _r4Kernel::List     list_kernel;
 
     } local;
 
@@ -113,53 +115,53 @@ struct d4Thread {
 
         Sched ();
 
-        Mutex   mutex;
-        CondVar cond;
-        int     msgpipe_wfd;
+        Mutex               mutex;
+        CondVar             cond;
+        int                 msgpipe_wfd;
 
         enum State {
             BUSY,
             WAIT
-        } state;
+        }                   state;
 
-        EvCommonStore::Queue    pqueue; //TODO: change to priority queue
+        _EvCommon::Queue    pqueue; //TODO: change to priority queue
 
-        int     io_requests;
+        int                 io_requests;
 
         // --------
 
         struct Trans {
             Trans ();
-            bool                    ready;
-            EvCommonStore::Queue    lqueue;
-            DueSidAid_Map           dsa_map;
-            FdModeSid_Map           fms_map;
+            bool                ready;
+            _EvCommon::Queue    lqueue;
+            DueSidAid_Map       dsa_map;
+            FdModeSid_Map       fms_map;
         } trans;
 
     } sched;
 
     // --------------------------------
 
-    TiD             _tid;
-    pthread_t       _os_thread;
-    TimeSpec        _timestamp;
+    TiD                 _tid;
+    pthread_t           _os_thread;
+    TimeSpec            _timestamp;
 
-    bool            _event_loop_running;
+    bool                _event_loop_running;
 
     /*
      * intra-kernel messages
      */
-    EvCommonStore::Queue    _lqueue;
+    _EvCommon::Queue    _lqueue;
 
     /*
      * alarms
      */
-    DueSidAid_Map   _dsa_map;
+    DueSidAid_Map       _dsa_map;
 
     /*
      * I/O
      */
-    FdModeSid_Map   _fms_map;
+    FdModeSid_Map       _fms_map;
 
     struct FdSet {
         fd_set  lval;
@@ -170,13 +172,15 @@ struct d4Thread {
         fd_set* sel_set  ();
         bool    fd_isset (int fd) const;
 
-    }               _fdset[3];
+    }                   _fdset[3];
 
-    int             _msgpipe_rfd;
+    int                 _msgpipe_rfd;
 
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

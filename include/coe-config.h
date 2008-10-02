@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef __COE_CONFIG_H
 #define __COE_CONFIG_H
 
+namespace coe { /////
+
 // =======================================================================
 // Config
 
@@ -41,6 +43,8 @@ struct Config {
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

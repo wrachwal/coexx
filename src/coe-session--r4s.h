@@ -29,17 +29,19 @@ THE SOFTWARE.
 #include "coe--util.h"
 #include <functional>
 
+namespace coe { /////
+
 // =======================================================================
 // r4Session
 
 struct r4Session {
 
-    Session*    _handle;
-    SiD         _sid;
+    Session*            _handle;
+    SiD                 _sid;
 
-    void*       _heap;
+    void*               _heap;
 
-    r4Kernel*   _kernel;
+    r4Kernel*           _kernel;
 
     // related sessions
     r4Session*          _parent;
@@ -47,10 +49,10 @@ struct r4Session {
 
     // alarms
     IdentGenerator<AiD> _aid_generator;
-    EvAlarmStore::List  _list_alarm;
+    _EvAlarm::List      _list_alarm;
 
     // i/o
-    EvIOStore::List     _list_evio;
+    _EvIO::List         _list_evio;
 
     // --------------------------------
 
@@ -62,13 +64,13 @@ struct r4Session {
     EvIO* find_io_watcher (int fd, IO_Mode mode);
 
 private:
-    friend struct r4SessionStore;
+    friend struct _r4Session;
     dLink<r4Session>    _link_children;
 };
 
 // ------------------------------------
 
-struct r4SessionStore {
+struct _r4Session {
     typedef dList<r4Session, offsetof(r4Session, _link_children)> ChildrenList;
 
     // -Wno-strict-aliasing
@@ -81,10 +83,10 @@ struct r4SessionStore {
 
 class AiDExistsPred : public std::unary_function<AiD, bool> {
 public:
-    AiDExistsPred (EvAlarmStore::List& list) : _list(list) {}
+    AiDExistsPred (_EvAlarm::List& list) : _list(list) {}
     bool operator() (AiD aid) const
         {
-            EvAlarmStore::List::iterator i = _list.begin();
+            _EvAlarm::List::iterator i = _list.begin();
             while (i != _list.end()) {
                 if ((*i)->aid() == aid)
                     return true;
@@ -93,10 +95,12 @@ public:
             return false;
         }
 private:
-    EvAlarmStore::List& _list;
+    _EvAlarm::List& _list;
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

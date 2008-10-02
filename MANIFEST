@@ -3,6 +3,12 @@
 MANIFEST
 
 
+LICENSE
+
+Makefile
+
+
+
 include/coe-sys.h
     src/coe-sys.cpp
 include/coe-misc.h
@@ -11,6 +17,7 @@ include/coe-misc.h
     src/coe--util.h
     src/coe--event.h
     src/coe--event.cpp
+include/coe--local.h
 
 include/coe-config.h
     src/coe-config--d4c.h
@@ -42,10 +49,6 @@ include/coe-session.h
 include/coe-wheel.h
 
 
-lib/Makefile
-
-
-test/Makefile
 
 test/typeinfo.cpp
 test/list.cpp
@@ -54,7 +57,6 @@ test/sigsel1.cpp
 test/sigsel2.cpp
 
 
-examples/Makefile
 
 examples/myhouse.cpp
 examples/tick.cpp

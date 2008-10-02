@@ -27,19 +27,24 @@ THE SOFTWARE.
 
 #include "coe-ident.h"
 #include "coe-kernel--dcl.h"
-#include <time.h>       // timespec
+#include "coe--local.h"
+#include <time.h>           // timespec
+
+namespace coe { /////
+
+// -----------------------------------------------------------------------
 
 class Kernel;
-class Session;
+class Session;      // coe-session.h
 
-struct r4Kernel;
-
-// handlers' context
+// handler context(s)
 class                   EvCtx;
 template<class> struct TEvCtx;
 class                   DatIO;
 
 struct TimeSpec;
+
+struct r4Kernel;    // private data
 
 // -----------------------------------------------------------------------
 
@@ -52,11 +57,12 @@ enum IO_Mode {
 // =======================================================================
 // Kernel
 
-class Kernel {
+class Kernel : private _Noncopyable {
 public:
     static Kernel& create_new ();
 
-    KiD ID () const;
+    KiD     ID () const;
+    TiD thread () const;
 
     TimeSpec timestamp () const;
 
@@ -68,32 +74,32 @@ public:
     /*
      * Asynchronous Messages
      */
-           bool      post (SiD to, const std::string& ev, PostArg* pp=0);
-    static bool anon_post (SiD to, const std::string& ev, PostArg* pp=0);
-           bool     yield (        const std::string& ev, PostArg* pp=0);
+           bool      post (SiD to, const std::string& ev, ValParam* vp=0);
+    static bool anon_post (SiD to, const std::string& ev, ValParam* vp=0);
+           bool     yield (        const std::string& ev, ValParam* vp=0);
 
     /*
      * Synchronous Messages
      */
            bool      call (SiD on, const std::string& ev);
-           bool      call (SiD on, const std::string& ev, CallArg* cp=0);
-           bool      call (SiD on, const std::string& ev, PostArg* pp=0);
+           bool      call (SiD on, const std::string& ev, RefParam* rp=0);
+           bool      call (SiD on, const std::string& ev, ValParam* vp=0);
 
     /*
      * Timer Events (Delayed Messages)
      */
     // Name-Based Timers
     bool alarm     (const std::string ev);          // reset
-    bool alarm     (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
-    bool alarm_add (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
-    bool delay     (const std::string ev, TimeSpec duration, PostArg* pp=0);
-    bool delay_add (const std::string ev, TimeSpec duration, PostArg* pp=0);
+    bool alarm     (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
+    bool alarm_add (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
+    bool delay     (const std::string ev, TimeSpec duration, ValParam* vp=0);
+    bool delay_add (const std::string ev, TimeSpec duration, ValParam* vp=0);
     //
     // Identifier-Based Timers
     AiD  alarm_remove (AiD aid);                    // reset
-    AiD  alarm_set    (const std::string ev, TimeSpec abs_time, PostArg* pp=0);
+    AiD  alarm_set    (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
     bool alarm_adjust (AiD aid, TimeSpec delta_secs);
-    AiD  delay_set    (const std::string ev, TimeSpec duration, PostArg* pp=0);
+    AiD  delay_set    (const std::string ev, TimeSpec duration, ValParam* vp=0);
     bool delay_adjust (AiD aid, TimeSpec secs_from_now);
     //
     // Periodicity
@@ -106,9 +112,17 @@ public:
      * I/O Watchers (Selects)
      */
     bool select (int fd, IO_Mode mode);         // reset
-    bool select (int fd, IO_Mode mode, const std::string& ev, PostArg* pp=0);
+    bool select (int fd, IO_Mode mode, const std::string& ev, ValParam* vp=0);
     bool select_pause  (int fd, IO_Mode mode);
     bool select_resume (int fd, IO_Mode mode);
+
+    /*
+     * TODO: `signal' watchers
+     */
+
+    /*
+     * TODO: `idle' watchers
+     */
 
     /*
      * Event Handler Management
@@ -118,8 +132,6 @@ public:
 
 private:
     Kernel ();
-    Kernel (const Kernel&);         // prohibited
-    void operator= (const Kernel&); // prohibited
 
     friend struct r4Kernel;
     r4Kernel    *_r4kernel;
@@ -128,7 +140,7 @@ private:
 // =======================================================================
 // EvCtx
 
-class EvCtx {
+class EvCtx : private _Noncopyable {
 public:
     void*       heap;
     Kernel&     kernel;
@@ -140,8 +152,6 @@ public:
 private:
     friend struct   r4Kernel;
     explicit EvCtx (r4Kernel* k);
-    EvCtx (const EvCtx&);           // prohibited
-    void operator= (const EvCtx&);  // prohibited
 };
 
 // ------------------------------------
@@ -150,7 +160,7 @@ private:
 template<class Heap>
 struct TEvCtx : public EvCtx {
     TEvCtx ();
-    operator bool () const { return NULL != heap; }
+    operator bool () const { return 0 != heap; }
     Heap* operator-> () const { return static_cast<Heap*>(heap); }
     operator Heap* () const { return static_cast<Heap*>(heap); }
 };
@@ -158,15 +168,13 @@ struct TEvCtx : public EvCtx {
 // ------------------------------------
 // DatIO
 
-class DatIO {
+class DatIO : private _Noncopyable {
 public:
     const int       filedes;
     const IO_Mode   mode;
 private:
     friend struct r4Kernel;
     DatIO (int f, IO_Mode m);
-    DatIO (const DatIO&);           // prohibited
-    void operator= (const EvCtx&);  // prohibited
 };
 
 // =======================================================================
@@ -201,32 +209,32 @@ TimeSpec operator+ (const TimeSpec& lhs, const TimeSpec& rhs);
 TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs);
 
 // =======================================================================
-// pparam (p1[, ...])
+// vparam (p1[, ...])
 
 template<class P1>
-PostArg* pparam (const P1&);
+ValParam* vparam (const P1&);
 template<class P1, class P2>
-PostArg* pparam (const P1&, const P2&);
+ValParam* vparam (const P1&, const P2&);
 template<class P1, class P2, class P3>
-PostArg* pparam (const P1&, const P2&, const P3&);
+ValParam* vparam (const P1&, const P2&, const P3&);
 template<class P1, class P2, class P3, class P4>
-PostArg* pparam (const P1&, const P2&, const P3&, const P4&);
+ValParam* vparam (const P1&, const P2&, const P3&, const P4&);
 template<class P1, class P2, class P3, class P4, class P5>
-PostArg* pparam (const P1&, const P2&, const P3&, const P4&, const P5&);
+ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&);
 
 // -----------------------------------------------------------------------
-// cparam (p1[, ...])
+// rparam (p1[, ...])
 
 template<class P1>
-CallArg* cparam (P1&);
+RefParam* rparam (P1&);
 template<class P1, class P2>
-CallArg* cparam (P1&, P2&);
+RefParam* rparam (P1&, P2&);
 template<class P1, class P2, class P3>
-CallArg* cparam (P1&, P2&, P3&);
+RefParam* rparam (P1&, P2&, P3&);
 template<class P1, class P2, class P3, class P4>
-CallArg* cparam (P1&, P2&, P3&, P4&);
+RefParam* rparam (P1&, P2&, P3&, P4&);
 template<class P1, class P2, class P3, class P4, class P5>
-CallArg* cparam (P1&, P2&, P3&, P4&, P5&);
+RefParam* rparam (P1&, P2&, P3&, P4&, P5&);
 
 // -----------------------------------------------------------------------
 // handler (obj, memfun)
@@ -286,6 +294,8 @@ template<class Heap, class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&));
 
 // =======================================================================
+
+} ///// namespace coe
 
 #include "coe-kernel--imp.h"
 

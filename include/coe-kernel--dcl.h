@@ -32,11 +32,15 @@ THE SOFTWARE.
 #include <string>
 #include <typeinfo>
 
+namespace coe { /////
+
+// -----------------------------------------------------------------------
+
 class EventArg;
-    class PostArg;
-    //  class PostArg1<A1> ... PostArg5<A1 .. A5>
-    class CallArg;
-    //  class CallArg1     ... CallArg5
+    class ValParam;
+    //  class ValParam1<A1> ... ValParam5<A1 .. A5>
+    class RefParam;
+    //  class RefParam1     ... RefParam5
 class StateCmd;
     //  class MFunCmd1 ... MFunCmd5
     //  class GFunCmd1 ... GFunCmd5
@@ -73,15 +77,15 @@ public:
 };
 
 // ------------------------------------
-// PostArg
-// CallArg
+// ValParam
+// RefParam
 
-class PostArg : public EventArg {
+class ValParam : public EventArg {
 public:
-    virtual PostArg* clone () const = 0;
+    virtual ValParam* clone () const = 0;
 };
 
-class CallArg : public EventArg {};
+class RefParam : public EventArg {};
 
 // ------------------------------------
 // EventArg_N<Base, N>
@@ -133,6 +137,8 @@ ArgTV* StateCmd_N<N>::arg_list (int& len)
 }
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

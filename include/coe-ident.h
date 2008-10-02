@@ -27,6 +27,8 @@ THE SOFTWARE.
 
 #include <ostream>
 
+namespace coe { /////
+
 // =======================================================================
 // TiD -- thread identity
 
@@ -36,7 +38,7 @@ public:
              TiD ()          : _t(0) {}
     explicit TiD (IntType t) : _t(t) {}
 
-    bool valid () const { return 0 != _t; }
+    bool isset () const { return 0 != _t; }
     IntType id () const { return _t; }
 
     bool operator== (const TiD& rhs) const { return _t == rhs._t; }
@@ -62,7 +64,7 @@ public:
              KiD ()          : _k(0) {}
     explicit KiD (IntType k) : _k(k) {}
 
-    bool valid () const { return 0 != _k; }
+    bool isset () const { return 0 != _k; }
     IntType id () const { return _k; }
 
     bool operator== (const KiD& rhs) const { return _k == rhs._k; }
@@ -88,7 +90,7 @@ public:
     SiD ()                 : _s(0), _k(0) {}
     SiD (KiD k, IntType s) : _s(s), _k(k) {}
 
-    bool valid () const { return 0 != _s; }     //FIXME: test _k as well?!
+    bool isset () const { return 0 != _s; }     //FIXME: test _k as well?!
     KiD    kid () const { return _k; }
     IntType id () const { return _s; }
 
@@ -121,7 +123,7 @@ public:
              AiD ()          : _a(0) {}
     explicit AiD (IntType a) : _a(a) {}
 
-    bool valid () const { return 0 != _a; }
+    bool isset () const { return 0 != _a; }
     IntType id () const { return _a; }
 
     bool operator== (const AiD& rhs) const { return _a == rhs._a; }
@@ -139,6 +141,8 @@ private:
 std::ostream& operator<< (std::ostream& os, AiD aid);
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

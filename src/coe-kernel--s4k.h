@@ -27,6 +27,8 @@ THE SOFTWARE.
 
 #include "coe-session.h"
 
+namespace coe { /////
+
 // =======================================================================
 
 struct s4Kernel : public Session {
@@ -38,6 +40,8 @@ struct s4Kernel : public Session {
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

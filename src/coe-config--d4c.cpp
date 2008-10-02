@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <cstdlib>  // abort
 
 using namespace std;
+using namespace coe;
 
 // -----------------------------------------------------------------------
 

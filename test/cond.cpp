@@ -6,6 +6,7 @@
 #include <unistd.h> // sleep() on Linux
 
 using namespace std;
+using namespace coe;
 
 // -----------------------------------------------------------------------
 

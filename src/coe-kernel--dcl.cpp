@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include <cxxabi.h>
 
 using namespace std;
+using namespace coe;
 
 // -----------------------------------------------------------------------
 

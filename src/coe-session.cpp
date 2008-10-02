@@ -25,6 +25,8 @@ THE SOFTWARE.
 #include "coe-session.h"
 #include "coe-session--r4s.h"
 
+using namespace coe;
+
 // =======================================================================
 
 Session::Session () : _r4session(NULL)

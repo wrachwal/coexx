@@ -28,6 +28,8 @@ THE SOFTWARE.
 #include <map>
 #include <limits>   // numeric_limits<>
 
+namespace coe { /////
+
 // =======================================================================
 // IdentGenerator<_Id>
 
@@ -128,6 +130,8 @@ struct _IdentTraits<SiD> {
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

@@ -26,21 +26,15 @@ THE SOFTWARE.
 #define __COE_SYS_H
 
 #include <pthread.h>
+#include "coe--local.h"
+
+namespace coe { /////
+
+// -----------------------------------------------------------------------
 
 typedef pthread_mutex_t  Sys_Mutex;
 typedef pthread_rwlock_t Sys_RWLock;
 typedef pthread_cond_t   Sys_CondVar;
-
-// -----------------------------------------------------------------------
-// _Noncopyable
-
-class _Noncopyable {
-public:
-    _Noncopyable () {}
-private:
-    _Noncopyable (const _Noncopyable&);
-    _Noncopyable& operator= (const _Noncopyable&);
-};
 
 // -----------------------------------------------------------------------
 // _Guard
@@ -139,6 +133,8 @@ private:
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

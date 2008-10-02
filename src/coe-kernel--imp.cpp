@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "coe-kernel.h"
 
 using namespace std;
+using namespace coe;
 
 // =======================================================================
 // TimeSpec

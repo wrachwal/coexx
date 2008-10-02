@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include <cassert>
 
 using namespace std;
+using namespace coe;
 
 // -----------------------------------------------------------------------
 
@@ -184,7 +185,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 // -----------------------------------------------------------------------
 
-bool r4Kernel::call__arg (SiD on, const string& ev, PostArg* pfx, EventArg* arg)
+bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg)
 {
     auto_ptr<EventArg>  __arg(arg);
 

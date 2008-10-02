@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 
 using namespace std;
+using namespace coe;
 
 // =======================================================================
 // EvCtx
@@ -66,7 +67,12 @@ Kernel& Kernel::create_new ()
 
 KiD Kernel::ID () const
 {
-    return _r4kernel ? _r4kernel->_kid : KiD::NONE();
+    return _r4kernel->_kid;
+}
+
+TiD Kernel::thread () const
+{
+    return _r4kernel->_thread->_tid;
 }
 
 TimeSpec Kernel::timestamp () const
@@ -104,7 +110,7 @@ bool kernel_equal (r4Kernel* r4k, SiD on)
 static inline
 bool target_valid (TiD target)
 {
-    if (! target.valid()) {
+    if (! target.isset()) {
         //errno = ???   //TODO
         return false;
     }
@@ -114,7 +120,7 @@ bool target_valid (TiD target)
 static inline
 bool target_valid (SiD target)
 {
-    if (! target.valid()) {
+    if (! target.isset()) {
         //errno = ???   //TODO
         return false;
     }
@@ -192,7 +198,7 @@ bool Kernel::run_event_loop (TiD tid)
         return false;
     }
 
-    if (_r4kernel->_target_thread.valid()) {
+    if (_r4kernel->_target_thread.isset()) {
         _r4kernel->_target_thread = tid;
     }
     else {
@@ -206,24 +212,24 @@ bool Kernel::run_event_loop (TiD tid)
 
 // -----------------------------------------------------------------------
 
-bool Kernel::anon_post (SiD to, const string& ev, PostArg* pp)
+bool Kernel::anon_post (SiD to, const string& ev, ValParam* vp)
 {
     if (   ! target_valid(to)
         || ! user_evname(ev))
     {
-        delete pp;
+        delete vp;
         return false;
     }
-    return d4Thread::post_event(NULL/*source-kernel*/, to, new EvMsg(ev, pp));
+    return d4Thread::post_event(NULL/*source-kernel*/, to, new EvMsg(ev, vp));
 }
 
-bool Kernel::post (SiD to, const string& ev, PostArg* pp)
+bool Kernel::post (SiD to, const string& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(to)
         || ! user_evname(ev))
     {
-        delete pp;
+        delete vp;
         return false;
     }
     assert(NULL != _r4kernel->_current_context);
@@ -232,16 +238,16 @@ bool Kernel::post (SiD to, const string& ev, PostArg* pp)
     return d4Thread::post_event(
                             _r4kernel,
                             to,                                     // SiD
-                            new EvMsg(ev, pp, *_r4kernel->_current_context)
+                            new EvMsg(ev, vp, *_r4kernel->_current_context)
                         );
 }
 
-bool Kernel::yield (const string& ev, PostArg* pp)
+bool Kernel::yield (const string& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! user_evname(ev))
     {
-        delete pp;
+        delete vp;
         return false;
     }
     assert(NULL != _r4kernel->_current_context);
@@ -250,7 +256,7 @@ bool Kernel::yield (const string& ev, PostArg* pp)
     return d4Thread::post_event(
                             _r4kernel,
                             _r4kernel->_current_context->session,   // r4Session*
-                            new EvMsg(ev, pp, *_r4kernel->_current_context)
+                            new EvMsg(ev, vp, *_r4kernel->_current_context)
                         );
 }
 
@@ -268,47 +274,47 @@ bool Kernel::call (SiD on, const string& ev)
     return _r4kernel->call__arg(on, ev, NULL, NULL);
 }
 
-bool Kernel::call (SiD on, const string& ev, CallArg* cp)
+bool Kernel::call (SiD on, const string& ev, RefParam* rp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
         || ! kernel_equal(_r4kernel, on)
         || ! user_evname(ev))
     {
-        delete cp;
+        delete rp;
         return false;
     }
-    return _r4kernel->call__arg(on, ev, NULL, cp);
+    return _r4kernel->call__arg(on, ev, NULL, rp);
 }
 
-bool Kernel::call (SiD on, const string& ev, PostArg* pp)
+bool Kernel::call (SiD on, const string& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
         || ! kernel_equal(_r4kernel, on)
         || ! user_evname(ev))
     {
-        delete pp;
+        delete vp;
         return false;
     }
-    return _r4kernel->call__arg(on, ev, NULL, pp);
+    return _r4kernel->call__arg(on, ev, NULL, vp);
 }
 
 // -----------------------------------------------------------------------
 
-AiD Kernel::delay_set (const string ev, TimeSpec duration, PostArg* pp)
+AiD Kernel::delay_set (const string ev, TimeSpec duration, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! delay_gt0(duration)
         || ! user_evname(ev))
     {
-        delete pp;
+        delete vp;
         return AiD::NONE();
     }
     return _r4kernel->_thread->create_alarm(
                                     d4Thread::_DELAY_SET,
                                     duration,
-                                    new EvAlarm(ev, pp, *_r4kernel->_current_context)
+                                    new EvAlarm(ev, vp, *_r4kernel->_current_context)
                                 );
 }
 
@@ -329,18 +335,18 @@ bool Kernel::select (int fd, IO_Mode mode)
                                 );
 }
 
-bool Kernel::select (int fd, IO_Mode mode, const string& ev, PostArg* pp)
+bool Kernel::select (int fd, IO_Mode mode, const string& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! user_evname(ev)
         || ! fd_valid(fd)
         || ! mode_valid(mode))
     {
-        delete pp;
+        delete vp;
         return false;
     }
 
-    EvIO*   evio = new EvIO(fd, mode, ev, pp, *_r4kernel->_current_context);
+    EvIO*   evio = new EvIO(fd, mode, ev, vp, *_r4kernel->_current_context);
 
     return _r4kernel->_thread->create_io_watcher(evio);
 }

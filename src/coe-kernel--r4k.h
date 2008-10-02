@@ -29,6 +29,10 @@ THE SOFTWARE.
 #include "coe--util.h"          // IdentGenerator<>
 #include "coe-sys.h"            // RWLock, ...
 
+namespace coe { /////
+
+// -----------------------------------------------------------------------
+
 class Kernel;
 class Session;
 class StateCmd;
@@ -94,7 +98,7 @@ struct r4Kernel {
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
     void state__cmd (const std::string& ev, StateCmd* cmd);
 
-    bool call__arg (SiD on, const std::string& ev, PostArg* pfx, EventArg* arg);
+    bool call__arg (SiD on, const std::string& ev, ValParam* pfx, EventArg* arg);
 
     void dispatch_evmsg (EvMsg* evmsg);
     void dispatch_alarm (EvAlarm* alarm);
@@ -103,11 +107,13 @@ struct r4Kernel {
 
 // -----------------------------------------------------------------------
 
-struct r4KernelStore {
+struct _r4Kernel {
     typedef dList<r4Kernel, offsetof(r4Kernel, _link_kernel)> List;
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

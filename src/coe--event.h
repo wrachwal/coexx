@@ -29,7 +29,11 @@ THE SOFTWARE.
 #include "coe--list.h"
 #include <map>
 
+namespace coe { /////
+
+// -----------------------------------------------------------------------
 // forward(s)
+
 class EvCommon;
     class EvMsg;
     class EvAlarm;
@@ -98,7 +102,7 @@ typedef std::map<FdModeSid_Key, EvIO*>  FdModeSid_Map;
 // =======================================================================
 // EvCommon
 
-class PostArg;
+class ValParam;
 
 class EvCommon {
 public:
@@ -115,7 +119,7 @@ public:
 protected:
     EvCommon () : _prio_order(-1) {}    // default is to favor local queue
 
-    friend struct EvCommonStore;
+    friend struct _EvCommon;
     dLink<EvCommon> _link_queue;
 
     int         _prio_order;    // [ -1, 0 .. PQLen )
@@ -123,7 +127,7 @@ protected:
 
 // ------------------------------------
 
-struct EvCommonStore {
+struct _EvCommon {
     typedef dList<EvCommon, offsetof(EvCommon, _link_queue)> Queue;
 };
 
@@ -138,8 +142,8 @@ public:
 
     const std::string& name () const { return _name; }
 
-    PostArg* arg () const { return _arg; }
-    PostArg* arg (PostArg* new_arg);
+    ValParam* arg () const { return _arg; }
+    ValParam* arg (ValParam* new_arg);
 
     r4Session* target () const { return _target; }
     void       target (r4Session* session);
@@ -147,12 +151,12 @@ public:
     const std::string& sender_state () const { return _sender_state; }
 
 protected:
-    EvUser (const std::string& name, PostArg* arg);
+    EvUser (const std::string& name, ValParam* arg);
 
     r4Session*  _target;
     std::string _sender_state;
     std::string _name;
-    PostArg*    _arg;
+    ValParam*   _arg;
 };
 
 // =======================================================================
@@ -160,8 +164,8 @@ protected:
 
 class EvMsg : public EvUser {
 public:
-    EvMsg (const std::string& name, PostArg* arg, SessionContext& cc);  // post
-    EvMsg (const std::string& name, PostArg* arg);                 // anon_post
+    EvMsg (const std::string& name, ValParam* arg, SessionContext& cc);  // post
+    EvMsg (const std::string& name, ValParam* arg);                 // anon_post
     ~EvMsg ();
 
     /*final*/ void dispatch ();
@@ -171,13 +175,13 @@ public:
 
     SiD sender () const { return _sender; }
 
-    PostArg* pfx () const { return _prefix; }
-    PostArg* pfx (PostArg* new_pfx);
+    ValParam* pfx () const { return _prefix; }
+    ValParam* pfx (ValParam* new_pfx);
 
 private:
     r4Session*  _source;
     SiD         _sender;
-    PostArg*    _prefix;    // used by postback(s)
+    ValParam*   _prefix;    // used by postback(s)
 };
 
 // -----------------------------------------------------------------------
@@ -185,7 +189,7 @@ private:
 
 class EvAlarm : public EvUser {
 public:
-    EvAlarm (const std::string& name, PostArg* arg, SessionContext& cc);
+    EvAlarm (const std::string& name, ValParam* arg, SessionContext& cc);
     ~EvAlarm ();
 
     /*final*/ void dispatch ();
@@ -200,7 +204,7 @@ public:
     DueSidAid_Map::iterator dsa_iter () const { return _dsa_iter; }
 
 private:
-    friend struct EvAlarmStore;
+    friend struct _EvAlarm;
     dLink<EvAlarm> _link_alarm;
 
     AiD                     _aid;
@@ -210,7 +214,7 @@ private:
 
 // ------------------------------------
 
-struct EvAlarmStore {
+struct _EvAlarm {
     typedef dList<EvAlarm, offsetof(EvAlarm, _link_alarm)> List;
 };
 
@@ -219,7 +223,7 @@ struct EvAlarmStore {
 
 class EvIO : public EvUser {
 public:
-    EvIO (int fd, IO_Mode mode, const std::string& name, PostArg* arg, SessionContext& cc);
+    EvIO (int fd, IO_Mode mode, const std::string& name, ValParam* arg, SessionContext& cc);
     ~EvIO ();
 
     /*final*/ void dispatch ();
@@ -231,7 +235,7 @@ public:
     bool active () const { return _active; }
 
 private:
-    friend struct EvIOStore;
+    friend struct _EvIO;
     dLink<EvIO> _link_evio;
 
     int         _fd;
@@ -241,7 +245,7 @@ private:
 
 // ------------------------------------
 
-struct EvIOStore {
+struct _EvIO {
     typedef dList<EvIO, offsetof(EvIO, _link_evio)> List;
 };
 
@@ -261,6 +265,8 @@ private:
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

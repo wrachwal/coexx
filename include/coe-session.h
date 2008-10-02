@@ -27,12 +27,16 @@ THE SOFTWARE.
 
 #include "coe-kernel.h"
 
+namespace coe { /////
+
+// -----------------------------------------------------------------------
+
 struct r4Session;
 
 // =======================================================================
 // Session
 
-class Session {
+class Session : private _Noncopyable {
 public:
     SiD ID () const;
 
@@ -51,9 +55,6 @@ protected:
     virtual void _start (EvCtx& ctx) = 0;
 
 private:
-    Session (const Session&);           // prohibited
-    void operator= (const Session&);    // prohibited
-
     friend class EvCtx;                 // get_heap()
     friend struct r4Kernel;
     friend struct r4Session;
@@ -61,6 +62,8 @@ private:
 };
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

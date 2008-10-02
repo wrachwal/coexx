@@ -29,6 +29,8 @@ THE SOFTWARE.
 #ifndef __COE_KERNEL__IMP_H
 #define __COE_KERNEL__IMP_H
 
+namespace coe { /////
+
 // =======================================================================
 // TimeSpec
 // =======================================================================
@@ -65,19 +67,19 @@ inline TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs)
     }
 
 // =======================================================================
-// PostArg1<A1> ... PostArg5<A1 .. A5>
+// ValParam1<A1> ... ValParam5<A1 .. A5>
 // =======================================================================
 
 template<class A1>
-class PostArg1 : public EventArg_N<PostArg, 1> {
+class ValParam1 : public EventArg_N<ValParam, 1> {
 public:
-    PostArg1 (const A1& a1)
+    ValParam1 (const A1& a1)
         : _a1(a1)
         {
             _arg[0].set(&typeid(A1), &_a1);
         }
-    PostArg* clone () const
-        { return new PostArg1(_a1); }
+    ValParam* clone () const
+        { return new ValParam1(_a1); }
 private:
     A1  _a1;
 };
@@ -85,16 +87,16 @@ private:
 // ------------------------------------
 
 template<class A1, class A2>
-class PostArg2 : public EventArg_N<PostArg, 2> {
+class ValParam2 : public EventArg_N<ValParam, 2> {
 public:
-    PostArg2 (const A1& a1, const A2& a2)
+    ValParam2 (const A1& a1, const A2& a2)
         : _a1(a1), _a2(a2)
         {
             _arg[0].set(&typeid(A1), &_a1);
             _arg[1].set(&typeid(A2), &_a2);
         }
-    PostArg* clone () const
-        { return new PostArg2(_a1, _a2); }
+    ValParam* clone () const
+        { return new ValParam2(_a1, _a2); }
 private:
     A1  _a1;
     A2  _a2;
@@ -103,17 +105,17 @@ private:
 // ------------------------------------
 
 template<class A1, class A2, class A3>
-class PostArg3 : public EventArg_N<PostArg, 3> {
+class ValParam3 : public EventArg_N<ValParam, 3> {
 public:
-    PostArg3 (const A1& a1, const A2& a2, const A3& a3)
+    ValParam3 (const A1& a1, const A2& a2, const A3& a3)
         : _a1(a1), _a2(a2), _a3(a3)
         {
             _arg[0].set(&typeid(A1), &_a1);
             _arg[1].set(&typeid(A2), &_a2);
             _arg[2].set(&typeid(A3), &_a3);
         }
-    PostArg* clone () const
-        { return new PostArg3(_a1, _a2, _a3); }
+    ValParam* clone () const
+        { return new ValParam3(_a1, _a2, _a3); }
 private:
     A1  _a1;
     A2  _a2;
@@ -123,9 +125,9 @@ private:
 // ------------------------------------
 
 template<class A1, class A2, class A3, class A4>
-class PostArg4 : public EventArg_N<PostArg, 4> {
+class ValParam4 : public EventArg_N<ValParam, 4> {
 public:
-    PostArg4 (const A1& a1, const A2& a2, const A3& a3, const A4& a4)
+    ValParam4 (const A1& a1, const A2& a2, const A3& a3, const A4& a4)
         : _a1(a1), _a2(a2), _a3(a3), _a4(a4)
         {
             _arg[0].set(&typeid(A1), &_a1);
@@ -133,8 +135,8 @@ public:
             _arg[2].set(&typeid(A3), &_a3);
             _arg[3].set(&typeid(A4), &_a4);
         }
-    PostArg* clone () const
-        { return new PostArg4(_a1, _a2, _a3, _a4); }
+    ValParam* clone () const
+        { return new ValParam4(_a1, _a2, _a3, _a4); }
 private:
     A1  _a1;
     A2  _a2;
@@ -145,9 +147,9 @@ private:
 // ------------------------------------
 
 template<class A1, class A2, class A3, class A4, class A5>
-class PostArg5 : public EventArg_N<PostArg, 5> {
+class ValParam5 : public EventArg_N<ValParam, 5> {
 public:
-    PostArg5 (const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5)
+    ValParam5 (const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5)
         : _a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5)
         {
             _arg[0].set(&typeid(A1), &_a1);
@@ -156,8 +158,8 @@ public:
             _arg[3].set(&typeid(A4), &_a4);
             _arg[4].set(&typeid(A5), &_a5);
         }
-    PostArg* clone () const
-        { return new PostArg5(_a1, _a2, _a3, _a4, _a5); }
+    ValParam* clone () const
+        { return new ValParam5(_a1, _a2, _a3, _a4, _a5); }
 private:
     A1  _a1;
     A2  _a2;
@@ -167,13 +169,13 @@ private:
 };
 
 // =======================================================================
-// CallArg1 ... CallArg5
+// RefParam1 ... RefParam5
 // =======================================================================
 
-class CallArg1 : public EventArg_N<CallArg, 1> {
+class RefParam1 : public EventArg_N<RefParam, 1> {
 public:
     template<class A1>
-    CallArg1 (A1& a1)
+    RefParam1 (A1& a1)
         {
             _arg[0].set(&typeid(A1), &a1);
         }
@@ -181,10 +183,10 @@ public:
 
 // ------------------------------------
 
-class CallArg2 : public EventArg_N<CallArg, 2> {
+class RefParam2 : public EventArg_N<RefParam, 2> {
 public:
     template<class A1, class A2>
-    CallArg2 (A1& a1, A2& a2)
+    RefParam2 (A1& a1, A2& a2)
         {
             _arg[0].set(&typeid(A1), &a1);
             _arg[1].set(&typeid(A2), &a2);
@@ -193,10 +195,10 @@ public:
 
 // ------------------------------------
 
-class CallArg3 : public EventArg_N<CallArg, 3> {
+class RefParam3 : public EventArg_N<RefParam, 3> {
 public:
     template<class A1, class A2, class A3>
-    CallArg3 (A1& a1, A2& a2, A3& a3)
+    RefParam3 (A1& a1, A2& a2, A3& a3)
         {
             _arg[0].set(&typeid(A1), &a1);
             _arg[1].set(&typeid(A2), &a2);
@@ -206,10 +208,10 @@ public:
 
 // ------------------------------------
 
-class CallArg4 : public EventArg_N<CallArg, 4> {
+class RefParam4 : public EventArg_N<RefParam, 4> {
 public:
     template<class A1, class A2, class A3, class A4>
-    CallArg4 (A1& a1, A2& a2, A3& a3, A4& a4)
+    RefParam4 (A1& a1, A2& a2, A3& a3, A4& a4)
         {
             _arg[0].set(&typeid(A1), &a1);
             _arg[1].set(&typeid(A2), &a2);
@@ -220,10 +222,10 @@ public:
 
 // ------------------------------------
 
-class CallArg5 : public EventArg_N<CallArg, 5> {
+class RefParam5 : public EventArg_N<RefParam, 5> {
 public:
     template<class A1, class A2, class A3, class A4, class A5>
-    CallArg5 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5)
+    RefParam5 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5)
         {
             _arg[0].set(&typeid(A1), &a1);
             _arg[1].set(&typeid(A2), &a2);
@@ -545,52 +547,52 @@ private:
 };
 
 // =======================================================================
-// pparam (p1[, ...])
+// vparam (p1[, ...])
 // =======================================================================
 
 template<class P1>
-PostArg* pparam (const P1& p1)
-    { return new PostArg1<P1>(p1); }
+ValParam* vparam (const P1& p1)
+    { return new ValParam1<P1>(p1); }
 
 template<class P1, class P2>
-PostArg* pparam (const P1& p1, const P2& p2)
-    { return new PostArg2<P1, P2>(p1, p2); }
+ValParam* vparam (const P1& p1, const P2& p2)
+    { return new ValParam2<P1, P2>(p1, p2); }
 
 template<class P1, class P2, class P3>
-PostArg* pparam (const P1& p1, const P2& p2, const P3& p3)
-    { return new PostArg3<P1, P2, P3>(p1, p2, p3); }
+ValParam* vparam (const P1& p1, const P2& p2, const P3& p3)
+    { return new ValParam3<P1, P2, P3>(p1, p2, p3); }
 
 template<class P1, class P2, class P3, class P4>
-PostArg* pparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-    { return new PostArg4<P1, P2, P3, P4>(p1, p2, p3, p4); }
+ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4)
+    { return new ValParam4<P1, P2, P3, P4>(p1, p2, p3, p4); }
 
 template<class P1, class P2, class P3, class P4, class P5>
-PostArg* pparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
-    { return new PostArg5<P1, P2, P3, P4, P5>(p1, p2, p3, p4, p5); }
+ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
+    { return new ValParam5<P1, P2, P3, P4, P5>(p1, p2, p3, p4, p5); }
 
 // =======================================================================
-// cparam (p1[, ...])
+// rparam (p1[, ...])
 // =======================================================================
 
 template<class P1>
-CallArg* cparam (P1& p1)
-    { return new CallArg1(p1); }
+RefParam* rparam (P1& p1)
+    { return new RefParam1(p1); }
 
 template<class P1, class P2>
-CallArg* cparam (P1& p1, P2& p2)
-    { return new CallArg2(p1, p2); }
+RefParam* rparam (P1& p1, P2& p2)
+    { return new RefParam2(p1, p2); }
 
 template<class P1, class P2, class P3>
-CallArg* cparam (P1& p1, P2& p2, P3& p3)
-    { return new CallArg3(p1, p2, p3); }
+RefParam* rparam (P1& p1, P2& p2, P3& p3)
+    { return new RefParam3(p1, p2, p3); }
 
 template<class P1, class P2, class P3, class P4>
-CallArg* cparam (P1& p1, P2& p2, P3& p3, P4& p4)
-    { return new CallArg4(p1, p2, p3, p4); }
+RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4)
+    { return new RefParam4(p1, p2, p3, p4); }
 
 template<class P1, class P2, class P3, class P4, class P5>
-CallArg* cparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
-    { return new CallArg5(p1, p2, p3, p4, p5); }
+RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
+    { return new RefParam5(p1, p2, p3, p4, p5); }
 
 // =======================================================================
 // handler (obj, memfun)
@@ -697,6 +699,8 @@ StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&))
     { return new GFunCmd5(fun); }
 
 // =======================================================================
+
+} ///// namespace coe
 
 #endif
 

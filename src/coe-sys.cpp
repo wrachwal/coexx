@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <iostream>
 
 using namespace std;
+using namespace coe;
 
 // -----------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ _Guard::~_Guard ()
 // -----------------------------------------------------------------------
 // _GuardSpy
 
-struct _GuardSpy {
+struct coe::_GuardSpy {
     static void unlock (_Guard& guard);
     static Sys_Mutex& sys_mutex (Mutex::Guard& guard);
 };

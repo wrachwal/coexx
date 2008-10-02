@@ -22,17 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************************************/
 
-#include "coe-kernel--s4k.h"
+#ifndef __COE__LOCAL_H
+#define __COE__LOCAL_H
 
-using namespace coe;
+namespace coe { /////
+
+// =======================================================================
+// _Noncopyable
+
+class _Noncopyable {
+public:
+    _Noncopyable () {}
+private:
+    _Noncopyable            (const _Noncopyable&);
+    _Noncopyable& operator= (const _Noncopyable&);
+};
 
 // =======================================================================
 
-s4Kernel::s4Kernel ()
-{
-}
+} ///// namespace coe
 
-void s4Kernel::_start (EvCtx& ctx)
-{
-}
+#endif
 

@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <unistd.h>     // read() on Linux
 
 using namespace std;
+using namespace coe;
 
 #define TABLEN(tab)     int(sizeof(tab) / sizeof((tab)[0]))
 
@@ -684,7 +685,7 @@ void d4Thread::_move_to_target_thread (r4Kernel* kernel)
     d4Thread*   source     = kernel->_thread;
     TiD         source_tid = source->_tid;
 
-    if (! target_tid.valid() || target_tid == source_tid) {
+    if (! target_tid.isset() || target_tid == source_tid) {
         return;
     }
 
@@ -738,7 +739,7 @@ void d4Thread::_move_to_target_thread (r4Kernel* kernel)
     // (2)
     bool    was_empty = target->sched.pqueue.empty();
 
-    for (EvCommonStore::Queue::iterator i = source->sched.pqueue.begin();
+    for (_EvCommon::Queue::iterator i = source->sched.pqueue.begin();
          i != source->sched.pqueue.end();
          /*empty*/)
     {
@@ -755,7 +756,7 @@ void d4Thread::_move_to_target_thread (r4Kernel* kernel)
     bool    is_change = false;
 
     // (3)
-    for (EvCommonStore::Queue::iterator i = source->_lqueue.begin();
+    for (_EvCommon::Queue::iterator i = source->_lqueue.begin();
          i != source->_lqueue.end();
          /*empty*/)
     {
@@ -826,7 +827,7 @@ bool d4Thread::_move_trans_to_local_data ()
     sched.trans.ready = false;  // reset flag
 
     // (3) sched.trans.lqueue ---> _lqueue
-    for (EvCommonStore::Queue::iterator i = sched.trans.lqueue.begin();
+    for (_EvCommon::Queue::iterator i = sched.trans.lqueue.begin();
          i != sched.trans.lqueue.end();
          /*empty*/)
     {
@@ -921,7 +922,7 @@ TiD Thread::spawn_new ()
         return TiD::NONE();
     }
 
-    while (! arg.tid.valid()) {
+    while (! arg.tid.isset()) {
         arg.cond.wait(guard);
     }
 
