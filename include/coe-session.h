@@ -31,7 +31,9 @@ namespace coe { /////
 
 // -----------------------------------------------------------------------
 
-struct r4Session;
+class Callback;
+
+struct r4Session;   // private
 
 // =======================================================================
 // Session
@@ -40,6 +42,11 @@ class Session : private _Noncopyable {
 public:
     SiD ID () const;
 
+    /*
+     * Encapsulated `Callback' primitive
+     */
+    Callback* callback (const std::string& ev, ValParam* pfx=0);
+
 protected:
     Session ();
     virtual ~Session ();
@@ -47,18 +54,41 @@ protected:
     void  set_heap (void* heap);        // handlers will get it in EvCtx
     void* get_heap () const;
 
-    Kernel* start_as_new_kernel_session ();
-
     /*
-     * session management
+     * Session Management
      */
     virtual void _start (EvCtx& ctx) = 0;
 
 private:
-    friend class EvCtx;                 // get_heap()
+    friend  class EvCtx;                // get_heap()
     friend struct r4Kernel;
     friend struct r4Session;
     r4Session*   _r4session;
+};
+
+// -----------------------------------------------------------------------
+// Callback
+
+class Callback : private _Noncopyable {
+public:
+    ~Callback ();
+
+    SiD session () const { return _target; }
+
+    bool      call (Kernel& kernel);
+    bool      call (Kernel& kernel, RefParam* arg);
+    bool      call (Kernel& kernel, ValParam* arg);
+
+    bool      post (Kernel& kernel, ValParam* arg=0);
+    bool anon_post (                ValParam* arg=0);
+
+private:
+    friend class Session;
+    Callback (SiD, const std::string&, ValParam*);
+
+    SiD         _target;
+    std::string _evname;
+    ValParam*   _prefix;
 };
 
 // =======================================================================

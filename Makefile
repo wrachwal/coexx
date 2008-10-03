@@ -16,6 +16,8 @@ ifeq (Linux,$(findstring Linux,$(UNAME)))
 endif
 endif
 
+vpath %.o lib test examples
+
 library := lib/libcoe.a
 objects := $(patsubst src/%.cpp,lib/%.o,$(wildcard src/*.cpp))
 

@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "coe-thread--d4t.h"    // coe-kernel--r4k.h
 #include "coe-session.h"
 #include "coe-session--r4s.h"
+#include "coe--errno.h"
 
 using namespace std;
 using namespace coe;
@@ -83,88 +84,6 @@ TimeSpec Kernel::timestamp () const
 SiD Kernel::start_session (Session* s)
 {
     return _r4kernel->start_session(s);
-}
-
-// -----------------------------------------------------------------------
-
-static inline
-bool kernel_attached (r4Kernel* r4k)
-{
-    if (NULL == r4k || NULL == r4k->_thread) {
-        //errno = ???  //TODO
-        return false;
-    }
-    return true;
-}
-
-static inline
-bool kernel_equal (r4Kernel* r4k, SiD on)
-{
-    if (r4k->_kid != on.kid()) {
-        //errno = ???   //TODO
-        return false;
-    }
-    return true;
-}
-
-static inline
-bool target_valid (TiD target)
-{
-    if (! target.isset()) {
-        //errno = ???   //TODO
-        return false;
-    }
-    return true;
-}
-
-static inline
-bool target_valid (SiD target)
-{
-    if (! target.isset()) {
-        //errno = ???   //TODO
-        return false;
-    }
-    return true;
-}
-
-static inline
-bool user_evname (const string& ev)
-{
-    if (ev.empty() || '.' == ev[0]) {
-        //errno = ???   //TODO
-        return false;
-    }
-    return true;
-}
-
-static inline
-bool delay_gt0 (const TimeSpec& ts)
-{
-    if (ts <= TimeSpec::ZERO()) {
-        //errno = ???   //TODO
-        return false;
-    }
-    return true;
-}
-
-static inline
-bool fd_valid (int fd)
-{
-    if (fd < 0 || fd >= FD_SETSIZE) {
-        //errno = ???   //TODO
-        return false;
-    }
-    return true;
-}
-
-static inline
-bool mode_valid (IO_Mode mode)
-{
-    if (IO_read != mode && IO_write != mode && IO_error != mode) {
-        //error = ???   //TODO
-        return false;
-    }
-    return true;
 }
 
 // -----------------------------------------------------------------------

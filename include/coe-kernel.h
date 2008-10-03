@@ -36,6 +36,7 @@ namespace coe { /////
 
 class Kernel;
 class Session;      // coe-session.h
+class Callback;     // coe-session.h
 
 // handler context(s)
 class                   EvCtx;
@@ -134,6 +135,7 @@ private:
     Kernel ();
 
     friend struct r4Kernel;
+    friend  class Callback;
     r4Kernel    *_r4kernel;
 };
 
