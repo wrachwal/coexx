@@ -250,12 +250,27 @@ struct _EvIO {
 };
 
 // =======================================================================
-// EvSys_Transfer
+// EvSys_Export_Kernel
+// EvSys_Import_Kernel
 
-class EvSys_Transfer : public EvCommon {
+class EvSys_Export_Kernel : public EvCommon {
 public:
-    EvSys_Transfer (r4Kernel *kernel) : _kernel(kernel) {}
-    ~EvSys_Transfer ();
+    EvSys_Export_Kernel (r4Kernel *kernel) : _kernel(kernel) {}
+    ~EvSys_Export_Kernel ();
+
+    /*final*/ void dispatch ();
+    /*final*/ bool is_event_of (KiD kernel) const;
+
+private:
+    r4Kernel*   _kernel;
+};
+
+// ------------------------------------
+
+class EvSys_Import_Kernel : public EvCommon {
+public:
+    EvSys_Import_Kernel (r4Kernel *kernel) : _kernel(kernel) { _prio_order = 0; }
+    ~EvSys_Import_Kernel ();
 
     /*final*/ void dispatch ();
     /*final*/ bool is_event_of (KiD kernel) const;

@@ -50,6 +50,8 @@ struct dList {
     bool  empty () const { return 0 == _size; }
     size_t size () const { return _size; }
 
+    void swap (dList& other);
+
     T* peek_head () const { return _head; }
     T* peek_tail () const { return _tail; }
 
@@ -167,6 +169,14 @@ struct dList<void, 0> {
 };
 
 // =======================================================================
+
+template<class T, size_t LinkOffset>
+void dList<T, LinkOffset>::swap (dList& other)
+{
+    std::swap(_head, other._head);
+    std::swap(_tail, other._tail);
+    std::swap(_size, other._size);
+}
 
 template<class T, size_t LinkOffset>
 T* dList<T, LinkOffset>::get_head ()

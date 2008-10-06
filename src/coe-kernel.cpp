@@ -123,7 +123,7 @@ bool Kernel::run_event_loop (TiD tid)
     else {
         _r4kernel->_target_thread = tid;
         //TODO: increment refcount of the kernel session
-        _r4kernel->_thread->_lqueue.put_head(new EvSys_Transfer(_r4kernel));
+        _r4kernel->_thread->_lqueue.put_head(new EvSys_Export_Kernel(_r4kernel));
     }
 
     return true;

@@ -58,11 +58,11 @@ struct d4Thread {
 
     void enqueue_msg_event (EvMsg* evmsg);
     void _wakeup_waiting_thread ();
-    bool remove_enqueued_event (EvCommon* ev);
+    void _pqueue_pending_events ();
+    void _pqueue_expired_alarms ();
 
     EvCommon* dequeue_event ();
     void _select_io (const TimeSpec* due);
-    void _queue_expired_alarms();
 
     static bool post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
     static bool post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg);
@@ -75,8 +75,8 @@ struct d4Thread {
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
 
-    static void _move_to_target_thread (r4Kernel* kernel);
-    bool _move_trans_to_local_data ();
+    static void _export_kernel_local_data (r4Kernel* kernel);
+           void _import_kernel_local_data ();
 
     static void* _thread_entry (void* arg);
 
@@ -124,16 +124,15 @@ struct d4Thread {
             WAIT
         }                   state;
 
-        _EvCommon::Queue    pqueue; //TODO: change to priority queue
+        _EvCommon::Queue    pending;
 
         int                 io_requests;
 
         // --------
 
         struct Trans {
-            Trans ();
-            bool                ready;
             _EvCommon::Queue    lqueue;
+            _EvCommon::Queue    pqueue;
             DueSidAid_Map       dsa_map;
             FdModeSid_Map       fms_map;
         } trans;
@@ -149,9 +148,10 @@ struct d4Thread {
     bool                _event_loop_running;
 
     /*
-     * intra-kernel messages
+     * event local queue(s)
      */
-    _EvCommon::Queue    _lqueue;
+    _EvCommon::Queue    _lqueue;    // local, intra-kernel messages
+    _EvCommon::Queue    _pqueue;    // priority queue
 
     /*
      * alarms

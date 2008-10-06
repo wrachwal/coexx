@@ -190,19 +190,37 @@ void EvIO::dispatch ()
 }
 
 // =======================================================================
-// EvSys_Transfer
+// EvSys_Export_Kernel
 
-EvSys_Transfer::~EvSys_Transfer ()
+EvSys_Export_Kernel::~EvSys_Export_Kernel ()
 {
 }
 
-void EvSys_Transfer::dispatch ()
+void EvSys_Export_Kernel::dispatch ()
 {
-    d4Thread::_move_to_target_thread(_kernel);
+    d4Thread::_export_kernel_local_data(_kernel);   // --@@--
     delete this;
 }
 
-bool EvSys_Transfer::is_event_of (KiD kernel) const
+bool EvSys_Export_Kernel::is_event_of (KiD kernel) const
+{
+    return _kernel->_kid == kernel;
+}
+
+// =======================================================================
+// EvSys_Import_Kernel
+
+EvSys_Import_Kernel::~EvSys_Import_Kernel ()
+{
+}
+
+void EvSys_Import_Kernel::dispatch ()
+{
+    _kernel->_thread->_import_kernel_local_data();  // --@@--
+    delete this;
+}
+
+bool EvSys_Import_Kernel::is_event_of (KiD kernel) const
 {
     return _kernel->_kid == kernel;
 }
