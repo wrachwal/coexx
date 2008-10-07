@@ -278,7 +278,6 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
     StateCmd* cmd = find_state_handler(session->_sid.id(), alarm->name());
     if (NULL == cmd) {
         //TODO: call session's default error handling, like _default in POE?
-        delete alarm;
         return;
     }
 
@@ -297,7 +296,6 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
     session->_list_alarm.remove(alarm);
 
     //TODO: re-schedule periodic alarm
-    delete alarm;
 }
 
 // -----------------------------------------------------------------------

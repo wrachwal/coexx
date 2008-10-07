@@ -90,14 +90,14 @@ public:
      * Timer Events (Delayed Messages)
      */
     // Name-Based Timers
-    bool alarm     (const std::string ev);          // reset
+    bool alarm     (const std::string ev);      // reset
     bool alarm     (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
     bool alarm_add (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
     bool delay     (const std::string ev, TimeSpec duration, ValParam* vp=0);
     bool delay_add (const std::string ev, TimeSpec duration, ValParam* vp=0);
     //
     // Identifier-Based Timers
-    AiD  alarm_remove (AiD aid);                    // reset
+    AiD  alarm_remove (AiD aid);                // reset
     AiD  alarm_set    (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
     bool alarm_adjust (AiD aid, TimeSpec delta_secs);
     AiD  delay_set    (const std::string ev, TimeSpec duration, ValParam* vp=0);
