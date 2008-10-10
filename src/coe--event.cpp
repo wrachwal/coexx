@@ -198,7 +198,7 @@ EvSys_Export_Kernel::~EvSys_Export_Kernel ()
 
 void EvSys_Export_Kernel::dispatch ()
 {
-    d4Thread::_export_kernel_local_data(_kernel);   // --@@--
+    d4Thread::_export_kernel_local_data(_kernel);           // --@@--
     delete this;
 }
 
@@ -216,7 +216,7 @@ EvSys_Import_Kernel::~EvSys_Import_Kernel ()
 
 void EvSys_Import_Kernel::dispatch ()
 {
-    _kernel->_thread->_import_kernel_local_data();  // --@@--
+    _kernel->_thread->_import_kernel_local_data(*this);     // --@@--
     delete this;
 }
 

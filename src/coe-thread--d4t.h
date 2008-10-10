@@ -75,8 +75,8 @@ struct d4Thread {
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
 
-    static void _export_kernel_local_data (r4Kernel* kernel);
-           void _import_kernel_local_data ();
+    static void _export_kernel_local_data (r4Kernel*            kernel);
+           void _import_kernel_local_data (EvSys_Import_Kernel& import);
 
     static void* _thread_entry (void* arg);
 
@@ -127,15 +127,6 @@ struct d4Thread {
         _EvCommon::Queue    pending;
 
         int                 io_requests;
-
-        // --------
-
-        struct Trans {
-            _EvCommon::Queue    lqueue;
-            _EvCommon::Queue    pqueue;
-            DueSidAid_Map       dsa_map;
-            FdModeSid_Map       fms_map;
-        } trans;
 
     } sched;
 

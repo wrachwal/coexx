@@ -699,14 +699,16 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
 
     kernel->_thread = target;   // thread re-assignment
 
-    //      source              target
-    //      ======     --->     ======
-    // (1)  local.list_kernel   local.list_kernel
-    // (2)  _lqueue             sched.trans.lqueue
-    // (3)  _pqueue             sched.trans.pqueue
-    // (4)  sched.pending       sched.trans.pqueue (appended)
-    // (5)  _dsa_map            sched.trans.dsa_map
-    // (6)  _fms_map            sched.trans.fms_map
+    //      source              target / import
+    //      ======     --->     ===============
+    // (1)  local.list_kernel   target->local.list_kernel
+    // (2)  _lqueue             import->lqueue
+    // (3)  _pqueue             import->pqueue
+    // (4)  sched.pending       import->pqueue (appended)
+    // (5)  _dsa_map            import->dsa_map
+    // (6)  _fms_map            import->fms_map
+
+    EvSys_Import_Kernel*    import = new EvSys_Import_Kernel(kernel);
 
     // (1)
     target->local.list_kernel.put_tail(
@@ -719,7 +721,7 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
          /*empty*/)
     {
         if ((*i)->is_event_of(kernel->_kid)) {
-            target->sched.trans.lqueue.put_tail(
+            import->lqueue.put_tail(
                 source->_lqueue.remove(*i++));
         }
         else {
@@ -733,7 +735,7 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
          /*empty*/)
     {
         if ((*i)->is_event_of(kernel->_kid)) {
-            target->sched.trans.pqueue.put_tail(
+            import->pqueue.put_tail(
                 source->_pqueue.remove(*i++));
         }
         else {
@@ -747,7 +749,7 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
          /*empty*/)
     {
         if ((*i)->is_event_of(kernel->_kid)) {
-            target->sched.trans.pqueue.put_tail(
+            import->pqueue.put_tail(
                 source->sched.pending.remove(*i++));
         }
         else {
@@ -761,7 +763,7 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
          /*empty*/)
     {
         if ((*i).first.sid.kid() == kernel->_kid) {
-            target->sched.trans.dsa_map.insert(*i);
+            import->dsa_map.insert(*i);
             source->_dsa_map.erase(i++);
         }
         else {
@@ -775,7 +777,7 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
          /*empty*/)
     {
         if ((*i).first.sid.kid() == kernel->_kid) {
-            target->sched.trans.fms_map.insert(*i);
+            import->fms_map.insert(*i);
             if ((*i).second->active())
                 -- source->sched.io_requests;
             source->_fms_map.erase(i++);
@@ -788,7 +790,7 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
     //
     // signal target thread to import the kernel
     //
-    target->sched.pending.put_head(new EvSys_Import_Kernel(kernel));
+    target->sched.pending.put_head(import);
 
     if (   Sched::WAIT == target->sched.state
         && 1 == target->sched.pending.size())   // was empty
@@ -799,53 +801,39 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
 
 // ------------------------------------
 
-void d4Thread::_import_kernel_local_data ()
+void d4Thread::_import_kernel_local_data (EvSys_Import_Kernel& import)
 {
     // --@@--
     Mutex::Guard    guard(sched.mutex);
 
-    // (2) sched.trans.lqueue ---> _lqueue
-    for (_EvCommon::Queue::iterator i = sched.trans.lqueue.begin();
-         i != sched.trans.lqueue.end();
-         /*empty*/)
-    {
-        _lqueue.put_tail(sched.trans.lqueue.remove(*i++));
+    // (2) import.lqueue ---> _lqueue
+    while (! import.lqueue.empty()) {
+        _lqueue.put_tail(import.lqueue.get_head());
     }
 
-    // (3+4) sched.trans.pqueue ---> _pqueue
-    for (_EvCommon::Queue::iterator i = sched.trans.pqueue.begin();
-         i != sched.trans.pqueue.end();
-         /*empty*/)
-    {
-        _pqueue.put_tail(sched.trans.pqueue.remove(*i++));
+    // (3+4) import.pqueue ---> _pqueue
+    while (! import.pqueue.empty()) {
+        _pqueue.put_tail(import.pqueue.get_head());
     }
 
-    // (5) sched.trans.dsa_map ---> _dsa_map
-    for (DueSidAid_Map::iterator i = sched.trans.dsa_map.begin();
-         i != sched.trans.dsa_map.end();
+    // (5) import.dsa_map ---> _dsa_map
+    for (DueSidAid_Map::iterator i = import.dsa_map.begin();
+         i != import.dsa_map.end();
          ++i)
     {
         pair<DueSidAid_Map::iterator, bool> insert = _dsa_map.insert(*i);
         (*i).second->dsa_iter(insert.first);
     }
-    sched.trans.dsa_map.clear();
 
-    // (6) sched.trans.fms_map ---> _fms_map
-    for (FdModeSid_Map::iterator i = sched.trans.fms_map.begin();
-         i != sched.trans.fms_map.end();
+    // (6) import.fms_map ---> _fms_map
+    for (FdModeSid_Map::iterator i = import.fms_map.begin();
+         i != import.fms_map.end();
          ++i)
     {
         _fms_map.insert(*i);
         if ((*i).second->active())
             ++ sched.io_requests;
     }
-    sched.trans.fms_map.clear();
-
-    // postcondition(s)
-    assert(sched.trans.lqueue.empty());
-    assert(sched.trans.pqueue.empty());
-    assert(sched.trans.dsa_map.empty());
-    assert(sched.trans.fms_map.empty());
 }
 
 // -----------------------------------------------------------------------

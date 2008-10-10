@@ -275,6 +275,16 @@ public:
     /*final*/ void dispatch ();
     /*final*/ bool is_event_of (KiD kernel) const;
 
+    //
+    // public data members used by `d4Thread' APIs:
+    //      _export_kernel_local_data
+    //      _import_kernel_local_data
+    //
+    _EvCommon::Queue    lqueue;
+    _EvCommon::Queue    pqueue;
+    DueSidAid_Map       dsa_map;
+    FdModeSid_Map       fms_map;
+
 private:
     r4Kernel*   _kernel;
 };
