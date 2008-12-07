@@ -63,8 +63,8 @@ struct DueSidAid_Key {
         : due(d), sid(s), aid(a) {}
     bool operator< (const DueSidAid_Key& rhs) const
         {
-            return due < rhs.due || (due == rhs.due
-                && sid < rhs.sid || (sid == rhs.sid
+            return due < rhs.due  || ((due == rhs.due
+                && sid < rhs.sid) ||  (sid == rhs.sid
                 && aid < rhs.aid));
         }
     // ------------
@@ -86,8 +86,8 @@ struct FdModeSid_Key {
         : fd(f), mode(m), sid(s) {}
     bool operator< (const FdModeSid_Key& rhs) const
         {
-            return fd   < rhs.fd   || (fd   == rhs.fd
-                && mode < rhs.mode || (mode == rhs.mode
+            return fd   < rhs.fd    || ((fd   == rhs.fd
+                && mode < rhs.mode) ||  (mode == rhs.mode
                 && sid  < rhs.sid));
         }
     // ------------

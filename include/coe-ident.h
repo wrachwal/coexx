@@ -101,7 +101,7 @@ public:
     bool operator!= (const SiD& rhs) const
         { return _k != rhs._k || _s != rhs._s; }
     bool operator<  (const SiD& rhs) const
-        { return _k < rhs._k || _k == rhs._k && _s < rhs._s; }
+        { return _k < rhs._k || (_k == rhs._k && _s < rhs._s); }
 
     static SiD NONE () { return SiD(); }
 

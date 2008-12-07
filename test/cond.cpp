@@ -2,8 +2,10 @@
 
 #include "coe-sys.h"
 
+#include <cstring>      // strerror
+#include <cstdlib>      // atoi, abort
+#include <unistd.h>     // sleep() on Linux
 #include <iostream>
-#include <unistd.h> // sleep() on Linux
 
 using namespace std;
 using namespace coe;

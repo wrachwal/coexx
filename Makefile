@@ -1,20 +1,25 @@
 # $Id$
 
-UNAME := $(shell uname -o)
+OS := $(shell uname -o)
 
+ifeq (Cygwin,$(OS))
+CXX = g++-4
+EXEEXT = .exe
+else
 CXX = g++
-CXX += -MMD
-
-CXXFLAGS += -g -O2 -Wall -pedantic -ansi -Iinclude
-
-ifeq (Solaris,$(UNAME))
+EXEEXT =
+ifeq (Solaris,$(OS))
   CXXFLAGS += -D_POSIX_C_SOURCE
   LDLIBS   += -lpthread -lrt
 else
-ifeq (Linux,$(findstring Linux,$(UNAME)))
+ifeq (Linux,$(findstring Linux,$(OS)))
   LDLIBS   += -lpthread -lrt
 endif
 endif
+endif
+
+CXX 	 += -MMD
+CXXFLAGS += -g -O2 -Wall -pedantic -ansi -Iinclude
 
 vpath %.o lib test examples
 
@@ -26,7 +31,7 @@ tests    := $(addprefix test/,typeinfo list cond)
 
 objects_all := $(objects) $(patsubst %.cpp,%.o,$(wildcard examples/*.cpp test/*.cpp))
 
-.PHONY: all examples tests clean realclean
+.PHONY: all examples tests clean mostlyclean
 
 .INTERMEDIATE: $(objects)
 
@@ -55,17 +60,13 @@ $(examples) $(tests): %: %.o
 $(examples) $(tests): $(library)
 $(examples) $(tests): LDLIBS += -Llib -lcoe
 
-clean:
-ifeq (Cygwin,$(UNAME))
-	-rm $(addsuffix .exe,$(examples) $(tests))
-else
-	-rm $(examples) $(tests)
-endif
+clean: mostlyclean
+	-rm $(library)
+
+mostlyclean:
+	-rm $(addsuffix $(EXEEXT),$(examples) $(tests))
 	-rm lib/*.o examples/*.o test/*.o
 	-rm lib/*.d examples/*.d test/*.d
-
-realclean: clean
-	-rm $(library)
 
 -include $(patsubst %.o,%.d,$(objects_all))
 

@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "coe-session.h"
 #include "coe-session--r4s.h"
 
+#include <memory>   // auto_ptr
 #include <cassert>
 
 using namespace std;

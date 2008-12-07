@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "coe-kernel.h"
 
 #include <iostream> // debug
+#include <cstdlib>  // malloc
 
 #include <cxxabi.h>
 

@@ -4,6 +4,8 @@
 #include "coe-thread.h"
 #include "coe-misc.h"   // owned_ptr
 
+#include <cstdlib>      // abs
+#include <cstring>      // strncmp
 #include <unistd.h>     // read() on Linux
 #include <iostream>
 #include <cassert>

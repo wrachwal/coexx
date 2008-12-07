@@ -5,6 +5,8 @@
 #include <list>
 #include <iostream>
 #include <algorithm>
+#include <cstring>      // strlen
+#include <memory>       // auto_ptr
 
 using namespace std;
 

@@ -25,6 +25,8 @@ THE SOFTWARE.
 #include "coe-sys.h"
 
 #include <cerrno>
+#include <cstring>      // strerror
+#include <cstdlib>      // abort
 #include <iostream>
 
 using namespace std;
