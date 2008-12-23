@@ -1,0 +1,14 @@
+#
+# $(subst /,-,$(shell uname -o))
+#
+Cygwin/
+GNU-Linux/
+Solaris/
+
+*.exe
+*.o
+*.d
+tags
+
+# Vim temporaries
+.*.swp

@@ -120,7 +120,9 @@ ValParam* EvMsg::pfx (ValParam* new_pfx)
 
 void EvMsg::dispatch ()
 {
-    _target->_kernel->dispatch_evmsg(this);
+    r4Kernel*       kernel = _target->_kernel;
+    kernel->_thread->_current_kernel = kernel;
+    kernel->dispatch_evmsg(this);
 }
 
 // =======================================================================
@@ -158,7 +160,9 @@ void EvAlarm::dsa_iter (DueSidAid_Map::iterator iter)
 
 void EvAlarm::dispatch ()
 {
-    _target->_kernel->dispatch_alarm(this);
+    r4Kernel*       kernel = _target->_kernel;
+    kernel->_thread->_current_kernel = kernel;
+    kernel->dispatch_alarm(this);
 }
 
 // =======================================================================
@@ -186,7 +190,9 @@ void EvIO::active (bool a)
 
 void EvIO::dispatch ()
 {
-    _target->_kernel->dispatch_evio(this);
+    r4Kernel*       kernel = _target->_kernel;
+    kernel->_thread->_current_kernel = kernel;
+    kernel->dispatch_evio(this);
 }
 
 // =======================================================================

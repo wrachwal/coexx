@@ -86,6 +86,20 @@ SiD Kernel::start_session (Session* s)
     return _r4kernel->start_session(s);
 }
 
+SiD Kernel::current_session ()
+{
+    d4Thread*   thread = d4Thread::get_tls_data();
+    if (NULL != thread) {
+        r4Kernel*   kernel = thread->_current_kernel;
+        if (NULL != kernel) {
+            assert(NULL != kernel->_current_context);
+            assert(NULL != kernel->_current_context->session);
+            return kernel->_current_context->session->_sid;
+        }
+    }
+    return SiD::NONE();
+}
+
 // -----------------------------------------------------------------------
 
 void Kernel::run_event_loop ()

@@ -98,7 +98,13 @@ private:
     public:
         void on_coridor_msg (TEvCtx<MyHouse>& ctx, string& msg)
             {
-                cout << __FUNCTION__ << ": TEvCtx<MyHouse> -> " << ctx->_name << endl;
+                cout << __FUNCTION__ << ": TEvCtx<MyHouse> -> "
+                     << ctx->_name  // NOTE: nested class has access to outer's private!
+                     << " (" << ctx->ID() << ')'
+                     << endl;
+                cout << __FUNCTION__ << ": Kernel::current_session() -> "
+                     << Kernel::current_session()
+                     << endl;
                 msg += string(" (called from ") + __FUNCTION__ + ")";
                 ctx->print_msg(msg);    // typed heap :)
             }

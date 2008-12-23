@@ -95,6 +95,7 @@ bool d4Thread::FdSet::fd_isset (int fd) const
 
 d4Thread::d4Thread ()
   : _event_loop_running(false),
+    _current_kernel(NULL),
     _msgpipe_rfd(-1)
 {
     _timestamp = get_current_time();
@@ -197,6 +198,7 @@ void d4Thread::run_event_loop ()
         EvCommon*   ev;
         while ((ev = dequeue_event()) != NULL) {
             ev->dispatch();
+            _current_kernel = NULL;
         }
 
         _event_loop_running = false;

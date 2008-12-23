@@ -72,6 +72,8 @@ public:
 
     SiD start_session (Session*);
 
+    static SiD current_session ();
+
     /*
      * Asynchronous Messages
      */

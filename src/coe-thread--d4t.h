@@ -137,6 +137,7 @@ struct d4Thread {
     TimeSpec            _timestamp;
 
     bool                _event_loop_running;
+    r4Kernel*           _current_kernel;    // may be set by an event
 
     /*
      * event local queue(s)
