@@ -7,13 +7,13 @@
 using namespace std;
 using namespace coe;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 class MyClock : public Session {
 public:
     static SiD spawn (Kernel& kernel)
         {
-            return kernel.start_session(new MyClock);
+            return (new MyClock)->start_session(kernel);
         }
 private:
     void _start (EvCtx& ctx)
@@ -29,7 +29,7 @@ private:
         }
 };
 
-// =======================================================================
+// ***************************************************************************
 
 int main ()
 {

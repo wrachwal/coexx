@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,44 +20,111 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #include "coe-session.h"
 #include "coe-session--r4s.h"
 #include "coe-thread--d4t.h"
 #include "coe--errno.h"
 
+#include <algorithm>    // find
+
 using namespace std;
 using namespace coe;
 
-// =======================================================================
+// ===========================================================================
 // Session
 
-Session::Session () : _r4session(NULL)
+Session::Session ()
 {
     _r4session = new r4Session;
 }
 
 Session::~Session ()
 {
-    if (NULL != _r4session) {   // resource is attached
-        r4Session*  res = _r4session;
-        // detach resource from this object
-        _r4session   = NULL;
-        res->_handle = NULL;
-        // release detached resource
-        res->release_resource();
+    bool    was_stopped = _r4session->local.stopper.isset();
+    if (stop_session()) {
+        if (! was_stopped) {    // before, and has been stopped right now
+            //TODO: at least issue a warning:
+            //1) deprecated delete session performed by a user.
+            //2) potential overriden virtual _stop() will not be called.
+            //this might result in undesired situation like resource leaks.
+            //why issue a warning? because it's hard (or impossible?)
+            //to design api in a way prohibiting such a situation.
+        }
+        _r4session->_handle = NULL;     // detach from the resource object
+    }
+    else {
+        delete _r4session;
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+
+SiD Session::start_session (Kernel& kernel)
+{
+    r4Kernel*   r4k = kernel._r4kernel;
+    assert(NULL != r4k);
+
+    return r4k->start_session(this);
+}
+
+// ---------------------------------------------------------------------------
+
+bool Session::stop_session ()
+{
+    if (! _r4session->_sid.isset())
+        return false;
+    if (_r4session->local.stopper.isset())
+        return true;
+    _r4session->stop_session_tree();    // --@@--
+    return true;
+}
+
+void Session::_stop (EvCtx& ctx)
+{
+    /* default empty body */
+}
+
+// ---------------------------------------------------------------------------
 
 SiD Session::ID () const
 {
-    return _r4session ? _r4session->_sid : SiD::NONE();
+    return _r4session->_sid;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+
+bool Session::unregistrar_set (void (*unreg)(SiD))
+{
+    if (NULL == unreg)
+        return false;
+
+    vector<Unregistrar>&    unregvec = _r4session->_unregistrar;
+    if (find(unregvec.begin(), unregvec.end(), unreg) != unregvec.end())
+        return false;
+
+    if (unregvec.empty())
+        unregvec.reserve(5);    // instead of a few kB at the start
+    unregvec.push_back(unreg);
+    return true;
+}
+
+bool Session::unregistrar_remove (void (*unreg)(SiD))
+{
+    if (NULL == unreg)
+        return false;
+
+    vector<Unregistrar>&    unregvec = _r4session->_unregistrar;
+    vector<Unregistrar>::iterator  i = find(unregvec.begin(), unregvec.end(), unreg);
+    if (i == unregvec.end())
+        return false;
+
+    unregvec.erase(i);
+    return true;
+}
+
+// ---------------------------------------------------------------------------
 
 Callback* Session::callback (const string& ev, ValParam* pfx)
 {
@@ -70,21 +137,19 @@ Callback* Session::callback (const string& ev, ValParam* pfx)
     return new Callback(_r4session->_sid, ev, pfx);
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void Session::set_heap (void* heap)
 {
-    if (NULL != _r4session) {
-        _r4session->_heap = heap;
-    }
+    _r4session->_heap = heap;
 }
 
 void* Session::get_heap () const
 {
-    return _r4session ? _r4session->_heap : NULL;
+    return _r4session->_heap;
 }
 
-// =======================================================================
+// ===========================================================================
 // Callback
 
 Callback::Callback (SiD target, const string& evname, ValParam* prefix)
@@ -100,7 +165,7 @@ Callback::~Callback ()
     _prefix = NULL; // just in case
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool Callback::call (Kernel& kernel)
 {
@@ -141,7 +206,7 @@ bool Callback::call (Kernel& kernel, ValParam* arg)
     return r4k->call__arg(_target, _evname, _prefix, arg);
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool Callback::post (Kernel& kernel, ValParam* arg)
 {

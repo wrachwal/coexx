@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #include "coe-kernel.h"
 #include "coe-thread--d4t.h"    // coe-kernel--r4k.h
@@ -31,7 +31,7 @@ THE SOFTWARE.
 using namespace std;
 using namespace coe;
 
-// =======================================================================
+// ===========================================================================
 // EvCtx
 
 EvCtx::EvCtx (r4Kernel* k)
@@ -42,7 +42,7 @@ EvCtx::EvCtx (r4Kernel* k)
     heap = session.get_heap();
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // DatIO
 
 DatIO::DatIO (int f, IO_Mode m)
@@ -51,7 +51,7 @@ DatIO::DatIO (int f, IO_Mode m)
 {
 }
 
-// =======================================================================
+// ===========================================================================
 // Kernel
 
 Kernel::Kernel ()
@@ -81,11 +81,6 @@ TimeSpec Kernel::timestamp () const
     return _r4kernel->_thread->_timestamp;
 }
 
-SiD Kernel::start_session (Session* s)
-{
-    return _r4kernel->start_session(s);
-}
-
 SiD Kernel::current_session ()
 {
     d4Thread*   thread = d4Thread::get_tls_data();
@@ -100,7 +95,7 @@ SiD Kernel::current_session ()
     return SiD::NONE();
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void Kernel::run_event_loop ()
 {
@@ -143,7 +138,7 @@ bool Kernel::run_event_loop (TiD tid)
     return true;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool Kernel::anon_post (SiD to, const string& ev, ValParam* vp)
 {
@@ -193,7 +188,7 @@ bool Kernel::yield (const string& ev, ValParam* vp)
                         );
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool Kernel::call (SiD on, const string& ev)
 {
@@ -233,11 +228,12 @@ bool Kernel::call (SiD on, const string& ev, ValParam* vp)
     return _r4kernel->call__arg(on, ev, NULL, vp);
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 AiD Kernel::delay_set (const string ev, TimeSpec duration, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
+        || ! current_session_active(_r4kernel)
         || ! delay_gt0(duration)
         || ! user_evname(ev))
     {
@@ -251,7 +247,7 @@ AiD Kernel::delay_set (const string ev, TimeSpec duration, ValParam* vp)
                                 );
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool Kernel::select (int fd, IO_Mode mode)
 {
@@ -271,6 +267,7 @@ bool Kernel::select (int fd, IO_Mode mode)
 bool Kernel::select (int fd, IO_Mode mode, const string& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
+        || ! current_session_active(_r4kernel)
         || ! user_evname(ev)
         || ! fd_valid(fd)
         || ! mode_valid(mode))
@@ -284,7 +281,7 @@ bool Kernel::select (int fd, IO_Mode mode, const string& ev, ValParam* vp)
     return _r4kernel->_thread->create_io_watcher(evio);
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void Kernel::state (const string& ev)
 {

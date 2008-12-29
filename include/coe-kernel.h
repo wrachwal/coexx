@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE_KERNEL_H
 #define __COE_KERNEL_H
@@ -32,7 +32,7 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 class Kernel;
 class Session;      // coe-session.h
@@ -47,7 +47,7 @@ struct TimeSpec;
 
 struct r4Kernel;    // private data
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 enum IO_Mode {
     IO_read  = 0,
@@ -55,7 +55,7 @@ enum IO_Mode {
     IO_error = 2
 };
 
-// =======================================================================
+// ===========================================================================
 // Kernel
 
 class Kernel : private _Noncopyable {
@@ -69,8 +69,6 @@ public:
 
     void run_event_loop ();
     bool run_event_loop (TiD tid);  // transfer to `tid' thread
-
-    SiD start_session (Session*);
 
     static SiD current_session ();
 
@@ -137,11 +135,12 @@ private:
     Kernel ();
 
     friend struct r4Kernel;
+    friend  class Session;
     friend  class Callback;
     r4Kernel    *_r4kernel;
 };
 
-// =======================================================================
+// ===========================================================================
 // EvCtx
 
 class EvCtx : private _Noncopyable {
@@ -181,7 +180,7 @@ private:
     DatIO (int f, IO_Mode m);
 };
 
-// =======================================================================
+// ===========================================================================
 // TimeSpec
 
 struct TimeSpec : public timespec {
@@ -212,7 +211,7 @@ bool operator>= (const TimeSpec& lhs, const TimeSpec& rhs);
 TimeSpec operator+ (const TimeSpec& lhs, const TimeSpec& rhs);
 TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs);
 
-// =======================================================================
+// ===========================================================================
 // vparam (p1[, ...])
 
 template<class P1>
@@ -226,7 +225,7 @@ ValParam* vparam (const P1&, const P2&, const P3&, const P4&);
 template<class P1, class P2, class P3, class P4, class P5>
 ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&);
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // rparam (p1[, ...])
 
 template<class P1>
@@ -240,7 +239,7 @@ RefParam* rparam (P1&, P2&, P3&, P4&);
 template<class P1, class P2, class P3, class P4, class P5>
 RefParam* rparam (P1&, P2&, P3&, P4&, P5&);
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // handler (obj, memfun)
 // handler (fun)
 
@@ -297,7 +296,7 @@ StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&));
 template<class Heap, class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&));
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

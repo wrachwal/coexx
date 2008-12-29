@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE__EVENT_H
 #define __COE__EVENT_H
@@ -31,15 +31,19 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // forward(s)
 
 class EvCommon;
-    class EvMsg;
-    class EvAlarm;
-    class EvIO;
+    class EvUser;
+        class EvMsg;
+        class EvAlarm;
+        class EvIO;
+    class EvSys_Export_Kernel;
+    class EvSys_Import_Kernel;
+    class EvSys_DeleteSession;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // SessionContext
 
 struct r4Session;
@@ -54,7 +58,7 @@ struct SessionContext {
     std::string     state;
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // DueSidAid_Key
 
 struct DueSidAid_Key {
@@ -77,7 +81,7 @@ struct DueSidAid_Key {
 
 typedef std::map<DueSidAid_Key, EvAlarm*>   DueSidAid_Map;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // FdModeSid_Key
 
 struct FdModeSid_Key {
@@ -99,7 +103,7 @@ struct FdModeSid_Key {
 
 typedef std::map<FdModeSid_Key, EvIO*>  FdModeSid_Map;
 
-// =======================================================================
+// ===========================================================================
 // EvCommon
 
 class ValParam;
@@ -131,7 +135,7 @@ struct _EvCommon {
     typedef dList<EvCommon, offsetof(EvCommon, _link_queue)> Queue;
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // EvUser
 
 class EvUser : public EvCommon {
@@ -159,7 +163,7 @@ protected:
     ValParam*   _arg;
 };
 
-// =======================================================================
+// ===========================================================================
 // EvMsg
 
 class EvMsg : public EvUser {
@@ -184,7 +188,7 @@ private:
     ValParam*   _prefix;    // used by postback(s)
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // EvAlarm
 
 class EvAlarm : public EvUser {
@@ -218,7 +222,7 @@ struct _EvAlarm {
     typedef dList<EvAlarm, offsetof(EvAlarm, _link_alarm)> List;
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // EvIO
 
 class EvIO : public EvUser {
@@ -249,7 +253,7 @@ struct _EvIO {
     typedef dList<EvIO, offsetof(EvIO, _link_evio)> List;
 };
 
-// =======================================================================
+// ===========================================================================
 // EvSys_Export_Kernel
 // EvSys_Import_Kernel
 
@@ -269,7 +273,8 @@ private:
 
 class EvSys_Import_Kernel : public EvCommon {
 public:
-    EvSys_Import_Kernel (r4Kernel *kernel) : _kernel(kernel) { _prio_order = 0; }
+    EvSys_Import_Kernel (r4Kernel *kernel) : _kernel(kernel)
+        { _prio_order = 0; }
     ~EvSys_Import_Kernel ();
 
     /*final*/ void dispatch ();
@@ -289,7 +294,23 @@ private:
     r4Kernel*   _kernel;
 };
 
-// =======================================================================
+// ---------------------------------------------------------------------------
+// EvSys_DeleteSession
+
+class EvSys_DeleteSession : public EvCommon {
+public:
+    EvSys_DeleteSession (r4Session *session) : _session(session)
+        { _prio_order = 0; }    //TODO: set to MAX order# i.e. minimum priority
+    ~EvSys_DeleteSession ();
+
+    /*final*/ void dispatch ();
+    /*final*/ bool is_event_of (KiD kernel) const;
+
+private:
+    r4Session*  _session;   // root of the session tree to be deleted
+};
+
+// ===========================================================================
 
 } ///// namespace coe
 

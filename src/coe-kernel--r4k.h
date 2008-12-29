@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE_KERNEL__R4K_H
 #define __COE_KERNEL__R4K_H
@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 class Kernel;
 class Session;
@@ -40,11 +40,11 @@ class StateCmd;
 struct d4Thread;
 struct s4Kernel;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 typedef std::map<SiD, r4Session*> Sid_Map;
 
-// =======================================================================
+// ===========================================================================
 
 struct r4Kernel {
 
@@ -88,12 +88,14 @@ struct r4Kernel {
     typedef std::map<S1Ev, StateCmd*>            S1Ev_Cmd;
     S1Ev_Cmd            _s1ev_cmd;
 
-    // -------------------------------------------------------------------
+    // -----------------------------------------------------------------------
 
     r4Kernel ();
 
-    SiD start_session (Session* s);
     void _allocate_sid (r4Session* r4s);
+
+    SiD start_session (Session* s);
+    void call_stop  (r4Session& root, r4Session& node);
 
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
     void state__cmd (const std::string& ev, StateCmd* cmd);
@@ -105,13 +107,13 @@ struct r4Kernel {
     void dispatch_evio  (EvIO* evio);
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 struct _r4Kernel {
     typedef dList<r4Kernel, offsetof(r4Kernel, _link_kernel)> List;
 };
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

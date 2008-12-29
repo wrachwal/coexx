@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #include "coe-kernel--r4k.h"
 #include "coe-thread--d4t.h"
@@ -34,37 +34,37 @@ THE SOFTWARE.
 using namespace std;
 using namespace coe;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 namespace {
 
     class CCScope {
     public:
-        CCScope (r4Kernel* target,
-                 r4Session* session,
-                 const string& state) : _kernel(target),
-                                        _old_ctx(target->_current_context),
-                                        _new_ctx(session, state)
+        CCScope (r4Session* session, const string& state)
+            :   _new_ctx(session, state)
             {
-                assert(target == session->_kernel);
-                _new_ctx.parent = target->_current_context;
-                target->_current_context = &_new_ctx;
+                assert(NULL != session);
+                assert(NULL != session->_kernel);
+                assert(NULL != session->_kernel->_current_context);
+
+                _old_ctx =  session->_kernel->_current_context;
+                _new_ctx.parent =                     _old_ctx;
+                session->_kernel->_current_context = &_new_ctx;
             }
 
         ~CCScope ()
             {
-                _kernel->_current_context = _old_ctx;
+                _new_ctx.session->_kernel->_current_context = _old_ctx;
             }
 
     private:
-        r4Kernel*       _kernel;
         SessionContext* _old_ctx;
         SessionContext  _new_ctx;
     };
 
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // d4Thread::Local
 
 r4Session* r4Kernel::Local::find_session (SiD sid) const
@@ -73,7 +73,7 @@ r4Session* r4Kernel::Local::find_session (SiD sid) const
     return i == sid_map.end() ? NULL : (*i).second;
 }
 
-// =======================================================================
+// ===========================================================================
 
 r4Kernel::r4Kernel ()
 {
@@ -109,7 +109,18 @@ r4Kernel::r4Kernel ()
     _kernel_session_context.session = _s4kernel->_r4session;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+
+void r4Kernel::_allocate_sid (r4Session* r4s)
+{
+    // --@@--
+    RWLock::Guard   guard(local.rwlock, RWLock::WRITE);
+
+    r4s->_sid = _sid_generator.generate_next(local.sid_map);
+    local.sid_map[r4s->_sid] = r4s;
+}
+
+// ---------------------------------------------------------------------------
 
 SiD r4Kernel::start_session (Session* s)
 {
@@ -126,7 +137,7 @@ SiD r4Kernel::start_session (Session* s)
 
     _allocate_sid(r4s);                     // --@@--
 
-    CCScope __scope(this, r4s, ".start");
+    CCScope __scope(r4s, ".start");
 
     EvCtx   ctx(this);
 
@@ -143,18 +154,33 @@ SiD r4Kernel::start_session (Session* s)
     return r4s->_sid;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
-void r4Kernel::_allocate_sid (r4Session* r4s)
+void r4Kernel::call_stop (r4Session& root, r4Session& node)
 {
-    // --@@--
-    RWLock::Guard   guard(local.rwlock, RWLock::WRITE);
+    CCScope __scope(&node, ".stop");
 
-    r4s->_sid = _sid_generator.generate_next(local.sid_map);
-    local.sid_map[r4s->_sid] = r4s;
+    EvCtx   ctx(this);
+
+    // sender is always a session on which stop_session() is called
+    ctx.sender = root._sid;
+
+    if (&root == _current_context->parent->session) {
+        ctx.sender_state = _current_context->parent->state;
+    }
+
+    //
+    // call _stop() virtual method and unregistar function(s)
+    //
+    node._handle->_stop(ctx);
+
+    vector<Unregistrar>::iterator i = node._unregistrar.begin();
+    for (; i != node._unregistrar.end(); ++i) {
+        (*i)(node._sid);
+    }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
 {
@@ -162,7 +188,7 @@ StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
     return (sh == _s1ev_cmd.end()) ? NULL : (*sh).second;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 {
@@ -184,7 +210,7 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg)
 {
@@ -219,7 +245,7 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
         return false;
     }
 
-    CCScope __scope(this, session, ev);
+    CCScope __scope(session, ev);
 
     EvCtx   ctx(this);
 
@@ -238,7 +264,7 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
     return true;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 {
@@ -249,7 +275,7 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
         return;
     }
 
-    CCScope __scope(this, evmsg->target(), evmsg->name());
+    CCScope __scope(evmsg->target(), evmsg->name());
 
     EvCtx   ctx(this);
 
@@ -270,7 +296,7 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
     delete evmsg;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 {
@@ -282,7 +308,7 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
         return;
     }
 
-    CCScope __scope(this, session, alarm->name());
+    CCScope __scope(session, alarm->name());
 
     EvCtx   ctx(this);
 
@@ -299,7 +325,7 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
     //TODO: re-schedule periodic alarm
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void r4Kernel::dispatch_evio (EvIO* evio)
 {
@@ -311,7 +337,7 @@ void r4Kernel::dispatch_evio (EvIO* evio)
         return;
     }
 
-    CCScope __scope(this, session, evio->name());
+    CCScope __scope(session, evio->name());
 
     EvCtx   ctx(this);
 

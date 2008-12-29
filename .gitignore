@@ -5,6 +5,7 @@ Cygwin/
 GNU-Linux/
 Solaris/
 
+*.a
 *.exe
 *.o
 *.d

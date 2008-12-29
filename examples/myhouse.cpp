@@ -13,7 +13,7 @@
 using namespace std;
 using namespace coe;
 
-// =======================================================================
+// ===========================================================================
 
 class Flowers {
 public:
@@ -40,7 +40,7 @@ class MyHouse : public Session {
 public:
     static SiD spawn (Kernel& kernel, string name)
         {
-            return kernel.start_session(new MyHouse(name));
+            return (new MyHouse(name))->start_session(kernel);
         }
     ~MyHouse ()
         {}
@@ -151,7 +151,7 @@ private:
     string  _name;
 };
 
-// =======================================================================
+// ===========================================================================
 
 #define TABLEN(tab)     int(sizeof(tab) / sizeof((tab)[0]))
 
@@ -199,7 +199,7 @@ void test_my_house ()
     kernel.run_event_loop();    // *** block in main thread
 }
 
-// =======================================================================
+// ***************************************************************************
 
 int main ()
 {

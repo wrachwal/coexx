@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE_SESSION_H
 #define __COE_SESSION_H
@@ -29,18 +29,21 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 class Callback;
 
 struct r4Session;   // private
 
-// =======================================================================
+// ===========================================================================
 // Session
 
 class Session : private _Noncopyable {
 public:
     SiD ID () const;
+
+    bool unregistrar_set    (void (*)(SiD));
+    bool unregistrar_remove (void (*)(SiD));
 
     /*
      * Encapsulated `Callback' primitive
@@ -57,7 +60,11 @@ protected:
     /*
      * Session Management
      */
+    SiD start_session (Kernel& kernel);
+    bool stop_session ();
+
     virtual void _start (EvCtx& ctx) = 0;
+    virtual void _stop  (EvCtx& ctx);
 
 private:
     friend  class EvCtx;                // get_heap()
@@ -66,7 +73,7 @@ private:
     r4Session*   _r4session;
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Callback
 
 class Callback : private _Noncopyable {
@@ -91,7 +98,7 @@ private:
     ValParam*   _prefix;
 };
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

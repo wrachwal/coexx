@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #include "coe-thread.h"
 #include "coe-thread--d4t.h"
@@ -40,7 +40,7 @@ using namespace coe;
 
 d4Thread::Glob  d4Thread::glob;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // d4Thread::Glob
 
 d4Thread* d4Thread::Glob::find_thread (TiD tid) const
@@ -55,7 +55,7 @@ r4Kernel* d4Thread::Glob::find_kernel (KiD kid) const
     return i == kid_map.end() ? NULL : (*i).second;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // d4Thread::Sched
 
 d4Thread::Sched::Sched ()
@@ -65,7 +65,7 @@ d4Thread::Sched::Sched ()
 {
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // d4Thread::FdSet
 
 void d4Thread::FdSet::zero ()
@@ -90,7 +90,7 @@ bool d4Thread::FdSet::fd_isset (int fd) const
     return 0 != FD_ISSET(fd, &lval);
 }
 
-// =======================================================================
+// ===========================================================================
 // d4Thread
 
 d4Thread::d4Thread ()
@@ -115,7 +115,7 @@ d4Thread::~d4Thread ()
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 d4Thread* d4Thread::get_tls_data ()
 {
@@ -135,7 +135,7 @@ void d4Thread::set_tls_data (d4Thread* d4t)
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void d4Thread::allocate_tid ()
 {
@@ -165,7 +165,7 @@ void d4Thread::allocate_kid (r4Kernel& r4k)
     r4k._thread->local.list_kernel.put_tail(&r4k);
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 TimeSpec d4Thread::get_current_time ()
 {
@@ -188,7 +188,7 @@ TimeSpec d4Thread::get_current_time ()
     return now;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void d4Thread::run_event_loop ()
 {
@@ -205,7 +205,7 @@ void d4Thread::run_event_loop ()
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void d4Thread::enqueue_msg_event (EvMsg* evmsg)
 {
@@ -273,7 +273,7 @@ void d4Thread::_pqueue_expired_alarms ()    // --@@--
     _dsa_map.erase(_dsa_map.begin(), upr);  // complexity at most O(log(size()) + N)
 }
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 EvCommon* d4Thread::dequeue_event ()
 {
@@ -481,20 +481,21 @@ void d4Thread::_select_io (const TimeSpec* due)
     } ///// for (;;)
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
 {
     if (NULL != source && to.kid() == source->_kid) {
 
         r4Session*  session = source->_current_context->session;
-        if (to == session->_sid) {
-            return post_event(source, session, evmsg);  // --@@--
+        if (to != session->_sid) {  // check if not a `yield' case
+            session = source->local.find_session(to);
         }
 
-        session = source->local.find_session(to);
         if (NULL != session) {
-            return post_event(source, session, evmsg);  // --@@--
+            if (! session->local.stopper.isset()) {
+                return post_event(source, session, evmsg);  // --@@--
+            }
         }
     }
     else {
@@ -512,15 +513,18 @@ bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
             r4Session*  session = target->local.find_session(to);
             if (NULL != session) {
 
-                // case of inter-thread post
+                if (! session->local.stopper.isset()) {
 
-                evmsg->source(NULL);
+                    // case of inter-thread post
 
-                if (evmsg->prio_order() < 0) {
-                    evmsg->prio_order(0);   //TODO: get from config
+                    evmsg->source(NULL);
+
+                    if (evmsg->prio_order() < 0) {
+                        evmsg->prio_order(0);   //TODO: get from config
+                    }
+
+                    return post_event(target, session, evmsg);  // --@@--
                 }
-
-                return post_event(target, session, evmsg);  // --@@--
             }
         }
     }
@@ -548,7 +552,7 @@ bool d4Thread::post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg)
     return true;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* evalm)
 {
@@ -589,7 +593,7 @@ AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* ev
     return aid;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 bool d4Thread::create_io_watcher (EvIO* new_evio)
 {
@@ -651,7 +655,7 @@ bool d4Thread::delete_io_watcher (int fd, IO_Mode mode, r4Session* session)
     return true;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
 {
@@ -838,7 +842,7 @@ void d4Thread::_import_kernel_local_data (EvSys_Import_Kernel& import)
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 namespace {
     struct _Arg {
@@ -875,7 +879,7 @@ void* d4Thread::_thread_entry (void* arg)
     return NULL;
 }
 
-// =======================================================================
+// ===========================================================================
 
 TiD Thread::spawn_new ()
 {

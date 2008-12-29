@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE_SESSION__R4S_H
 #define __COE_SESSION__R4S_H
@@ -28,16 +28,21 @@ THE SOFTWARE.
 #include "coe--event.h"
 #include "coe--util.h"
 #include <functional>
+#include <vector>
 
 namespace coe { /////
 
-// =======================================================================
+typedef void (*Unregistrar)(SiD);
+
+// ===========================================================================
 // r4Session
 
 struct r4Session {
 
     Session*            _handle;
     SiD                 _sid;
+
+    std::vector<Unregistrar>    _unregistrar;
 
     void*               _heap;
 
@@ -46,6 +51,13 @@ struct r4Session {
     // related sessions
     r4Session*          _parent;
     dList<void, 0>      _list_children;
+
+    //
+    // `local' is to be protected the same way as r4Kernel::local.
+    //
+    struct Local {
+        SiD             stopper;
+    } local;
 
     // alarms
     IdentGenerator<AiD> _aid_generator;
@@ -58,8 +70,10 @@ struct r4Session {
 
     r4Session ();
     ~r4Session ();
+    void destroy ();
 
-    void release_resource ();
+    void stop_session_tree ();
+    static void _call_stop (r4Session& root, r4Session& node);
 
     EvIO* find_io_watcher (int fd, IO_Mode mode);
 
@@ -78,7 +92,7 @@ struct _r4Session {
         { return reinterpret_cast<ChildrenList&>(session._list_children); }
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // AiDExistsPred
 
 class AiDExistsPred : public std::unary_function<AiD, bool> {
@@ -98,7 +112,7 @@ private:
     _EvAlarm::List& _list;
 };
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

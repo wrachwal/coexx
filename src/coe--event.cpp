@@ -1,6 +1,6 @@
 // $Id$
 
-/*************************************************************************
+/*****************************************************************************
 Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #include "coe--event.h"
 #include "coe-thread--d4t.h"
@@ -29,7 +29,7 @@ THE SOFTWARE.
 using namespace std;
 using namespace coe;
 
-// =======================================================================
+// ===========================================================================
 // EvCommon
 
 EvCommon::~EvCommon ()
@@ -44,7 +44,7 @@ void EvCommon::prio_order (int po)
     _prio_order = po;
 }
 
-// =======================================================================
+// ===========================================================================
 // EvUser
 
 EvUser::EvUser (const string& name, ValParam* arg)
@@ -80,7 +80,7 @@ bool EvUser::is_event_of (KiD kernel) const
     return _target->_kernel->_kid == kernel;
 }
 
-// =======================================================================
+// ===========================================================================
 // EvMsg
 
 EvMsg::EvMsg (const string& name, ValParam* arg, SessionContext& cc)
@@ -125,7 +125,7 @@ void EvMsg::dispatch ()
     kernel->dispatch_evmsg(this);
 }
 
-// =======================================================================
+// ===========================================================================
 // EvAlarm
 
 EvAlarm::EvAlarm (const string& name, ValParam* arg, SessionContext& cc)
@@ -165,7 +165,7 @@ void EvAlarm::dispatch ()
     kernel->dispatch_alarm(this);
 }
 
-// =======================================================================
+// ===========================================================================
 // EvIO
 
 EvIO::EvIO (int fd, IO_Mode mode, const string& name, ValParam* arg, SessionContext& cc)
@@ -195,7 +195,7 @@ void EvIO::dispatch ()
     kernel->dispatch_evio(this);
 }
 
-// =======================================================================
+// ===========================================================================
 // EvSys_Export_Kernel
 
 EvSys_Export_Kernel::~EvSys_Export_Kernel ()
@@ -213,7 +213,7 @@ bool EvSys_Export_Kernel::is_event_of (KiD kernel) const
     return _kernel->_kid == kernel;
 }
 
-// =======================================================================
+// ===========================================================================
 // EvSys_Import_Kernel
 
 EvSys_Import_Kernel::~EvSys_Import_Kernel ()
@@ -229,5 +229,26 @@ void EvSys_Import_Kernel::dispatch ()
 bool EvSys_Import_Kernel::is_event_of (KiD kernel) const
 {
     return _kernel->_kid == kernel;
+}
+
+// ===========================================================================
+// EvSys_DeleteSession
+
+EvSys_DeleteSession::~EvSys_DeleteSession ()
+{
+}
+
+void EvSys_DeleteSession::dispatch ()
+{
+    assert(_session->local.stopper.isset());
+    assert(_session->local.stopper == _session->_sid);
+
+    _session->destroy();
+    delete this;
+}
+
+bool EvSys_DeleteSession::is_event_of (KiD kernel) const
+{
+    return _session->_kernel->_kid == kernel;
 }
 
