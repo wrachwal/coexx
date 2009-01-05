@@ -12,4 +12,5 @@ Solaris/
 tags
 
 # Vim temporaries
+Session.vim
 .*.swp

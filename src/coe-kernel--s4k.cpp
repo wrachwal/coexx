@@ -28,7 +28,7 @@ using namespace coe;
 
 // =======================================================================
 
-s4Kernel::s4Kernel ()
+s4Kernel::s4Kernel () : Session(handler(*this, &s4Kernel::_start))
 {
 }
 

@@ -16,6 +16,9 @@ public:
             return (new MyClock)->start_session(kernel);
         }
 private:
+    MyClock () : Session(handler(*this, &MyClock::_start))
+        {
+        }
     void _start (EvCtx& ctx)
         {
             ctx.kernel.yield("next");

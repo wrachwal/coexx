@@ -33,7 +33,8 @@ using namespace coe;
 
 // ===========================================================================
 
-r4Session::r4Session ()
+r4Session::r4Session (StateCmd* start_handler)
+:   _start_handler(start_handler)
 {
     _handle = NULL;
     _heap   = NULL;
@@ -45,6 +46,9 @@ r4Session::~r4Session ()
 {
     assert(_r4Session::list_children(*this).empty());
     assert(NULL == _link_children.next);
+
+    delete _start_handler;
+    _start_handler = NULL;
 }
 
 void r4Session::destroy ()

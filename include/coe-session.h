@@ -51,7 +51,7 @@ public:
     Callback* callback (const std::string& ev, ValParam* pfx=0);
 
 protected:
-    Session ();
+    Session (StateCmd* start_handler);
     virtual ~Session ();
 
     void  set_heap (void* heap);        // handlers will get it in EvCtx
@@ -60,10 +60,9 @@ protected:
     /*
      * Session Management
      */
-    SiD start_session (Kernel& kernel);
+    SiD start_session (Kernel& kernel, EventArg* arg=0);
     bool stop_session ();
 
-    virtual void _start (EvCtx& ctx) = 0;
     virtual void _stop  (EvCtx& ctx);
 
 private:

@@ -42,6 +42,8 @@ struct r4Session {
     Session*            _handle;
     SiD                 _sid;
 
+    StateCmd*           _start_handler;
+
     std::vector<Unregistrar>    _unregistrar;
 
     void*               _heap;
@@ -68,7 +70,7 @@ struct r4Session {
 
     // --------------------------------
 
-    r4Session ();
+    r4Session (StateCmd* start_handler);
     ~r4Session ();
     void destroy ();
 

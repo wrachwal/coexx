@@ -94,7 +94,7 @@ struct r4Kernel {
 
     void _allocate_sid (r4Session* r4s);
 
-    SiD start_session (Session* s);
+    SiD start_session (Session* s, EventArg* arg);
     void call_stop  (r4Session& root, r4Session& node);
 
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);

@@ -101,7 +101,7 @@ r4Kernel::r4Kernel ()
 
     _s4kernel = new s4Kernel;
 
-    start_session(_s4kernel);               // --@@--
+    start_session(_s4kernel, NULL);         // --@@--
 
     assert(_s4kernel->ID().is_kernel());
     assert(NULL == _s4kernel->_r4session->_parent);
@@ -122,7 +122,7 @@ void r4Kernel::_allocate_sid (r4Session* r4s)
 
 // ---------------------------------------------------------------------------
 
-SiD r4Kernel::start_session (Session* s)
+SiD r4Kernel::start_session (Session* s, EventArg* arg)
 {
     if (NULL == s || NULL == s->_r4session) // resource has been detached
         return SiD::NONE();
@@ -130,6 +130,16 @@ SiD r4Kernel::start_session (Session* s)
     r4Session*  r4s = s->_r4session;
     if (NULL != r4s->_handle)               // resource is already attached
         return r4s->_sid;
+
+    if (NULL == r4s->_start_handler) {      // _start_handler not set
+        delete s;
+        return SiD::NONE();
+    }
+
+    if (! r4s->_start_handler->syntax(NULL, 0, arg, true)) {
+        delete s;
+        return SiD::NONE();
+    }
 
     r4s->_handle = s;   // attach resource now
     r4s->_kernel = this;
@@ -149,7 +159,10 @@ SiD r4Kernel::start_session (Session* s)
         ctx.sender = SiD(_kid, 1);  // kernel session (itself)
     }
 
-    s->_start(ctx);
+    r4s->_start_handler->execute(ctx, NULL, 0, arg);
+
+    delete r4s->_start_handler;
+    r4s->_start_handler = NULL;
 
     return r4s->_sid;
 }

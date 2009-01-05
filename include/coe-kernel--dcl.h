@@ -113,6 +113,7 @@ public:
     // static operator new/delete...
     //
     virtual ~StateCmd ();
+    bool syntax (const ArgTV* xA, int xN, EventArg* arg, bool report) const;
     bool execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg);
     virtual ArgTV* arg_list (int& num) = 0;
 private:

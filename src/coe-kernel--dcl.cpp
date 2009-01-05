@@ -80,6 +80,47 @@ report_arg_mismatch (ostream& os,
        << "', event: `"  << demangle(at) << "')" << endl;
 }
 
+bool StateCmd::syntax (const ArgTV* xA, int xN, EventArg* arg, bool report) const
+{
+    int eN = 0;
+    const ArgTV*    eA = arg ?                   arg->arg_list(eN) : NULL;
+
+    int cN;
+    const ArgTV*    cA = const_cast<StateCmd*>(this)->arg_list(cN);
+
+    if (xN + eN != cN) {
+        cout << "handler has " << cN << " args, while event ("
+                               << xN << "+" << eN << ") args" << endl;
+        return false;
+    }
+
+    int cj = 0;
+
+    //
+    // xA
+    //
+    for (int xj = 0; xj < xN; ++xj, ++cj) {
+        if (*xA[xj]._ti != *cA[cj]._ti) {
+            if (report)
+                report_arg_mismatch(cout, xN, cj, xA[xj]._ti, cA[cj]._ti);
+            return false;
+        }
+    }
+
+    //
+    // eA
+    //
+    for (int ej = 0; ej < eN; ++ej, ++cj) {
+        if (*eA[ej]._ti != *cA[cj]._ti) {
+            if (report)
+                report_arg_mismatch(cout, xN, cj, eA[ej]._ti, cA[cj]._ti);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool StateCmd::execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg)
 {
     int eN = 0;

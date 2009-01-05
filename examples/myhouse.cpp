@@ -42,14 +42,15 @@ public:
         {
             return (new MyHouse(name))->start_session(kernel);
         }
-    ~MyHouse ()
-        {}
-
 private:
-    MyHouse (string name) : _name(name)
+    MyHouse (string name)
+        :   Session(handler(*this, &MyHouse::_start)),
+            _name(name)
         {
             set_heap(this);
         }
+    ~MyHouse ()
+        {}
 
     void _start (EvCtx& ctx)
         {

@@ -35,9 +35,9 @@ using namespace coe;
 // ===========================================================================
 // Session
 
-Session::Session ()
+Session::Session (StateCmd* start_handler)
 {
-    _r4session = new r4Session;
+    _r4session = new r4Session(start_handler);
 }
 
 Session::~Session ()
@@ -61,12 +61,14 @@ Session::~Session ()
 
 // ---------------------------------------------------------------------------
 
-SiD Session::start_session (Kernel& kernel)
+SiD Session::start_session (Kernel& kernel, EventArg* arg)
 {
     r4Kernel*   r4k = kernel._r4kernel;
     assert(NULL != r4k);
 
-    return r4k->start_session(this);
+    SiD sid = r4k->start_session(this, arg);
+    delete arg;
+    return sid;
 }
 
 // ---------------------------------------------------------------------------
