@@ -61,9 +61,8 @@ protected:
      * Session Management
      */
     SiD start_session (Kernel& kernel, EventArg* arg=0);
+    void stop_handler (MFunCmd0* handler);
     bool stop_session ();
-
-    virtual void _stop  (EvCtx& ctx);
 
 private:
     friend  class EvCtx;                // get_heap()

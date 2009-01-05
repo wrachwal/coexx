@@ -253,6 +253,8 @@ T* dList<T, LinkOffset>::remove (T* data)
 {
     if (data) {
         // these easy checks are not able to verify list membership
+        assert(_link(_link(data)->prev));
+        assert(_link(_link(data)->next));
         assert(_link(_link(data)->prev)->next == data);
         assert(_link(_link(data)->next)->prev == data);
         // therefore the following can show up inconsistency later

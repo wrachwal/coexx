@@ -43,6 +43,7 @@ struct r4Session {
     SiD                 _sid;
 
     StateCmd*           _start_handler;
+    MFunCmd0*           _stop_handler;
 
     std::vector<Unregistrar>    _unregistrar;
 

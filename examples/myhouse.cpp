@@ -54,6 +54,9 @@ private:
 
     void _start (EvCtx& ctx)
         {
+            cout << __PRETTY_FUNCTION__
+                 << ": sid=" << ctx.session.ID() << " state=" << ctx.state << endl;
+
             ctx.kernel.state("leaving", handler(*this,    &MyHouse::on_leaving_msg));
             ctx.kernel.state("coridor", handler(_coridor, &Coridor::on_coridor_msg));
             ctx.kernel.state("room2",   handler(*this,    &MyHouse::on_room2));
@@ -63,6 +66,13 @@ private:
 
             ctx.kernel.state("command", handler(*this,    &MyHouse::on_command));
             ctx.kernel.select(0, IO_read, "command", vparam(0));
+
+            stop_handler(handler(*this, &MyHouse::_stop));
+        }
+    void _stop (EvCtx& ctx)
+        {
+            cout << __PRETTY_FUNCTION__
+                 << ": sid=" << ctx.session.ID() << " state=" << ctx.state << endl;
         }
 
     void print_msg (string& msg)
@@ -82,6 +92,11 @@ private:
                 count += 1;
                 cout << count << "> " << buf;
 
+                if (count == 20) {
+                    cout << __FUNCTION__ << ": hit 20th cmd --> stop_session().." << endl;
+                    stop_session();
+                }
+                else
                 if (0 == strncmp(buf, "close", 5)) {
                     cout << "### leaving out command prompt" << endl;
                     ctx.kernel.select(io.filedes, io.mode);

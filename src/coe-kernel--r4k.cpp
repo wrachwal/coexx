@@ -145,6 +145,11 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
     r4s->_kernel = this;
     r4s->_parent = _current_context->session;
 
+    // add to parent's list of children
+    if (NULL != r4s->_parent) {
+        _r4Session::list_children(*r4s->_parent).put_tail(r4s);
+    }
+
     _allocate_sid(r4s);                     // --@@--
 
     CCScope __scope(r4s, ".start");
@@ -183,9 +188,11 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
     }
 
     //
-    // call _stop() virtual method and unregistar function(s)
+    // call _stop_handler() and unregistar function(s)
     //
-    node._handle->_stop(ctx);
+    if (NULL != node._stop_handler) {
+        node._stop_handler->execute(ctx, NULL, 0, NULL/*no-arg*/);
+    }
 
     vector<Unregistrar>::iterator i = node._unregistrar.begin();
     for (; i != node._unregistrar.end(); ++i) {

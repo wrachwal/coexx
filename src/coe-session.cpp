@@ -42,16 +42,7 @@ Session::Session (StateCmd* start_handler)
 
 Session::~Session ()
 {
-    bool    was_stopped = _r4session->local.stopper.isset();
     if (stop_session()) {
-        if (! was_stopped) {    // before, and has been stopped right now
-            //TODO: at least issue a warning:
-            //1) deprecated delete session performed by a user.
-            //2) potential overriden virtual _stop() will not be called.
-            //this might result in undesired situation like resource leaks.
-            //why issue a warning? because it's hard (or impossible?)
-            //to design api in a way prohibiting such a situation.
-        }
         _r4session->_handle = NULL;     // detach from the resource object
     }
     else {
@@ -73,6 +64,12 @@ SiD Session::start_session (Kernel& kernel, EventArg* arg)
 
 // ---------------------------------------------------------------------------
 
+void Session::stop_handler (MFunCmd0* handler)
+{
+    delete _r4session->_stop_handler;
+    _r4session->_stop_handler = handler;
+}
+
 bool Session::stop_session ()
 {
     if (! _r4session->_sid.isset())
@@ -81,11 +78,6 @@ bool Session::stop_session ()
         return true;
     _r4session->stop_session_tree();    // --@@--
     return true;
-}
-
-void Session::_stop (EvCtx& ctx)
-{
-    /* default empty body */
 }
 
 // ---------------------------------------------------------------------------

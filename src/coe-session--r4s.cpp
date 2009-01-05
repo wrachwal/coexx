@@ -36,10 +36,11 @@ using namespace coe;
 r4Session::r4Session (StateCmd* start_handler)
 :   _start_handler(start_handler)
 {
-    _handle = NULL;
-    _heap   = NULL;
-    _kernel = NULL;
-    _parent = NULL;
+    _handle       = NULL;
+    _stop_handler = NULL;
+    _heap         = NULL;
+    _kernel       = NULL;
+    _parent       = NULL;
 }
 
 r4Session::~r4Session ()
@@ -49,6 +50,9 @@ r4Session::~r4Session ()
 
     delete _start_handler;
     _start_handler = NULL;
+
+    delete _stop_handler;
+    _stop_handler = NULL;
 }
 
 void r4Session::destroy ()
@@ -165,7 +169,7 @@ void r4Session::stop_session_tree ()
     //
     // Recursively from the bottom up, on each session visited
     // perform user defined cleanup code in that order:
-    //  - call _stop() virtual method
+    //  - call _stop_handler(), if registered.
     //  - call all unregistrar functions, if any.
     //
     _call_stop(*this, *this);

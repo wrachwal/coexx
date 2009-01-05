@@ -599,7 +599,7 @@ RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 // =======================================================================
 
 template<class Obj>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&))
+MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(EvCtx&))
     { return new MFunCmd0(obj, memfun); }
 
 template<class Obj, class P1>
@@ -625,7 +625,7 @@ StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&, P5&
 // ------------------------------------
 
 template<class Heap, class Obj>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&))
+MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&))
     { return new MFunCmd0(obj, memfun); }
 
 template<class Heap, class Obj, class P1>

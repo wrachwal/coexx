@@ -45,6 +45,8 @@ class                   DatIO;
 
 struct TimeSpec;
 
+class MFunCmd0;
+
 struct r4Kernel;    // private data
 
 // ---------------------------------------------------------------------------
@@ -244,7 +246,7 @@ RefParam* rparam (P1&, P2&, P3&, P4&, P5&);
 // handler (fun)
 
 template<class Obj>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&));
+MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(EvCtx&));
 template<class Obj, class P1>
 StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&));
 template<class Obj, class P1, class P2>
@@ -257,7 +259,7 @@ template<class Obj, class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&, P5&));
 
 template<class Heap, class Obj>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&));
+MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&));
 template<class Heap, class Obj, class P1>
 StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&));
 template<class Heap, class Obj, class P1, class P2>

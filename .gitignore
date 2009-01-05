@@ -10,6 +10,8 @@ Solaris/
 *.o
 *.d
 tags
+core
+*.exe.stackdump
 
 # Vim temporaries
 Session.vim
