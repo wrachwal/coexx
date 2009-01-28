@@ -15,6 +15,7 @@ include/coe-misc.h
 
     src/coe--list.h
     src/coe--util.h
+    src/coe--util.cpp
     src/coe--event.h
     src/coe--event.cpp
 include/coe--local.h
@@ -33,8 +34,6 @@ include/coe-thread.h
 
 include/coe-kernel.h
     src/coe-kernel.cpp
-include/coe-kernel--dcl.h
-    src/coe-kernel--dcl.cpp
 include/coe-kernel--imp.h
     src/coe-kernel--imp.cpp
     src/coe-kernel--r4k.h

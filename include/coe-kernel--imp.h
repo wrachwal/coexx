@@ -1,7 +1,7 @@
-// $Id$
+// coe-kernel--imp.h
 
-/*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+/*****************************************************************************
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #if !defined(__COE_KERNEL_H) || defined(__COE_KERNEL__IMP_H)
-#error "coe-kernel--imp.h is a private header!!!"
+#error "!!! coe-kernel--imp.h is a private header."
 #endif
 
 #ifndef __COE_KERNEL__IMP_H
@@ -31,9 +31,112 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// =======================================================================
+// ---------------------------------------------------------------------------
+
+class EventArg;
+    class ValParam;
+    //  class ValParam1<A1> ... ValParam5<A1 .. A5>
+    class RefParam;
+    //  class RefParam1     ... RefParam5
+class StateCmd;
+    //  class MFunCmd0 ... MFunCmd5
+    //  class GFunCmd0 ... GFunCmd5
+
+// ===========================================================================
+// ArgTV
+
+struct ArgTV {
+    void set (const std::type_info* ti, void* pv)
+        {
+            _ti = ti;
+            _pv = pv;
+        }
+    void set (const std::type_info* ti)
+        {
+            _ti = ti;
+        }
+    const std::type_info* _ti;
+    void*                 _pv;
+};
+
+// ===========================================================================
+// EventArg
+
+class EventArg {
+public:
+    //
+    // static operator new/delete...
+    //
+    virtual ~EventArg ();
+    virtual const ArgTV* arg_list (int& len) const = 0;
+};
+
+// ------------------------------------
+// ValParam
+
+class ValParam : public EventArg {
+public:
+    virtual ValParam* clone () const = 0;
+};
+
+// ------------------------------------
+// RefParam
+
+class RefParam : public EventArg {};
+
+// ------------------------------------
+// EventArg_N<Base, N>
+
+template<class Base, int N>
+class EventArg_N : public Base {
+protected:
+    ArgTV   _arg[N];
+    /*final*/ const ArgTV* arg_list (int& len) const;
+};
+
+template<class Base, int N>
+const ArgTV* EventArg_N<Base, N>::arg_list (int& len) const
+{
+    len = N;
+    return &_arg[0];
+}
+
+// ===========================================================================
+// StateCmd
+
+class StateCmd {
+public:
+    //
+    // static operator new/delete...
+    //
+    virtual ~StateCmd ();
+    bool syntax (const ArgTV* xA, int xN, EventArg* arg, bool report) const;
+    bool execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg);
+    virtual ArgTV* arg_list (int& num) = 0;
+private:
+    virtual void _execute (EvCtx& ctx) const = 0;
+};
+
+// ------------------------------------
+// StateCmd_N<N>
+
+template<int N>
+class StateCmd_N : public StateCmd {
+protected:
+    ArgTV   _arg[N];
+    /*final*/ ArgTV* arg_list (int& len);
+};
+
+template<int N>
+ArgTV* StateCmd_N<N>::arg_list (int& len)
+{
+    len = N;
+    return &_arg[0];
+}
+
+// ===========================================================================
 // TimeSpec
-// =======================================================================
+// ===========================================================================
 
 inline bool operator== (const TimeSpec& lhs, const TimeSpec& rhs)
     { return lhs.tv_sec == rhs.tv_sec && lhs.tv_nsec == rhs.tv_nsec; }
@@ -66,9 +169,9 @@ inline TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs)
         return result;
     }
 
-// =======================================================================
+// ===========================================================================
 // ValParam1<A1> ... ValParam5<A1 .. A5>
-// =======================================================================
+// ===========================================================================
 
 template<class A1>
 class ValParam1 : public EventArg_N<ValParam, 1> {
@@ -168,9 +271,9 @@ private:
     A4  _a5;
 };
 
-// =======================================================================
+// ===========================================================================
 // RefParam1 ... RefParam5
-// =======================================================================
+// ===========================================================================
 
 class RefParam1 : public EventArg_N<RefParam, 1> {
 public:
@@ -235,9 +338,9 @@ public:
         }
 };
 
-// =======================================================================
+// ===========================================================================
 // MFunCmd0 ... MFunCmd5
-// =======================================================================
+// ===========================================================================
 
 class MFunCmd0 : public StateCmd {
 public:
@@ -398,9 +501,9 @@ private:
     void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
-// =======================================================================
+// ===========================================================================
 // GFunCmd0 .. GFunCmd5
-// =======================================================================
+// ===========================================================================
 
 class GFunCmd0 : public StateCmd {
 public:
@@ -546,9 +649,9 @@ private:
     void (*_fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
-// =======================================================================
+// ===========================================================================
 // vparam (p1[, ...])
-// =======================================================================
+// ===========================================================================
 
 template<class P1>
 ValParam* vparam (const P1& p1)
@@ -570,9 +673,9 @@ template<class P1, class P2, class P3, class P4, class P5>
 ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
     { return new ValParam5<P1, P2, P3, P4, P5>(p1, p2, p3, p4, p5); }
 
-// =======================================================================
+// ===========================================================================
 // rparam (p1[, ...])
-// =======================================================================
+// ===========================================================================
 
 template<class P1>
 RefParam* rparam (P1& p1)
@@ -594,9 +697,9 @@ template<class P1, class P2, class P3, class P4, class P5>
 RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
     { return new RefParam5(p1, p2, p3, p4, p5); }
 
-// =======================================================================
+// ===========================================================================
 // handler (obj, memfun)
-// =======================================================================
+// ===========================================================================
 
 template<class Obj>
 MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(EvCtx&))
@@ -648,9 +751,9 @@ template<class Heap, class Obj, class P1, class P2, class P3, class P4, class P5
 StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&))
     { return new MFunCmd5(obj, memfun); }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // handler (fun)
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 template<class P1>
 StateCmd* handler (void (*fun)(EvCtx&, P1&))
@@ -698,7 +801,7 @@ template<class Heap, class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&))
     { return new GFunCmd5(fun); }
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

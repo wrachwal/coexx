@@ -1,4 +1,4 @@
-// $Id$
+// typeinfo.cpp
 
 #include <typeinfo>
 #include <vector>
@@ -12,15 +12,15 @@ using namespace std;
 
 #define TABLEN(tab)     (int(sizeof(tab) / sizeof((tab)[0])))
 
-extern string demangle (const type_info* ti);
+namespace coe { string demangle (const type_info& ti); }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 struct TI {
     TI () : info(0) {}
     TI (const char* t, const type_info* i) : type(t), info(i)
         {
-            dmgl = demangle(info);
+            dmgl = coe::demangle(*info);
         }
     string              type;   // type (as input string)
     const type_info*    info;   // RTTI
@@ -42,7 +42,7 @@ struct before_order : public binary_function<TI, TI, bool> {
     }
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 static int s_type_length = 0;
 static int s_name_length = 0;
@@ -69,7 +69,7 @@ ostream& operator<< (ostream& os, const TI& info)
     return os;
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 class Udt {
 public:
@@ -77,7 +77,7 @@ public:
     int a, b, c;
 };
 
-// =======================================================================
+// ===========================================================================
 
 static void type_info_show ()
 {
@@ -196,7 +196,7 @@ static void type_info_show ()
     cout << endl;
 }
 
-// =======================================================================
+// ***************************************************************************
 
 int main ()
 {

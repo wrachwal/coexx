@@ -1,4 +1,4 @@
-// $Id$
+// tick.cpp
 
 #include "coe-session.h"
 

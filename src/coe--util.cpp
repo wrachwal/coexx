@@ -1,4 +1,4 @@
-// coe-kernel--s4k.cpp
+// coe--util.cpp
 
 /*****************************************************************************
 Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
@@ -22,18 +22,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#include "coe-kernel--s4k.h"
+#include "coe--util.h"
+#include "coe-sys.h"
 
+#include <cstdlib>      // malloc
+#include <cxxabi.h>
+
+using namespace std;
 using namespace coe;
 
 // ===========================================================================
 
-s4Kernel::s4Kernel ()
-:   Session(handler(*this, &s4Kernel::_start))
-{
-}
+static Mutex    g_Mutex_ABI;
 
-void s4Kernel::_start (EvCtx& ctx)
+string coe::demangle (const type_info& ti)
 {
+    Mutex::Guard    guard(g_Mutex_ABI);     // protect buf/len
+
+    static char*    buf = NULL;
+    static size_t   len = 0;
+
+    if (0 == len) {
+        if (NULL != (buf = (char*)malloc(256)))
+            len = 256;
+    }
+
+    int status;
+    const char* demangled = abi::__cxa_demangle(ti.name(), buf, &len, &status);
+    if (NULL == demangled) {
+        return string("bad-mangled(\"") + ti.name() + "\")";
+    }
+
+    return demangled;
 }
 

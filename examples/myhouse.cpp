@@ -1,4 +1,4 @@
-// $Id$
+// myhouse.cpp
 
 #include "coe-session.h"
 #include "coe-thread.h"

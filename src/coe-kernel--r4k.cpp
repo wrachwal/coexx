@@ -1,7 +1,7 @@
-// $Id$
+// coe-kernel--r4k.cpp
 
 /*****************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,9 @@ THE SOFTWARE.
 #include "coe-session.h"
 #include "coe-session--r4s.h"
 
-#include <memory>   // auto_ptr
+#include <memory>       // auto_ptr
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 using namespace coe;
@@ -252,16 +253,34 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
     }
 
     if (NULL == session) {
-        //TODO: call session's default error handling, like _default in POE?
+#if 1
+        // `on' not found or inappropriate
         //errno = ???
+        {
+            cerr << "---\nCALLing (" << ev << ") failed: target "
+                                     << on << " not found or invalid\n"
+                 << "  sender " << _current_context->session->_sid << " at state "
+                                << _current_context->state << "."
+                 << endl;
+        }
+#endif
         return false;
     }
     assert(this == session->_kernel);
 
     StateCmd* cmd = find_state_handler(on.id(), ev);
     if (NULL == cmd) {
-        //TODO: call session's default error handling, like _default in POE?
+#if 1
+        //state handler not found
         //errno = ???
+        {
+            cerr << "---\nCALLing (" << ev << ") failed: handler in target "
+                                     << on << " not found\n"
+                 << "  sender " << _current_context->session->_sid << " at state "
+                                << _current_context->state << "."
+                 << endl;
+        }
+#endif
         return false;
     }
 
@@ -290,7 +309,17 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 {
     StateCmd* cmd = find_state_handler(evmsg->target()->_sid.id(), evmsg->name());
     if (NULL == cmd) {
-        //TODO: call session's default error handling, like _default in POE?
+#if 1
+        //state handler not found
+        {
+            cerr << "---\nPOST event (" << evmsg->name() << ") to target "
+                                        << evmsg->target()->_sid
+                                            << " not delivered: handler not found\n"
+                 << "  sender " << evmsg->sender() << " at state "
+                                << evmsg->sender_state() << "."
+                 << endl;
+        }
+#endif
         delete evmsg;
         return;
     }
@@ -311,8 +340,6 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
         cmd->execute(ctx, NULL, 0, evmsg->arg());
     }
 
-    //TODO: decrement sender's ref-count
-
     delete evmsg;
 }
 
@@ -324,7 +351,15 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 
     StateCmd* cmd = find_state_handler(session->_sid.id(), alarm->name());
     if (NULL == cmd) {
-        //TODO: call session's default error handling, like _default in POE?
+#if 1
+        //state handler not found
+        {
+            cerr << "---\nALARM event (" << alarm->name() << ") on target "
+                                         << alarm->target()->_sid
+                                            << " not delivered: handler not found."
+                 << endl;
+        }
+#endif
         return;
     }
 
@@ -337,8 +372,6 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
     ctx.alarm_id     = alarm->aid();
 
     cmd->execute(ctx, NULL, 0, alarm->arg());
-
-    //TODO: decrement sender's ref-count
 
     session->_list_alarm.remove(alarm);
 
@@ -353,7 +386,15 @@ void r4Kernel::dispatch_evio (EvIO* evio)
 
     StateCmd* cmd = find_state_handler(session->_sid.id(), evio->name());
     if (NULL == cmd) {
-        //TODO: call session's default error handling, like _default in POE?
+#if 1
+        //state handler not found
+        {
+            cerr << "---\nI/O event (" << evio->name() << ") on target "
+                                       << evio->target()->_sid
+                                            << " not delivered: handler not found."
+                 << endl;
+        }
+#endif
         return;
     }
 
@@ -370,7 +411,5 @@ void r4Kernel::dispatch_evio (EvIO* evio)
     iop.set(&typeid(dio), &dio);
 
     cmd->execute(ctx, &iop, 1, evio->arg());
-
-    //TODO: decrement sender's ref-count
 }
 

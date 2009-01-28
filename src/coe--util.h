@@ -1,7 +1,7 @@
-// $Id$
+// coe--util.h
 
-/*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+/*****************************************************************************
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE__UTIL_H
 #define __COE__UTIL_H
 
+#include "coe-kernel.h"
+#include <limits>       // numeric_limits<>
 #include <map>
-#include <limits>   // numeric_limits<>
 
 namespace coe { /////
 
-// =======================================================================
+// ===========================================================================
 // IdentGenerator<_Id>
 
 template<typename> struct _IdentTraits;
@@ -129,7 +130,11 @@ struct _IdentTraits<SiD> {
         { return SiD(prev.kid(), prev.id() + 1); }
 };
 
-// =======================================================================
+// ===========================================================================
+
+std::string demangle (const std::type_info& ti);
+
+// ===========================================================================
 
 } ///// namespace coe
 

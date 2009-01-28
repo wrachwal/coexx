@@ -1,7 +1,7 @@
-// $Id$
+// coe-sys.h
 
-/*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+/*****************************************************************************
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE_SYS_H
 #define __COE_SYS_H
@@ -30,13 +30,13 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 typedef pthread_mutex_t  Sys_Mutex;
 typedef pthread_rwlock_t Sys_RWLock;
 typedef pthread_cond_t   Sys_CondVar;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // _Guard
 
 struct _GuardSpy;
@@ -50,7 +50,7 @@ protected:
     bool         _locked;
 };
 
-// =======================================================================
+// ===========================================================================
 // Mutex
 
 class Mutex : private _Noncopyable {
@@ -81,7 +81,7 @@ private:
     void _unlock ();
 };
 
-// =======================================================================
+// ===========================================================================
 // RWLock
 
 class RWLock : private _Noncopyable {
@@ -112,7 +112,7 @@ private:
     void _unlock ();
 };
 
-// =======================================================================
+// ===========================================================================
 // CondVar
 
 class CondVar : private _Noncopyable {
@@ -132,7 +132,7 @@ private:
     Sys_CondVar _cond;
 };
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

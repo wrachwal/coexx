@@ -1,7 +1,7 @@
-// $Id$
+// coe-kernel.h
 
 /*****************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,9 @@ THE SOFTWARE.
 #define __COE_KERNEL_H
 
 #include "coe-ident.h"
-#include "coe-kernel--dcl.h"
 #include "coe--local.h"
 #include <time.h>           // timespec
+#include <typeinfo>
 
 namespace coe { /////
 
@@ -43,11 +43,16 @@ class                   EvCtx;
 template<class> struct TEvCtx;
 class                   DatIO;
 
+class RefParam;
+class ValParam;
+
+class StateCmd;
+    class MFunCmd0;
+
 struct TimeSpec;
 
-class MFunCmd0;
-
-struct r4Kernel;    // private data
+// private data
+struct r4Kernel;
 
 // ---------------------------------------------------------------------------
 

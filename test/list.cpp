@@ -1,4 +1,4 @@
-// $Id$
+// list.cpp
 
 #include "../src/coe--list.h"
 
@@ -12,7 +12,7 @@
 using namespace std;
 using namespace coe;
 
-// =======================================================================
+// ===========================================================================
 
 class Event {
 public:
@@ -42,7 +42,7 @@ struct EventList {
     typedef dList<Event, offsetof(Event, _link_active)> Active;
 };
 
-// =======================================================================
+// ===========================================================================
 
 static const char* g_Str[] = {
     "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
@@ -69,6 +69,8 @@ static int fill_list (EventList::Active& list)
     }
     return max;
 }
+
+// ***************************************************************************
 
 int main ()
 {

@@ -1,7 +1,7 @@
-// $Id$
+// coe-thread--d4t.h
 
-/*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+/*****************************************************************************
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE_THREAD__D4T_H
 #define __COE_THREAD__D4T_H
@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 struct d4Thread;
 struct r4Kernel;
@@ -38,7 +38,7 @@ struct r4Session;
 typedef std::map<TiD, d4Thread*> Tid_Map;
 typedef std::map<KiD, r4Kernel*> Kid_Map;
 
-// =======================================================================
+// ===========================================================================
 // d4Thread
 
 struct d4Thread {
@@ -170,7 +170,7 @@ struct d4Thread {
 
 };
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

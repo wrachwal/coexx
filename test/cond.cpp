@@ -1,4 +1,4 @@
-// $Id$
+// cond.cpp
 
 #include "coe-sys.h"
 
@@ -10,7 +10,7 @@
 using namespace std;
 using namespace coe;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 #define raise_error(code, text)                                             \
     do {                                                                    \
@@ -19,8 +19,7 @@ using namespace coe;
         abort();                                                            \
     } while(0)
 
-
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 static pthread_mutex_t  mutex_0  =  PTHREAD_MUTEX_INITIALIZER;
 static pthread_rwlock_t rwlock_0 = PTHREAD_RWLOCK_INITIALIZER;
@@ -54,7 +53,7 @@ static void check_guards_usage ()
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Programming with POSIX Threads, by David R.Butenhof
 // [cond.c] sec-3.3.2, p.77
 
@@ -85,7 +84,7 @@ wait_thread (void* arg)
     return NULL;
 }
 
-// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// ***************************************************************************
 
 int main (int argc, char* argv[])
 {

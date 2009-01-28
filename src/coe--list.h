@@ -1,7 +1,7 @@
-// $Id$
+// coe--list.h
 
-/*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+/*****************************************************************************
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE__LIST_H
 #define __COE__LIST_H
@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// =======================================================================
+// ===========================================================================
 
 template<class T>
 struct dLink {
@@ -40,7 +40,7 @@ struct dLink {
     T*  prev;
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 template<class T, size_t LinkOffset>
 struct dList {
@@ -153,7 +153,7 @@ private:
     size_t  _size;
 };
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // dList<void, 0> -- helpful specialization for recursive data types
 
 template<>
@@ -168,7 +168,7 @@ struct dList<void, 0> {
     size_t  _size;
 };
 
-// =======================================================================
+// ===========================================================================
 
 template<class T, size_t LinkOffset>
 void dList<T, LinkOffset>::swap (dList& other)
@@ -275,7 +275,7 @@ T* dList<T, LinkOffset>::remove (T* data)
     return data;
 }
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

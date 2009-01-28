@@ -1,4 +1,4 @@
-# $Id$
+# Makefile
 
 OS := $(shell uname -o)
 

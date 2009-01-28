@@ -1,7 +1,7 @@
-// $Id$
+// coe-config--d4c.h
 
-/*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+/*****************************************************************************
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #ifndef __COE_CONFIG__D4C_H
 #define __COE_CONFIG__D4C_H
@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// =======================================================================
+// ===========================================================================
 // d4Config
 
 struct d4Config {
@@ -43,7 +43,7 @@ private:
     static d4Config* _instance; //FIXME: needs to be a volatile?
 };
 
-// =======================================================================
+// ===========================================================================
 
 } ///// namespace coe
 

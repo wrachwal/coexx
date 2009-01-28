@@ -1,7 +1,7 @@
-// $Id$
+// coe-thread--d4t.cpp
 
 /*****************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,9 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 #include <cerrno>
 
-#include <iostream>
 #include <sys/select.h> // select() on Cygwin
 #include <unistd.h>     // read() on Linux
+#include <iostream>
 
 using namespace std;
 using namespace coe;
@@ -529,8 +529,18 @@ bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
         }
     }
 
+#if 1
     // `to' not found
-    //errno = ???   //TODO
+    //errno = ???
+    {
+        cerr << "---\nPOSTing (" << evmsg->name() << ") failed: target "
+                                 << to << " not found\n"
+             << "  sender " << evmsg->sender() << " at state "
+                            << evmsg->sender_state() << "."
+             << endl;
+    }
+#endif
+
     delete evmsg;
     return false;
 }

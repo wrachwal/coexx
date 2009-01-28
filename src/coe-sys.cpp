@@ -1,7 +1,7 @@
-// $Id$
+// coe-sys.cpp
 
-/*************************************************************************
-Copyright (c) 2008 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+/*****************************************************************************
+Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*************************************************************************/
+*****************************************************************************/
 
 #include "coe-sys.h"
 
@@ -32,7 +32,7 @@ THE SOFTWARE.
 using namespace std;
 using namespace coe;
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 #define raise_error(code, text)                                             \
     do {                                                                    \
@@ -41,14 +41,14 @@ using namespace coe;
         abort();                                                            \
     } while(0)
 
-// =======================================================================
+// ===========================================================================
 // _Guard
 
 _Guard::~_Guard ()
 {
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // _GuardSpy
 
 struct coe::_GuardSpy {
@@ -68,7 +68,7 @@ Sys_Mutex& _GuardSpy::sys_mutex (Mutex::Guard& guard)
     return guard._mutex._mutex;
 }
 
-// =======================================================================
+// ===========================================================================
 // Mutex
 
 Mutex::Mutex ()
@@ -108,7 +108,7 @@ void Mutex::_unlock ()
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Mutex::Guard
 
 Mutex::Guard::Guard (Mutex& mutex) : _mutex(mutex)
@@ -144,7 +144,7 @@ void Mutex::Guard::_unlock ()
     }
 }
 
-// =======================================================================
+// ===========================================================================
 // RWLock
 
 RWLock::RWLock ()
@@ -192,7 +192,7 @@ void RWLock::_unlock ()
     }
 }
 
-// -----------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // RWLock::Guard
 
 RWLock::Guard::Guard (RWLock& rwlock, Type type) : _rwlock(rwlock)
@@ -228,7 +228,7 @@ void RWLock::Guard::_unlock ()
     }
 }
 
-// =======================================================================
+// ===========================================================================
 // CondVar
 
 CondVar::CondVar ()
