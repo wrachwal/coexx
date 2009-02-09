@@ -53,6 +53,14 @@ public:
     T*     get () const { return _ptr; }
     T* release () const { T* tmp = _ptr; _ptr = 0; return tmp; }
 
+    void reset (T* ptr = 0)
+        {
+            if (ptr != _ptr) {
+                delete _ptr;
+                _ptr = ptr;
+            }
+        }
+
 private:
     mutable T*  _ptr;
 };
@@ -81,6 +89,14 @@ public:
 
     T*     get () const { return _tab; }
     T* release () const { T* tmp = _tab; _tab = 0; return tmp; }
+
+    void reset (T* tab = 0)
+        {
+            if (tab != _tab) {
+                delete _tab;
+                _tab = tab;
+            }
+        }
 
 private:
     mutable T*  _tab;
