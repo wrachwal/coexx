@@ -48,6 +48,16 @@ report_arg_mismatch (ostream& os,
 // ===========================================================================
 // TimeSpec
 
+TimeSpec::TimeSpec (double sec)
+{
+    tv_sec  = time_t(sec);
+    tv_nsec = long((sec - double(tv_sec)) * 1e9);
+    if (tv_nsec < 0) {
+        tv_sec --;
+        tv_nsec += 1000000000L;
+    }
+}
+
 int TimeSpec::compare (const TimeSpec& rhs) const
 {
     if (tv_sec < rhs.tv_sec)
@@ -85,6 +95,11 @@ TimeSpec& TimeSpec::operator-= (const TimeSpec& sub)
         tv_nsec += 1000000000L;
     }
     return *this;
+}
+
+ostream& coe::operator<< (ostream& os, const TimeSpec& ts)
+{
+    return os << ts.tv_sec + 1e-9 * ts.tv_nsec;
 }
 
 // ===========================================================================

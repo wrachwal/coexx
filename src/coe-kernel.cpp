@@ -281,6 +281,36 @@ bool Kernel::select (int fd, IO_Mode mode, const string& ev, ValParam* vp)
     return _r4kernel->_thread->create_io_watcher(evio);
 }
 
+bool Kernel::select_pause (int fd, IO_Mode mode)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! fd_valid(fd)
+        || ! mode_valid(mode))
+    {
+        return false;
+    }
+    return _r4kernel->_thread->pause_io_watcher(
+                                    fd,
+                                    mode,
+                                    _r4kernel->_current_context->session
+                                );
+}
+
+bool Kernel::select_resume (int fd, IO_Mode mode)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! fd_valid(fd)
+        || ! mode_valid(mode))
+    {
+        return false;
+    }
+    return _r4kernel->_thread->resume_io_watcher(
+                                    fd,
+                                    mode,
+                                    _r4kernel->_current_context->session
+                                );
+}
+
 // ---------------------------------------------------------------------------
 
 void Kernel::state (const string& ev)

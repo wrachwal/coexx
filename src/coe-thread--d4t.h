@@ -74,6 +74,8 @@ struct d4Thread {
 
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
+    bool  pause_io_watcher (int fd, IO_Mode mode, r4Session* session);
+    bool resume_io_watcher (int fd, IO_Mode mode, r4Session* session);
 
     static void _export_kernel_local_data (r4Kernel*            kernel);
            void _import_kernel_local_data (EvSys_Import_Kernel& import);

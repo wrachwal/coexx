@@ -218,6 +218,10 @@ bool operator>= (const TimeSpec& lhs, const TimeSpec& rhs);
 TimeSpec operator+ (const TimeSpec& lhs, const TimeSpec& rhs);
 TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs);
 
+// ------------------------------------
+
+std::ostream& operator<< (std::ostream& os, const TimeSpec& ts);
+
 // ===========================================================================
 // vparam (p1[, ...])
 

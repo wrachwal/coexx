@@ -27,7 +27,7 @@ library := lib/libcoe.a
 objects := $(patsubst src/%.cpp,lib/%.o,$(wildcard src/*.cpp))
 
 examples := $(addprefix examples/,myhouse tick)
-tests    := $(addprefix test/,typeinfo list cond)
+tests    := $(addprefix test/,typeinfo list cond timespec)
 
 objects_all := $(objects) $(patsubst %.cpp,%.o,$(wildcard examples/*.cpp test/*.cpp))
 

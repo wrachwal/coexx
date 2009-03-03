@@ -665,6 +665,54 @@ bool d4Thread::delete_io_watcher (int fd, IO_Mode mode, r4Session* session)
     return true;
 }
 
+// ------------------------------------
+
+bool d4Thread::pause_io_watcher (int fd, IO_Mode mode, r4Session* session)
+{
+    assert(NULL != session);
+    assert(Sched::BUSY == sched.state);
+
+    EvIO*   evio = session->find_io_watcher(fd, mode);
+    if (NULL == evio) {
+        //errno = ???
+        return false;
+    }
+
+    if (evio->enqueued()) {
+        _pqueue.remove(evio);
+    }
+
+    if (evio->active()) {
+        evio->active(false);
+        -- sched.io_requests;
+        assert(sched.io_requests >= 0);
+    }
+
+    return true;
+}
+
+// ------------------------------------
+
+bool d4Thread::resume_io_watcher (int fd, IO_Mode mode, r4Session* session)
+{
+    assert(NULL != session);
+    assert(Sched::BUSY == sched.state);
+
+    EvIO*   evio = session->find_io_watcher(fd, mode);
+    if (NULL == evio) {
+        //errno = ???
+        return false;
+    }
+
+    if (! evio->active()) {
+        evio->active(true);
+        assert(sched.io_requests >= 0);
+        ++ sched.io_requests;
+    }
+
+    return true;
+}
+
 // ---------------------------------------------------------------------------
 
 void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
