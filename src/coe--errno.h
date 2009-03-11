@@ -25,8 +25,6 @@ THE SOFTWARE.
 #ifndef __COE__ERRNO_H
 #define __COE__ERRNO_H
 
-#include "coe-kernel--r4k.h"
-
 namespace coe { /////
 
 // ===========================================================================

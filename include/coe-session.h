@@ -29,14 +29,10 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// ---------------------------------------------------------------------------
-
-class Callback;
-
-struct r4Session;   // private
-
 // ===========================================================================
 // Session
+
+struct r4Session;   // private
 
 class Session : private _Noncopyable {
 public:
@@ -44,11 +40,6 @@ public:
 
     bool unregistrar_set    (void (*)(SiD));
     bool unregistrar_remove (void (*)(SiD));
-
-    /*
-     * Encapsulated `Callback' primitive
-     */
-    Callback* callback (const std::string& ev, ValParam* pfx=0);
 
 protected:
     Session (StateCmd* start_handler);
@@ -69,31 +60,6 @@ private:
     friend struct r4Kernel;
     friend struct r4Session;
     r4Session*   _r4session;
-};
-
-// ---------------------------------------------------------------------------
-// Callback
-
-class Callback : private _Noncopyable {
-public:
-    ~Callback ();
-
-    SiD session () const { return _target; }
-
-    bool      call (Kernel& kernel);
-    bool      call (Kernel& kernel, RefParam* arg);
-    bool      call (Kernel& kernel, ValParam* arg);
-
-    bool      post (Kernel& kernel, ValParam* arg=0);
-    bool anon_post (                ValParam* arg=0);
-
-private:
-    friend class Session;
-    Callback (SiD, const std::string&, ValParam*);
-
-    SiD         _target;
-    std::string _evname;
-    ValParam*   _prefix;
 };
 
 // ===========================================================================

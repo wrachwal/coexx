@@ -36,7 +36,7 @@ namespace coe { /////
 
 class Kernel;
 class Session;      // coe-session.h
-class Callback;     // coe-session.h
+class Callback;
 
 // handler context(s)
 class                   EvCtx;
@@ -94,6 +94,11 @@ public:
            bool      call (SiD on, const std::string& ev, ValParam* vp=0);
 
     /*
+     * Encapsulated `Callback'
+     */
+    Callback* callback (const std::string& ev, ValParam* pfx=0);
+
+    /*
      * Timer Events (Delayed Messages)
      */
     // Name-Based Timers
@@ -145,6 +150,31 @@ private:
     friend  class Session;
     friend  class Callback;
     r4Kernel    *_r4kernel;
+};
+
+// ===========================================================================
+// Callback
+
+class Callback : private _Noncopyable {
+public:
+    ~Callback ();
+
+    SiD session () const { return _target; }
+
+    bool      call (Kernel& kernel);
+    bool      call (Kernel& kernel, RefParam* arg);
+    bool      call (Kernel& kernel, ValParam* arg);
+
+    bool      post (Kernel& kernel, ValParam* arg=0);
+    bool anon_post (                ValParam* arg=0);
+
+private:
+    friend class Kernel;
+    Callback (SiD, const std::string&, ValParam*);
+
+    SiD         _target;
+    std::string _evname;
+    ValParam*   _prefix;
 };
 
 // ===========================================================================

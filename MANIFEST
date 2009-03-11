@@ -40,6 +40,7 @@ include/coe-kernel--imp.h
     src/coe-kernel--r4k.cpp
     src/coe-kernel--s4k.h
     src/coe-kernel--s4k.cpp
+    src/coe-kernel--cb.cpp
 
 include/coe-session.h
     src/coe-session.cpp
@@ -53,6 +54,7 @@ include/coe-wheel.h
 test/typeinfo.cpp
 test/list.cpp
 test/cond.cpp
+test/timespec.cpp
 
 
 
