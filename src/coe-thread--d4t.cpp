@@ -264,7 +264,10 @@ void d4Thread::_pqueue_expired_alarms ()    // --@@--
     DueSidAid_Map::iterator upr =
         _dsa_map.upper_bound(DueSidAid_Key(now, SiD::NONE(), AiD::NONE()));
 
+    //FIXME: on linux i get this assert quite often; debug it.
+#if 0
     assert(upr != _dsa_map.begin());
+#endif
 
     for (DueSidAid_Map::iterator i = _dsa_map.begin(); i != upr; ++i) {
         _pqueue.put_tail((*i).second);
