@@ -90,8 +90,8 @@ public:
      * Synchronous Messages
      */
            bool      call (SiD on, const std::string& ev);
-           bool      call (SiD on, const std::string& ev, RefParam* rp=0);
-           bool      call (SiD on, const std::string& ev, ValParam* vp=0);
+           bool      call (SiD on, const std::string& ev, RefParam* rp);
+           bool      call (SiD on, const std::string& ev, ValParam* vp);
 
     /*
      * Encapsulated `Callback'

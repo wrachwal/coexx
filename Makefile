@@ -5,6 +5,7 @@ OS := $(shell uname -o)
 ifeq (Cygwin,$(OS))
 CXX = g++-4
 EXEEXT = .exe
+LDFLAGS += -Wl,--enable-auto-import
 else
 CXX = g++
 EXEEXT =
