@@ -307,37 +307,39 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
 
 void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 {
-    StateCmd* cmd = find_state_handler(evmsg->target()->_sid.id(), evmsg->name());
-    if (NULL == cmd) {
+    r4Session*  session = evmsg->target();
+
+    if (! session->local.stopper.isset()) {     // alive session
+
+        StateCmd*   cmd = find_state_handler(session->_sid.id(), evmsg->name());
+        if (NULL != cmd) {
+
+            CCScope __scope(session, evmsg->name());
+
+            EvCtx   ctx(this);
+
+            ctx.sender       = evmsg->sender();
+            ctx.sender_state = evmsg->sender_state();
+
+            if (NULL != evmsg->pfx()) {
+                int xN;
+                const ArgTV* xA = evmsg->pfx()->arg_list(xN);
+                cmd->execute(ctx, xA, xN, evmsg->arg());    // postback
+            }
+            else {
+                cmd->execute(ctx, NULL, 0, evmsg->arg());
+            }
+        }
+        else {  // state handler not found
 #if 1
-        //state handler not found
-        {
             cerr << "---\nPOST event (" << evmsg->name() << ") to target "
-                                        << evmsg->target()->_sid
+                                        << session->_sid
                                             << " not delivered: handler not found\n"
                  << "  sender " << evmsg->sender() << " at state "
                                 << evmsg->sender_state() << "."
                  << endl;
-        }
 #endif
-        delete evmsg;
-        return;
-    }
-
-    CCScope __scope(evmsg->target(), evmsg->name());
-
-    EvCtx   ctx(this);
-
-    ctx.sender       = evmsg->sender();
-    ctx.sender_state = evmsg->sender_state();
-
-    if (NULL != evmsg->pfx()) {
-        int xN;
-        const ArgTV* xA = evmsg->pfx()->arg_list(xN);
-        cmd->execute(ctx, xA, xN, evmsg->arg());    // postback
-    }
-    else {
-        cmd->execute(ctx, NULL, 0, evmsg->arg());
+        }
     }
 
     delete evmsg;
@@ -349,33 +351,37 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 {
     r4Session*  session = alarm->target();
 
-    StateCmd* cmd = find_state_handler(session->_sid.id(), alarm->name());
-    if (NULL == cmd) {
+    if (! session->local.stopper.isset()) {     // alive session
+
+        StateCmd*   cmd = find_state_handler(session->_sid.id(), alarm->name());
+        if (NULL != cmd) {
+
+            CCScope __scope(session, alarm->name());
+
+            EvCtx   ctx(this);
+
+            ctx.sender       = session->_sid;
+            ctx.sender_state = alarm->sender_state();
+            ctx.alarm_id     = alarm->aid();
+
+            cmd->execute(ctx, NULL, 0, alarm->arg());
+        }
+        else {  // state handler not found
 #if 1
-        //state handler not found
-        {
             cerr << "---\nALARM event (" << alarm->name() << ") on target "
-                                         << alarm->target()->_sid
+                                         << session->_sid
                                             << " not delivered: handler not found."
                  << endl;
-        }
 #endif
-        return;
+        }
     }
 
-    CCScope __scope(session, alarm->name());
+    assert(NULL    != session->_kernel);
+    assert(_thread == session->_kernel->_thread);
 
-    EvCtx   ctx(this);
-
-    ctx.sender       = session->_sid;
-    ctx.sender_state = alarm->sender_state();
-    ctx.alarm_id     = alarm->aid();
-
-    cmd->execute(ctx, NULL, 0, alarm->arg());
-
-    session->_list_alarm.remove(alarm);
-
-    //TODO: re-schedule periodic alarm
+    //TODO: if alarm periodic - re-schedule, rather than delete
+    //
+    _thread->delete_alarm(alarm, false/*already erased from _dsa_map*/);
 }
 
 // ---------------------------------------------------------------------------
@@ -384,32 +390,33 @@ void r4Kernel::dispatch_evio (EvIO* evio)
 {
     r4Session*  session = evio->target();
 
-    StateCmd* cmd = find_state_handler(session->_sid.id(), evio->name());
-    if (NULL == cmd) {
+    if (! session->local.stopper.isset()) {     // alive session
+
+        StateCmd*   cmd = find_state_handler(session->_sid.id(), evio->name());
+        if (NULL != cmd) {
+
+            CCScope __scope(session, evio->name());
+
+            EvCtx   ctx(this);
+
+            ctx.sender       = session->_sid;
+            ctx.sender_state = evio->sender_state();
+
+            DatIO   dio(evio->fd(), evio->mode());
+
+            ArgTV   iop;
+            iop.set(&typeid(dio), &dio);
+
+            cmd->execute(ctx, &iop, 1, evio->arg());
+        }
+        else {  // state handler not found
 #if 1
-        //state handler not found
-        {
             cerr << "---\nI/O event (" << evio->name() << ") on target "
-                                       << evio->target()->_sid
+                                       << session->_sid
                                             << " not delivered: handler not found."
                  << endl;
-        }
 #endif
-        return;
+        }
     }
-
-    CCScope __scope(session, evio->name());
-
-    EvCtx   ctx(this);
-
-    ctx.sender       = session->_sid;
-    ctx.sender_state = evio->sender_state();
-
-    DatIO   dio(evio->fd(), evio->mode());
-
-    ArgTV   iop;
-    iop.set(&typeid(dio), &dio);
-
-    cmd->execute(ctx, &iop, 1, evio->arg());
 }
 

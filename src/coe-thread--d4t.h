@@ -60,6 +60,7 @@ struct d4Thread {
     void _wakeup_waiting_thread ();
     void _pqueue_pending_events ();
     void _pqueue_expired_alarms ();
+    //// _pqueue_io_events -- not a separate function, see _select_io()
 
     EvCommon* dequeue_event ();
     void _select_io (const TimeSpec* due);
@@ -70,10 +71,12 @@ struct d4Thread {
     enum SetupAlarmMode {
         _DELAY_SET
     };
-    AiD create_alarm (SetupAlarmMode mode, const TimeSpec& spec, EvAlarm* evalm);
+    AiD  create_alarm (SetupAlarmMode mode, const TimeSpec& spec, EvAlarm* evalm);
+    void delete_alarm (EvAlarm* evalm, bool erase_dsa);
 
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
+    void delete_io_watcher (EvIO* evio);
     bool  pause_io_watcher (int fd, IO_Mode mode, r4Session* session);
     bool resume_io_watcher (int fd, IO_Mode mode, r4Session* session);
 

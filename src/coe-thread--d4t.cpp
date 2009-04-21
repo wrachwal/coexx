@@ -465,7 +465,9 @@ void d4Thread::_select_io (const TimeSpec* due)
                 -- result;
             }
 
-            // enqueue I/O events
+            //
+            // _pqueue_io_events
+            //
             if (result > 0) {
                 for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
                     EvIO*   evio = (*i).second;
@@ -488,7 +490,7 @@ void d4Thread::_select_io (const TimeSpec* due)
 
 bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
 {
-    if (NULL != source && to.kid() == source->_kid) {
+    if (NULL != source && to.kid() == source->_kid) {   // intra-kernel post
 
         r4Session*  session = source->_current_context->session;
         if (to != session->_sid) {  // check if not a `yield' case
@@ -501,7 +503,7 @@ bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
             }
         }
     }
-    else {
+    else {          // inter-kernel post
 
         // --@@--
         RWLock::Guard   guard(glob.rwlock, RWLock::READ);
@@ -518,7 +520,7 @@ bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
 
                 if (! session->local.stopper.isset()) {
 
-                    // case of inter-thread post
+                    // inter-thread post
 
                     evmsg->source(NULL);
 
@@ -606,6 +608,33 @@ AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* ev
     return aid;
 }
 
+// ------------------------------------
+
+void d4Thread::delete_alarm (EvAlarm* evalm, bool erase_dsa)
+{
+    assert(Sched::BUSY == sched.state);
+
+    r4Session*  session = evalm->target();
+    assert(NULL != session);
+
+    if (evalm->enqueued()) {
+        _pqueue.remove(evalm);
+    }
+
+    if (erase_dsa) {
+#if 1
+        //XXX: extensive consistency check (enable only when debugging)
+        DueSidAid_Key   dsa(evalm->time_due(), session->_sid, evalm->aid());
+        assert(_dsa_map.find(dsa) == evalm->dsa_iter());
+#endif
+        _dsa_map.erase(evalm->dsa_iter());
+    }
+
+    session->_list_alarm.remove(evalm);
+
+    delete evalm;
+}
+
 // ---------------------------------------------------------------------------
 
 bool d4Thread::create_io_watcher (EvIO* new_evio)
@@ -642,14 +671,30 @@ bool d4Thread::create_io_watcher (EvIO* new_evio)
 
 bool d4Thread::delete_io_watcher (int fd, IO_Mode mode, r4Session* session)
 {
-    assert(NULL != session);
     assert(Sched::BUSY == sched.state);
+    assert(NULL != session);
 
     EvIO*   evio = session->find_io_watcher(fd, mode);
     if (NULL == evio) {
         //errno = ???
         return false;
     }
+    assert(evio->target() == session);
+    assert(evio->fd()     == fd);
+    assert(evio->mode()   == mode);
+
+    delete_io_watcher(evio);
+    return true;
+}
+
+// ------------------------------------
+
+void d4Thread::delete_io_watcher (EvIO* evio)
+{
+    assert(Sched::BUSY == sched.state);
+
+    r4Session*  session = evio->target();
+    assert(NULL != session);
 
     if (evio->enqueued()) {
         _pqueue.remove(evio);
@@ -660,12 +705,11 @@ bool d4Thread::delete_io_watcher (int fd, IO_Mode mode, r4Session* session)
         assert(sched.io_requests >= 0);
     }
 
-    _fms_map.erase(FdModeSid_Key(fd, mode, session->_sid));
+    _fms_map.erase(FdModeSid_Key(evio->fd(), evio->mode(), session->_sid));
 
     session->_list_evio.remove(evio);
 
     delete evio;
-    return true;
 }
 
 // ------------------------------------

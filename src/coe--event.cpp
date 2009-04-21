@@ -146,7 +146,7 @@ void EvAlarm::aid (AiD a)
     _aid = a;
 }
 
-void EvAlarm::time_due (TimeSpec& abs_time)
+void EvAlarm::time_due (const TimeSpec& abs_time)
 {
     assert(NULL == _link_queue.next);
     _time_due = abs_time;

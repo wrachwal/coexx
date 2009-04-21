@@ -201,7 +201,7 @@ public:
     void aid (AiD a);
     AiD  aid () const { return _aid; }
 
-    void            time_due (TimeSpec& abs_time);
+    void            time_due (const TimeSpec& abs_time);
     const TimeSpec& time_due () const { return _time_due; }
 
     void                    dsa_iter (DueSidAid_Map::iterator iter);

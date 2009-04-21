@@ -47,6 +47,8 @@ r4Session::~r4Session ()
 {
     assert(_r4Session::list_children(*this).empty());
     assert(NULL == _link_children.next);
+    assert(_list_alarm.empty());
+    assert(_list_evio.empty());
 
     delete _start_handler;
     _start_handler = NULL;
@@ -57,30 +59,54 @@ r4Session::~r4Session ()
 
 void r4Session::destroy ()
 {
+    //
     // first recursively destroy() all descendants
+    //
     _r4Session::ChildrenList::iterator  child(_r4Session::list_children(*this));
     while (child) {
         (*child++)->destroy();
     }
 
     //
-    // next delete the whole session object representation
+    // next delete the whole session object representation,
+    // including associated resources, events.
     //
 
+    //
     // (1) handle object
+    //
     delete _handle;
     // resource is detached in handle object destructor;
     // the assertion is to check that.
     assert(NULL == _handle);
 
-    // (2) remove resource object from parent's list of children
+    //
+    // (2) remove deferred events, like alarms and I/O watchers
+    // (events from pending and local queues have been already discarded).
+    //
+    assert(NULL != _kernel);
+    d4Thread*   thread = _kernel->_thread;
+    assert(NULL !=  thread);
+
+    while (! _list_alarm.empty()) {
+        thread->delete_alarm(_list_alarm.peek_head(), true/*erase from _dsa_map*/);
+    }
+    while (! _list_evio.empty()) {
+        thread->delete_io_watcher(_list_evio.peek_head());
+    }
+
+    //
+    // (3) remove resource object from parent's list of children
+    //
     if (NULL != _parent) {
         r4Session*  removed = _r4Session::list_children(*_parent).remove(this);
                     removed = removed;
         assert(NULL != removed);
     }
 
-    // (3) finally delete the resource object itself
+    //
+    // (4) finally delete the resource object itself
+    //
     delete this;
 }
 
@@ -148,7 +174,7 @@ void r4Session::stop_session_tree ()
     //  b) sessions being stopped can do anything except the following:
     //     - starting new child sessions (as they are about to die)
     //     - being a target of any kind of event (but can be call'ed)
-    //     - consequently any pending events will be simply ignored.
+    //  c) consequently any pending events will be ignored.
     //
     {
         // --@@--
