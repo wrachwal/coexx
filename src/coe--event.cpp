@@ -133,6 +133,7 @@ EvAlarm::EvAlarm (const string& name, ValParam* arg, SessionContext& cc)
 {
     _target       = cc.session;
     _sender_state = cc.state;
+    _dsa_iter     = invalid_dsa_iter();
 }
 
 EvAlarm::~EvAlarm ()
@@ -158,6 +159,12 @@ void EvAlarm::dsa_iter (DueSidAid_Map::iterator iter)
     _dsa_iter = iter;
 }
 
+void EvAlarm::s1a_iter (Sid1Aid_Map::iterator iter)
+{
+    assert(NULL == _link_queue.next);
+    _s1a_iter = iter;
+}
+
 void EvAlarm::dispatch ()
 {
     r4Kernel*       kernel = _target->_kernel;
@@ -181,6 +188,7 @@ EvIO::EvIO (int fd, IO_Mode mode, const string& name, ValParam* arg, SessionCont
 EvIO::~EvIO ()
 {
     assert(NULL == _link_evio.next);
+    assert(! _active);
 }
 
 void EvIO::active (bool a)
@@ -250,5 +258,14 @@ void EvSys_DeleteSession::dispatch ()
 bool EvSys_DeleteSession::is_event_of (KiD kernel) const
 {
     return _session->_kernel->_kid == kernel;
+}
+
+// ===========================================================================
+
+static DueSidAid_Map    __AlwaysEmpty_DSA;
+
+DueSidAid_Map::iterator coe::invalid_dsa_iter ()
+{
+    return __AlwaysEmpty_DSA.end();
 }
 

@@ -59,6 +59,27 @@ struct SessionContext {
 };
 
 // ---------------------------------------------------------------------------
+// Sid1Aid_Key
+
+struct Sid1Aid_Key {
+    Sid1Aid_Key () : sid_1(0) {}
+    Sid1Aid_Key (const SiD& s, AiD a)
+        : sid_1(s.id()), aid(a) {}
+    bool operator< (const Sid1Aid_Key& rhs) const
+        {
+            return sid_1 < rhs.sid_1 || (sid_1 == rhs.sid_1
+                && aid   < rhs.aid);
+        }
+    // ------------
+    SiD::IntType    sid_1;
+    AiD             aid;
+};
+
+// ------------------------------------
+
+typedef std::map<Sid1Aid_Key, EvAlarm*>     Sid1Aid_Map;
+
+// ---------------------------------------------------------------------------
 // DueSidAid_Key
 
 struct DueSidAid_Key {
@@ -80,6 +101,8 @@ struct DueSidAid_Key {
 // ------------------------------------
 
 typedef std::map<DueSidAid_Key, EvAlarm*>   DueSidAid_Map;
+
+DueSidAid_Map::iterator invalid_dsa_iter ();
 
 // ---------------------------------------------------------------------------
 // FdModeSid_Key
@@ -207,6 +230,9 @@ public:
     void                    dsa_iter (DueSidAid_Map::iterator iter);
     DueSidAid_Map::iterator dsa_iter () const { return _dsa_iter; }
 
+    void                    s1a_iter (Sid1Aid_Map::iterator iter);
+    Sid1Aid_Map::iterator   s1a_iter () const { return _s1a_iter; }
+
 private:
     friend struct _EvAlarm;
     dLink<EvAlarm> _link_alarm;
@@ -214,6 +240,7 @@ private:
     AiD                     _aid;
     TimeSpec                _time_due;
     DueSidAid_Map::iterator _dsa_iter;
+    Sid1Aid_Map::iterator   _s1a_iter;
 };
 
 // ------------------------------------

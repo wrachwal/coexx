@@ -72,7 +72,7 @@ struct d4Thread {
         _DELAY_SET
     };
     AiD  create_alarm (SetupAlarmMode mode, const TimeSpec& spec, EvAlarm* evalm);
-    void delete_alarm (EvAlarm* evalm, bool erase_dsa);
+    void delete_alarm (EvAlarm* evalm);
 
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);

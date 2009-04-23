@@ -203,6 +203,25 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
 
 // ---------------------------------------------------------------------------
 
+bool r4Kernel::delete_alarm (AiD aid)
+{
+    Sid1Aid_Key     s1a(_current_context->session->_sid, aid);
+
+    Sid1Aid_Map::iterator   i = _s1a_map.find(s1a);
+
+    if (i == _s1a_map.end()) {
+        return false;
+    }
+
+    EvAlarm*    alarm = (*i).second;
+    assert(alarm->s1a_iter() == i);     // btw cheap validity check
+
+    _thread->delete_alarm(alarm);
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+
 StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
 {
     S1Ev_Cmd::iterator  sh = _s1ev_cmd.find(make_pair(sid1, ev));
@@ -381,7 +400,7 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 
     //TODO: if alarm periodic - re-schedule, rather than delete
     //
-    _thread->delete_alarm(alarm, false/*already erased from _dsa_map*/);
+    _thread->delete_alarm(alarm);
 }
 
 // ---------------------------------------------------------------------------

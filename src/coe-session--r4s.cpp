@@ -89,7 +89,7 @@ void r4Session::destroy ()
     assert(NULL !=  thread);
 
     while (! _list_alarm.empty()) {
-        thread->delete_alarm(_list_alarm.peek_head(), true/*erase from _dsa_map*/);
+        thread->delete_alarm(_list_alarm.peek_head());
     }
     while (! _list_evio.empty()) {
         thread->delete_io_watcher(_list_evio.peek_head());

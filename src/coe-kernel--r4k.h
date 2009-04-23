@@ -83,6 +83,14 @@ struct r4Kernel {
     SessionContext*     _current_context;
     SessionContext      _kernel_session_context;
 
+    /*
+     * alarms
+     */
+    Sid1Aid_Map         _s1a_map;   //TODO: hash_map
+
+    /*
+     * handlers ("commands")
+     */
     // _s1ev_cmd : sid/1 x ev-name --> StateCmd*
     typedef std::pair<SiD::IntType, std::string> S1Ev;
     typedef std::map<S1Ev, StateCmd*>            S1Ev_Cmd;
@@ -96,6 +104,8 @@ struct r4Kernel {
 
     SiD start_session (Session* s, EventArg* arg);
     void call_stop  (r4Session& root, r4Session& node);
+
+    bool delete_alarm (coe::AiD aid);
 
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
     void state__cmd (const std::string& ev, StateCmd* cmd);

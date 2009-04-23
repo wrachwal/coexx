@@ -244,6 +244,16 @@ bool Kernel::call (SiD on, const string& ev, ValParam* vp)
 
 // ---------------------------------------------------------------------------
 
+AiD Kernel::alarm_remove (AiD aid)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! current_session_active(_r4kernel))
+    {
+        return AiD::NONE();
+    }
+    return _r4kernel->delete_alarm(aid) ? aid : AiD::NONE();
+}
+
 AiD Kernel::delay_set (const string ev, TimeSpec duration, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
