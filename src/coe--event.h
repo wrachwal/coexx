@@ -31,6 +31,9 @@ THE SOFTWARE.
 
 namespace coe { /////
 
+struct ExecuteContext;  // coe--context.h
+struct r4Session;       // coe-session--r4s.h
+
 // ---------------------------------------------------------------------------
 // forward(s)
 
@@ -42,21 +45,6 @@ class EvCommon;
     class EvSys_Export_Kernel;
     class EvSys_Import_Kernel;
     class EvSys_DeleteSession;
-
-// ---------------------------------------------------------------------------
-// SessionContext
-
-struct r4Session;
-
-struct SessionContext {
-    SessionContext ()
-        : parent(NULL), session(NULL) {}
-    SessionContext (r4Session* session, const std::string& state)
-        : parent(NULL), session(session), state(state) {}
-    SessionContext* parent;
-    r4Session*      session;
-    std::string     state;
-};
 
 // ---------------------------------------------------------------------------
 // Sid1Aid_Key
@@ -167,6 +155,8 @@ public:
 
     /*final*/ bool is_event_of (KiD kernel) const;
 
+    virtual void describe (std::ostream& os) const = 0;
+
     const std::string& name () const { return _name; }
 
     ValParam* arg () const { return _arg; }
@@ -191,11 +181,12 @@ protected:
 
 class EvMsg : public EvUser {
 public:
-    EvMsg (const std::string& name, ValParam* arg, SessionContext& cc);  // post
+    EvMsg (const std::string& name, ValParam* arg, ExecuteContext& cc);  // post
     EvMsg (const std::string& name, ValParam* arg);                 // anon_post
     ~EvMsg ();
 
     /*final*/ void dispatch ();
+    /*final*/ void describe (std::ostream& os) const;
 
     void       source (r4Session* r4s);
     r4Session* source () const { return _source; }
@@ -218,10 +209,11 @@ class EvAlarm : public EvUser {
 public:
     EvAlarm (const TimeSpec& abs_time,
              const std::string& name, ValParam* arg,
-             SessionContext& cc);
+             ExecuteContext& cc);
     ~EvAlarm ();
 
     /*final*/ void dispatch ();
+    /*final*/ void describe (std::ostream& os) const;
 
     void aid (AiD a);
     AiD  aid () const { return _aid; }
@@ -258,10 +250,11 @@ class EvIO : public EvUser {
 public:
     EvIO (int fd, IO_Mode mode,
           const std::string& name, ValParam* arg,
-          SessionContext& cc);
+          ExecuteContext& cc);
     ~EvIO ();
 
     /*final*/ void dispatch ();
+    /*final*/ void describe (std::ostream& os) const;
 
     int     fd   () const { return _fd; }
     IO_Mode mode () const { return _mode; }

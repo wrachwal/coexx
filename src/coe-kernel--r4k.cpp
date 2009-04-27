@@ -36,36 +36,6 @@ using namespace std;
 using namespace coe;
 
 // ---------------------------------------------------------------------------
-
-namespace {
-
-    class CCScope {
-    public:
-        CCScope (r4Session* session, const string& state)
-            :   _new_ctx(session, state)
-            {
-                assert(NULL != session);
-                assert(NULL != session->_kernel);
-                assert(NULL != session->_kernel->_current_context);
-
-                _old_ctx =  session->_kernel->_current_context;
-                _new_ctx.parent =                     _old_ctx;
-                session->_kernel->_current_context = &_new_ctx;
-            }
-
-        ~CCScope ()
-            {
-                _new_ctx.session->_kernel->_current_context = _old_ctx;
-            }
-
-    private:
-        SessionContext* _old_ctx;
-        SessionContext  _new_ctx;
-    };
-
-}
-
-// ---------------------------------------------------------------------------
 // d4Thread::Local
 
 r4Session* r4Kernel::Local::find_session (SiD sid) const
@@ -77,9 +47,11 @@ r4Session* r4Kernel::Local::find_session (SiD sid) const
 // ===========================================================================
 
 r4Kernel::r4Kernel ()
+:   _thread(NULL),
+    _handle(NULL),
+    _current_context(NULL),
+    _kernel_session_context(this)
 {
-    _handle = NULL;
-
     // trying attach kernel to current thread
     _thread = d4Thread::get_tls_data();
 
@@ -153,7 +125,7 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
 
     _allocate_sid(r4s);                     // --@@--
 
-    CCScope __scope(r4s, ".start");
+    ExecuteContext  run(r4s, ".start", r4s->_start_handler);
 
     EvCtx   ctx(this);
 
@@ -165,7 +137,7 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
         ctx.sender = SiD(_kid, 1);  // kernel session (itself)
     }
 
-    r4s->_start_handler->execute(ctx, NULL, 0, arg);
+    run.execute(ctx, NULL, 0, arg);
 
     delete r4s->_start_handler;
     r4s->_start_handler = NULL;
@@ -177,24 +149,28 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
 
 void r4Kernel::call_stop (r4Session& root, r4Session& node)
 {
-    CCScope __scope(&node, ".stop");
-
-    EvCtx   ctx(this);
-
-    // sender is always a session on which stop_session() is called
-    ctx.sender = root._sid;
-
-    if (&root == _current_context->parent->session) {
-        ctx.sender_state = _current_context->parent->state;
-    }
-
     //
-    // call _stop_handler() and unregistar function(s)
+    // call `_stop_handler'
     //
     if (NULL != node._stop_handler) {
-        node._stop_handler->execute(ctx, NULL, 0, NULL/*no-arg*/);
+
+        ExecuteContext  run(&node, ".stop", node._stop_handler);
+
+        EvCtx   ctx(this);
+
+        // sender is always a session on which stop_session() was called
+        ctx.sender = root._sid;
+
+        if (&root == _current_context->parent->session) {
+            ctx.sender_state = _current_context->parent->state;
+        }
+
+        run.execute(ctx, NULL, 0, NULL/*no-arg*/);
     }
 
+    //
+    // call unregistar function(s)
+    //
     vector<Unregistrar>::iterator i = node._unregistrar.begin();
     for (; i != node._unregistrar.end(); ++i) {
         (*i)(node._sid);
@@ -281,8 +257,6 @@ void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
 
 bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg)
 {
-    auto_ptr<EventArg>  __arg(arg);
-
     // assertions confirm what have been validated by a caller
     assert(NULL != _thread);
     assert(on.kid() == _kid);
@@ -298,10 +272,33 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
         session = local.find_session(on);
     }
 
-    if (NULL == session) {
+    bool    status = false;
+
+    if (NULL != session) {
+
+        assert(this == session->_kernel);
+
+        ExecuteContext  run(session, ev, find_state_handler(on.id(), ev));
+
+        EvCtx   ctx(this);
+
+        ctx.sender       = _current_context->parent->session->_sid;
+        ctx.sender_state = _current_context->parent->state;
+
+        if (NULL != pfx) {
+            int xN;
+            const ArgTV* xA = pfx->arg_list(xN);
+            status = run.execute(ctx, xA, xN, arg);     // callback
+        }
+        else {
+            status = run.execute(ctx, NULL, 0, arg);
+        }
+    }
+    else {
 #if 1
-        // `on' not found or inappropriate
-        //errno = ???
+        //TODO: reformat error message
+        //  (`on' not found or inappropriate; errno = ???)
+        //  print _current_context stack
         {
             cerr << "---\nCALLing (" << ev << ") failed: target "
                                      << on << " not found or invalid\n"
@@ -310,43 +307,10 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
                  << endl;
         }
 #endif
-        return false;
-    }
-    assert(this == session->_kernel);
-
-    StateCmd* cmd = find_state_handler(on.id(), ev);
-    if (NULL == cmd) {
-#if 1
-        //state handler not found
-        //errno = ???
-        {
-            cerr << "---\nCALLing (" << ev << ") failed: handler in target "
-                                     << on << " not found\n"
-                 << "  sender " << _current_context->session->_sid << " at state "
-                                << _current_context->state << "."
-                 << endl;
-        }
-#endif
-        return false;
     }
 
-    CCScope __scope(session, ev);
-
-    EvCtx   ctx(this);
-
-    ctx.sender       = _current_context->parent->session->_sid;
-    ctx.sender_state = _current_context->parent->state;
-
-    if (NULL != pfx) {
-        int xN;
-        const ArgTV* xA = pfx->arg_list(xN);
-        cmd->execute(ctx, xA, xN, arg);     // callback
-    }
-    else {
-        cmd->execute(ctx, NULL, 0, arg);
-    }
-
-    return true;
+    delete arg;
+    return status;
 }
 
 // ---------------------------------------------------------------------------
@@ -357,34 +321,22 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 
     if (! session->local.stopper.isset()) {     // alive session
 
-        StateCmd*   cmd = find_state_handler(session->_sid.id(), evmsg->name());
-        if (NULL != cmd) {
+        ExecuteContext  run(session,
+                            evmsg,
+                            find_state_handler(session->_sid.id(), evmsg->name()));
 
-            CCScope __scope(session, evmsg->name());
+        EvCtx   ctx(this);
 
-            EvCtx   ctx(this);
+        ctx.sender       = evmsg->sender();
+        ctx.sender_state = evmsg->sender_state();
 
-            ctx.sender       = evmsg->sender();
-            ctx.sender_state = evmsg->sender_state();
-
-            if (NULL != evmsg->pfx()) {
-                int xN;
-                const ArgTV* xA = evmsg->pfx()->arg_list(xN);
-                cmd->execute(ctx, xA, xN, evmsg->arg());    // postback
-            }
-            else {
-                cmd->execute(ctx, NULL, 0, evmsg->arg());
-            }
+        if (NULL != evmsg->pfx()) {
+            int xN;
+            const ArgTV* xA = evmsg->pfx()->arg_list(xN);
+            run.execute(ctx, xA, xN, evmsg->arg());     // postback
         }
-        else {  // state handler not found
-#if 1
-            cerr << "---\nPOST event (" << evmsg->name() << ") to target "
-                                        << session->_sid
-                                            << " not delivered: handler not found\n"
-                 << "  sender " << evmsg->sender() << " at state "
-                                << evmsg->sender_state() << "."
-                 << endl;
-#endif
+        else {
+            run.execute(ctx, NULL, 0, evmsg->arg());
         }
     }
 
@@ -399,27 +351,17 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 
     if (! session->local.stopper.isset()) {     // alive session
 
-        StateCmd*   cmd = find_state_handler(session->_sid.id(), alarm->name());
-        if (NULL != cmd) {
+        ExecuteContext  run(session,
+                            alarm,
+                            find_state_handler(session->_sid.id(), alarm->name()));
 
-            CCScope __scope(session, alarm->name());
+        EvCtx   ctx(this);
 
-            EvCtx   ctx(this);
+        ctx.sender       = session->_sid;
+        ctx.sender_state = alarm->sender_state();
+        ctx.alarm_id     = alarm->aid();
 
-            ctx.sender       = session->_sid;
-            ctx.sender_state = alarm->sender_state();
-            ctx.alarm_id     = alarm->aid();
-
-            cmd->execute(ctx, NULL, 0, alarm->arg());
-        }
-        else {  // state handler not found
-#if 1
-            cerr << "---\nALARM event (" << alarm->name() << ") on target "
-                                         << session->_sid
-                                            << " not delivered: handler not found."
-                 << endl;
-#endif
-        }
+        run.execute(ctx, NULL, 0, alarm->arg());
     }
 
     assert(NULL    != session->_kernel);
@@ -438,31 +380,21 @@ void r4Kernel::dispatch_evio (EvIO* evio)
 
     if (! session->local.stopper.isset()) {     // alive session
 
-        StateCmd*   cmd = find_state_handler(session->_sid.id(), evio->name());
-        if (NULL != cmd) {
+        ExecuteContext  run(session,
+                            evio,
+                            find_state_handler(session->_sid.id(), evio->name()));
 
-            CCScope __scope(session, evio->name());
+        EvCtx   ctx(this);
 
-            EvCtx   ctx(this);
+        ctx.sender       = session->_sid;
+        ctx.sender_state = evio->sender_state();
 
-            ctx.sender       = session->_sid;
-            ctx.sender_state = evio->sender_state();
+        DatIO   dio(evio->fd(), evio->mode());
 
-            DatIO   dio(evio->fd(), evio->mode());
+        ArgTV   iop;
+        iop.set(&typeid(dio), &dio);
 
-            ArgTV   iop;
-            iop.set(&typeid(dio), &dio);
-
-            cmd->execute(ctx, &iop, 1, evio->arg());
-        }
-        else {  // state handler not found
-#if 1
-            cerr << "---\nI/O event (" << evio->name() << ") on target "
-                                       << session->_sid
-                                            << " not delivered: handler not found."
-                 << endl;
-#endif
-        }
+        run.execute(ctx, &iop, 1, evio->arg());
     }
 }
 

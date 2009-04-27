@@ -18,6 +18,8 @@ include/coe-misc.h
     src/coe--util.cpp
     src/coe--event.h
     src/coe--event.cpp
+    src/coe--context.h
+    src/coe--context.cpp
 include/coe--local.h
     src/coe--errno.h
 

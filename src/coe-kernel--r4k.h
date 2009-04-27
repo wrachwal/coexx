@@ -25,7 +25,7 @@ THE SOFTWARE.
 #ifndef __COE_KERNEL__R4K_H
 #define __COE_KERNEL__R4K_H
 
-#include "coe--event.h"
+#include "coe--context.h"
 #include "coe--util.h"          // IdentGenerator<>
 #include "coe-sys.h"            // RWLock, ...
 
@@ -80,8 +80,8 @@ struct r4Kernel {
 
     dLink<r4Kernel>     _link_kernel;
 
-    SessionContext*     _current_context;
-    SessionContext      _kernel_session_context;
+    ExecuteContext*     _current_context;
+    ExecuteContext      _kernel_session_context;
 
     /*
      * alarms

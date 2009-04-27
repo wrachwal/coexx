@@ -23,6 +23,7 @@ THE SOFTWARE.
 *****************************************************************************/
 
 #include "coe--event.h"
+#include "coe--context.h"
 #include "coe-thread--d4t.h"
 #include "coe-session--r4s.h"
 
@@ -83,7 +84,7 @@ bool EvUser::is_event_of (KiD kernel) const
 // ===========================================================================
 // EvMsg
 
-EvMsg::EvMsg (const string& name, ValParam* arg, SessionContext& cc)
+EvMsg::EvMsg (const string& name, ValParam* arg, ExecuteContext& cc)
 :   EvUser(name, arg),
     _prefix(NULL)
 {
@@ -125,11 +126,17 @@ void EvMsg::dispatch ()
     kernel->dispatch_evmsg(this);
 }
 
+void EvMsg::describe (ostream& os) const
+{
+    os << "POST " << _target->_sid << " at (" << _name << ") <- "
+                  << _sender       << " at (" << _sender_state << ")";
+}
+
 // ===========================================================================
 // EvAlarm
 
 EvAlarm::EvAlarm (const TimeSpec& abs_time, const string& name, ValParam* arg,
-                  SessionContext& cc)
+                  ExecuteContext& cc)
 :   EvUser(name, arg),
     _time_due(abs_time)
 {
@@ -174,11 +181,17 @@ void EvAlarm::dispatch ()
     kernel->dispatch_alarm(this);
 }
 
+void EvAlarm::describe (ostream& os) const
+{
+    os << "ALARM " << _target->_sid << " at (" << _name << " <- "
+                                               << _sender_state << ")";
+}
+
 // ===========================================================================
 // EvIO
 
 EvIO::EvIO (int fd, IO_Mode mode, const string& name, ValParam* arg,
-            SessionContext& cc)
+            ExecuteContext& cc)
 :   EvUser(name, arg),
     _fd(fd),
     _mode(mode),
@@ -204,6 +217,12 @@ void EvIO::dispatch ()
     r4Kernel*       kernel = _target->_kernel;
     kernel->_thread->_current_kernel = kernel;
     kernel->dispatch_evio(this);
+}
+
+void EvIO::describe (ostream& os) const
+{
+    os << "I/O " << _target->_sid << " at (" << _name << " <- "
+                                             << _sender_state << ")";
 }
 
 // ===========================================================================
