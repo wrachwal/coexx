@@ -570,7 +570,7 @@ bool d4Thread::post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg)
 
 // ---------------------------------------------------------------------------
 
-AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* evalm)
+AiD d4Thread::create_alarm (EvAlarm* evalm)
 {
     r4Session*  session = evalm->target();
     assert(NULL != session);
@@ -578,25 +578,14 @@ AiD d4Thread::create_alarm (SetupAlarmMode mode, const TimeSpec& ts, EvAlarm* ev
     assert(NULL != kernel);
 
     // generate unique `aid' for the alarm event
+    assert(! evalm->aid().isset());
     AiD aid = session->_aid_generator.generate_next(
                     AiDExistsPred(session->_list_alarm)
                 );
     evalm->aid(aid);
 
-    // calculate time `due' (optionally remove name-based alarms)
-    TimeSpec    due;
-
-    if (mode == _DELAY_SET) {
-        //FIXME: get_current_time() or _timestamp
-        due = _timestamp + ts;
-    }
-    else {
-        assert(0);
-        return AiD::NONE();
-    }
-    evalm->time_due(due);
-
     // insert alarm event in to due/sid/aid map (sorted by time due--main index key)
+    TimeSpec        due = evalm->time_due();
     DueSidAid_Key   dsa(due, session->_sid, aid);
 
     pair<DueSidAid_Map::iterator, bool> insert_dsa =
@@ -644,18 +633,53 @@ void d4Thread::delete_alarm (EvAlarm* evalm)
         _dsa_map.erase(evalm->dsa_iter());
     }
 
-#if 1
-    {
-        //XXX: extensive consistency check (enable only for debugging)
-        Sid1Aid_Key     s1a(session->_sid, evalm->aid());
-        assert(kernel->_s1a_map.find(s1a) == evalm->s1a_iter());
-    }
-#endif
+    // s1a_iter() already assert'ed in r4Kernel::delete_alarm()
     kernel->_s1a_map.erase(evalm->s1a_iter());
 
     session->_list_alarm.remove(evalm);
 
     delete evalm;
+}
+
+// ------------------------------------
+
+void d4Thread::adjust_alarm (EvAlarm* evalm, const TimeSpec& abs_time)
+{
+    assert(Sched::BUSY == sched.state);
+
+    r4Session*  session = evalm->target();
+    assert(NULL != session);
+    r4Kernel*   kernel  = session->_kernel;
+    assert(NULL != kernel);
+
+    // just enqueued? - remove when it'd need to wait
+    if (evalm->enqueued()) {
+        if (_timestamp < abs_time) {
+            _pqueue.remove(evalm);
+        }
+    }
+
+    // erase from due/sid/aid map if present
+    if (evalm->dsa_iter() != invalid_dsa_iter()) {
+#if 1
+        //XXX: extensive consistency check (enable only for debugging)
+        DueSidAid_Key   dsa(evalm->time_due(), session->_sid, evalm->aid());
+        assert(_dsa_map.find(dsa) == evalm->dsa_iter());
+#endif
+        _dsa_map.erase(evalm->dsa_iter());
+    }
+
+    // change expiration time now
+    evalm->time_due(abs_time);
+
+    // re-insert alarm event in to due/sid/aid map
+    DueSidAid_Key   dsa(abs_time, session->_sid, evalm->aid());
+
+    pair<DueSidAid_Map::iterator, bool> insert_dsa =
+        this->_dsa_map.insert(DueSidAid_Map::value_type(dsa, evalm));
+    assert(true == insert_dsa.second);
+
+    evalm->dsa_iter(insert_dsa.first);  // store iterator for fast removal
 }
 
 // ---------------------------------------------------------------------------

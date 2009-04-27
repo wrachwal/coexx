@@ -48,7 +48,7 @@ void EvCommon::prio_order (int po)
 // EvUser
 
 EvUser::EvUser (const string& name, ValParam* arg)
-  : _target(NULL),
+:   _target(NULL),
     _name(name),
     _arg(arg)
 {
@@ -84,7 +84,7 @@ bool EvUser::is_event_of (KiD kernel) const
 // EvMsg
 
 EvMsg::EvMsg (const string& name, ValParam* arg, SessionContext& cc)
-  : EvUser(name, arg),
+:   EvUser(name, arg),
     _prefix(NULL)
 {
     _source       = cc.session;
@@ -93,7 +93,7 @@ EvMsg::EvMsg (const string& name, ValParam* arg, SessionContext& cc)
 }
 
 EvMsg::EvMsg (const string& name, ValParam* arg)
-  : EvUser(name, arg),
+:   EvUser(name, arg),
     _source(NULL),
     _prefix(NULL)
 {
@@ -128,8 +128,10 @@ void EvMsg::dispatch ()
 // ===========================================================================
 // EvAlarm
 
-EvAlarm::EvAlarm (const string& name, ValParam* arg, SessionContext& cc)
-  : EvUser(name, arg)
+EvAlarm::EvAlarm (const TimeSpec& abs_time, const string& name, ValParam* arg,
+                  SessionContext& cc)
+:   EvUser(name, arg),
+    _time_due(abs_time)
 {
     _target       = cc.session;
     _sender_state = cc.state;
@@ -175,8 +177,9 @@ void EvAlarm::dispatch ()
 // ===========================================================================
 // EvIO
 
-EvIO::EvIO (int fd, IO_Mode mode, const string& name, ValParam* arg, SessionContext& cc)
-  : EvUser(name, arg),
+EvIO::EvIO (int fd, IO_Mode mode, const string& name, ValParam* arg,
+            SessionContext& cc)
+:   EvUser(name, arg),
     _fd(fd),
     _mode(mode),
     _active(true)

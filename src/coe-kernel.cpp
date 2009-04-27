@@ -66,6 +66,8 @@ Kernel& Kernel::create_new ()
     return *pKernel;
 }
 
+// ------------------------------------
+
 KiD Kernel::ID () const
 {
     return _r4kernel->_kid;
@@ -104,6 +106,8 @@ void Kernel::run_event_loop ()
         _r4kernel->_thread->run_event_loop();
     }
 }
+
+// ------------------------------------
 
 bool Kernel::run_event_loop (TiD tid)
 {
@@ -165,6 +169,8 @@ bool Kernel::anon_post (SiD to, const string& ev, ValParam* vp)
     return d4Thread::post_event(NULL/*source-kernel*/, to, new EvMsg(ev, vp));
 }
 
+// ------------------------------------
+
 bool Kernel::post (SiD to, const string& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
@@ -183,6 +189,8 @@ bool Kernel::post (SiD to, const string& ev, ValParam* vp)
                             new EvMsg(ev, vp, *_r4kernel->_current_context)
                         );
 }
+
+// ------------------------------------
 
 bool Kernel::yield (const string& ev, ValParam* vp)
 {
@@ -216,6 +224,8 @@ bool Kernel::call (SiD on, const string& ev)
     return _r4kernel->call__arg(on, ev, NULL, NULL);
 }
 
+// ------------------------------------
+
 bool Kernel::call (SiD on, const string& ev, RefParam* rp)
 {
     if (   ! kernel_attached(_r4kernel)
@@ -228,6 +238,8 @@ bool Kernel::call (SiD on, const string& ev, RefParam* rp)
     }
     return _r4kernel->call__arg(on, ev, NULL, rp);
 }
+
+// ------------------------------------
 
 bool Kernel::call (SiD on, const string& ev, ValParam* vp)
 {
@@ -254,6 +266,8 @@ AiD Kernel::alarm_remove (AiD aid)
     return _r4kernel->delete_alarm(aid) ? aid : AiD::NONE();
 }
 
+// ------------------------------------
+
 AiD Kernel::delay_set (const string ev, TimeSpec duration, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
@@ -264,11 +278,48 @@ AiD Kernel::delay_set (const string ev, TimeSpec duration, ValParam* vp)
         delete vp;
         return AiD::NONE();
     }
-    return _r4kernel->_thread->create_alarm(
-                                    d4Thread::_DELAY_SET,
-                                    duration,
-                                    new EvAlarm(ev, vp, *_r4kernel->_current_context)
-                                );
+    EvAlarm*    evalm = new EvAlarm(_r4kernel->_thread->_timestamp + duration,
+                                    ev,
+                                    vp,
+                                    *_r4kernel->_current_context);
+    return _r4kernel->_thread->create_alarm(evalm);
+}
+
+// ------------------------------------
+
+bool Kernel::delay_adjust (AiD aid, TimeSpec secs_from_now)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! current_session_active(_r4kernel)
+        || ! delay_gt0(secs_from_now))
+    {
+        return false;
+    }
+    return _r4kernel->adjust_alarm(
+                            aid,
+                            _r4kernel->_thread->_timestamp + secs_from_now,
+                            /*update*/false,
+                            NULL
+                        );
+}
+
+// ------------------------------------
+
+bool Kernel::delay_adjust (AiD aid, TimeSpec secs_from_now, ValParam* vp)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! current_session_active(_r4kernel)
+        || ! delay_gt0(secs_from_now))
+    {
+        delete vp;
+        return false;
+    }
+    return _r4kernel->adjust_alarm(
+                            aid,
+                            _r4kernel->_thread->_timestamp + secs_from_now,
+                            /*update*/true,
+                            vp
+                        );
 }
 
 // ---------------------------------------------------------------------------
@@ -288,6 +339,8 @@ bool Kernel::select (int fd, IO_Mode mode)
                                 );
 }
 
+// ------------------------------------
+
 bool Kernel::select (int fd, IO_Mode mode, const string& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
@@ -305,6 +358,8 @@ bool Kernel::select (int fd, IO_Mode mode, const string& ev, ValParam* vp)
     return _r4kernel->_thread->create_io_watcher(evio);
 }
 
+// ------------------------------------
+
 bool Kernel::select_pause (int fd, IO_Mode mode)
 {
     if (   ! kernel_attached(_r4kernel)
@@ -319,6 +374,8 @@ bool Kernel::select_pause (int fd, IO_Mode mode)
                                     _r4kernel->_current_context->session
                                 );
 }
+
+// ------------------------------------
 
 bool Kernel::select_resume (int fd, IO_Mode mode)
 {
@@ -341,6 +398,8 @@ void Kernel::state (const string& ev)
 {
     _r4kernel->state__cmd(ev, NULL);
 }
+
+// ------------------------------------
 
 void Kernel::state (const string& ev, StateCmd* handler)
 {

@@ -112,8 +112,10 @@ public:
     AiD  alarm_remove (AiD aid);                // reset
     AiD  alarm_set    (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
     bool alarm_adjust (AiD aid, TimeSpec delta_secs);
+    bool alarm_adjust (AiD aid, TimeSpec delta_secs, ValParam* vp);
     AiD  delay_set    (const std::string ev, TimeSpec duration, ValParam* vp=0);
     bool delay_adjust (AiD aid, TimeSpec secs_from_now);
+    bool delay_adjust (AiD aid, TimeSpec secs_from_now, ValParam* vp);
     //
     // Periodicity
     bool set_periodic       (AiD aid, TimeSpec interval);

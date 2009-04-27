@@ -220,6 +220,33 @@ bool r4Kernel::delete_alarm (AiD aid)
     return true;
 }
 
+// ------------------------------------
+
+bool r4Kernel::adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, ValParam* new_arg)
+{
+    Sid1Aid_Key     s1a(_current_context->session->_sid, aid);
+
+    Sid1Aid_Map::iterator   i = _s1a_map.find(s1a);
+
+    if (i == _s1a_map.end()) {
+        delete new_arg;
+        return false;
+    }
+
+    EvAlarm*    alarm = (*i).second;
+    assert(alarm->s1a_iter() == i);     // btw cheap validity check
+
+    if (update) {
+        ValParam*   old_arg = alarm->arg(new_arg);
+        if (old_arg != new_arg) {
+            delete old_arg;
+        }
+    }
+
+    _thread->adjust_alarm(alarm, abs_time);
+    return true;
+}
+
 // ---------------------------------------------------------------------------
 
 StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)

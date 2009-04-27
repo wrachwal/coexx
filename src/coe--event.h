@@ -216,7 +216,9 @@ private:
 
 class EvAlarm : public EvUser {
 public:
-    EvAlarm (const std::string& name, ValParam* arg, SessionContext& cc);
+    EvAlarm (const TimeSpec& abs_time,
+             const std::string& name, ValParam* arg,
+             SessionContext& cc);
     ~EvAlarm ();
 
     /*final*/ void dispatch ();
@@ -254,7 +256,9 @@ struct _EvAlarm {
 
 class EvIO : public EvUser {
 public:
-    EvIO (int fd, IO_Mode mode, const std::string& name, ValParam* arg, SessionContext& cc);
+    EvIO (int fd, IO_Mode mode,
+          const std::string& name, ValParam* arg,
+          SessionContext& cc);
     ~EvIO ();
 
     /*final*/ void dispatch ();

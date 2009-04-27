@@ -105,7 +105,8 @@ struct r4Kernel {
     SiD start_session (Session* s, EventArg* arg);
     void call_stop  (r4Session& root, r4Session& node);
 
-    bool delete_alarm (coe::AiD aid);
+    bool delete_alarm (AiD aid);
+    bool adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, ValParam* new_arg);
 
     StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
     void state__cmd (const std::string& ev, StateCmd* cmd);

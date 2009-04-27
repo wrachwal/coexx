@@ -68,11 +68,9 @@ struct d4Thread {
     static bool post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
     static bool post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg);
 
-    enum SetupAlarmMode {
-        _DELAY_SET
-    };
-    AiD  create_alarm (SetupAlarmMode mode, const TimeSpec& spec, EvAlarm* evalm);
+    AiD  create_alarm (EvAlarm* evalm);
     void delete_alarm (EvAlarm* evalm);
+    void adjust_alarm (EvAlarm* evalm, const TimeSpec& abs_time);
 
     bool create_io_watcher (EvIO* evio);
     bool delete_io_watcher (int fd, IO_Mode mode, r4Session* session);
