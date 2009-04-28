@@ -47,6 +47,12 @@ public:
             return *this;
         }
 
+    ~owned_ptr ()
+        {
+            delete _ptr;
+            _ptr = 0;
+        }
+
     T& operator*  () const { return *_ptr; }
     T* operator-> () const { return _ptr; }
 
@@ -85,6 +91,12 @@ public:
             return *this;
         }
 
+    ~owned_array_ptr ()
+        {
+            delete[] _tab;
+            _tab = 0;
+        }
+
     T& operator[] (int i) const { return _tab[i]; }
 
     T*     get () const { return _tab; }
@@ -93,7 +105,7 @@ public:
     void reset (T* tab = 0)
         {
             if (tab != _tab) {
-                delete _tab;
+                delete[] _tab;
                 _tab = tab;
             }
         }
