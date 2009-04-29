@@ -74,6 +74,11 @@ void EvUser::target (r4Session* session)
     _target = session;
 }
 
+void EvUser::sender_state (const string& new_sender_state)
+{
+    _sender_state = new_sender_state;
+}
+
 bool EvUser::is_event_of (KiD kernel) const
 {
     assert(NULL != _target);

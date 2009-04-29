@@ -166,6 +166,7 @@ public:
     void       target (r4Session* session);
 
     const std::string& sender_state () const { return _sender_state; }
+    void               sender_state (const std::string& new_sender_state);
 
 protected:
     EvUser (const std::string& name, ValParam* arg);

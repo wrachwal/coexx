@@ -212,6 +212,9 @@ bool r4Kernel::adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, Val
     EvAlarm*    alarm = (*i).second;
     assert(alarm->s1a_iter() == i);     // btw cheap validity check
 
+    // remember where it was adjust'ed
+    alarm->sender_state(_current_context->state);
+
     if (update) {
         ValParam*   old_arg = alarm->arg(new_arg);
         if (old_arg != new_arg) {
