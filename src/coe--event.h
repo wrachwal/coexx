@@ -55,8 +55,9 @@ struct Sid1Aid_Key {
         : sid_1(s.id()), aid(a) {}
     bool operator< (const Sid1Aid_Key& rhs) const
         {
-            return sid_1 < rhs.sid_1 || (sid_1 == rhs.sid_1
-                && aid   < rhs.aid);
+            if (    sid_1 < rhs.sid_1) return true;
+            if (rhs.sid_1 <     sid_1) return false;
+            return  aid   < rhs.aid;
         }
     // ------------
     SiD::IntType    sid_1;
@@ -76,9 +77,11 @@ struct DueSidAid_Key {
         : due(d), sid(s), aid(a) {}
     bool operator< (const DueSidAid_Key& rhs) const
         {
-            return due < rhs.due  || ((due == rhs.due
-                && sid < rhs.sid) ||  (sid == rhs.sid
-                && aid < rhs.aid));
+            if (    due < rhs.due) return true;
+            if (rhs.due <     due) return false;
+            if (    sid < rhs.sid) return true;
+            if (rhs.sid <     sid) return false;
+            return  aid < rhs.aid;
         }
     // ------------
     TimeSpec    due;
@@ -101,9 +104,11 @@ struct FdModeSid_Key {
         : fd(f), mode(m), sid(s) {}
     bool operator< (const FdModeSid_Key& rhs) const
         {
-            return fd   < rhs.fd    || ((fd   == rhs.fd
-                && mode < rhs.mode) ||  (mode == rhs.mode
-                && sid  < rhs.sid));
+            if (    fd   < rhs.fd)   return true;
+            if (rhs.fd   <     fd)   return false;
+            if (    mode < rhs.mode) return true;
+            if (rhs.mode <     mode) return false;
+            return  sid  < rhs.sid;
         }
     // ------------
     int     fd;

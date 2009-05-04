@@ -753,7 +753,9 @@ void d4Thread::delete_io_watcher (EvIO* evio)
         assert(sched.io_requests >= 0);
     }
 
-    _fms_map.erase(FdModeSid_Key(evio->fd(), evio->mode(), session->_sid));
+    FdModeSid_Key   fms(evio->fd(), evio->mode(), session->_sid);
+    size_t  erased = _fms_map.erase(fms);
+    assert(1 == erased);
 
     session->_list_evio.remove(evio);
 

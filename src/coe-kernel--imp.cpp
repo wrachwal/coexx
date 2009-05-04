@@ -60,14 +60,14 @@ TimeSpec::TimeSpec (double sec)
 
 int TimeSpec::compare (const TimeSpec& rhs) const
 {
-    if (tv_sec < rhs.tv_sec)
+    if (    tv_sec < rhs.tv_sec)
         return -1;
-    if (rhs.tv_sec < tv_sec)
+    if (rhs.tv_sec <     tv_sec)
         return +1;
 
-    if (tv_nsec < rhs.tv_nsec)
+    if (    tv_nsec < rhs.tv_nsec)
         return -1;
-    if (rhs.tv_nsec < tv_nsec)
+    if (rhs.tv_nsec <     tv_nsec)
         return +1;
 
     return 0;
