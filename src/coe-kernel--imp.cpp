@@ -26,24 +26,10 @@ THE SOFTWARE.
 #include "coe--util.h"
 
 #include <iostream> // debug
+#include <cassert>
 
 using namespace std;
 using namespace coe;
-
-// ---------------------------------------------------------------------------
-
-static void
-report_arg_mismatch (ostream& os,
-                     int xN,
-                     int cj,
-                     const type_info& at,
-                     const type_info& ct
-                    )
-{
-    os << "argument #" << (cj + 1) << " type mismatch"
-       << " (handler: `" << demangle(ct)
-       << "', event: `"  << demangle(at) << "')" << endl;
-}
 
 // ===========================================================================
 // TimeSpec
@@ -103,6 +89,69 @@ ostream& coe::operator<< (ostream& os, const TimeSpec& ts)
 }
 
 // ===========================================================================
+// _TypeD
+
+const _TypeD* _TypeD::_register (_TypeD* type)
+{
+    static _TypeD*  head = NULL;
+
+    if (NULL != type) {
+        assert(NULL == type->next);
+        type->pos  = head ? head->pos + 1 : 0;
+        type->next = head;
+        head = type;
+    }
+
+    return head;
+}
+
+// ===========================================================================
+// _TypeDN
+
+const _TypeDN* _TypeDN::_register (_TypeDN* type)
+{
+    static _TypeDN* head = NULL;
+
+    if (NULL != type) {
+        assert(NULL == type->next);
+        type->pos  = head ? head->pos + 1 : 0;
+        type->next = head;
+        head = type;
+    }
+
+    return head;
+}
+
+// ------------------------------------
+
+bool coe::syntax_check (const _TypeDN* hT, const _TypeDN* xT, const _TypeDN* aT)
+{
+    if (NULL == xT) {
+        return (hT == aT);
+    }
+    if (NULL == aT) {
+        return (hT == xT);
+    }
+    if (NULL == hT || hT->len != xT->len + aT->len) {
+        return false;
+    }
+
+    size_t i = 0;
+    while (i < xT->len) {
+        if (hT->info[i] != xT->info[i]) {
+            return false;
+        }
+        ++i;
+    }
+    for (size_t j = 0; j < aT->len; ++j, ++i) {
+        if (hT->info[i] != aT->info[j]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// ===========================================================================
 // EventArg
 
 EventArg::~EventArg ()
@@ -116,223 +165,119 @@ StateCmd::~StateCmd ()
 {
 }
 
-// ---------------------------------------------------------------------------
-
-bool StateCmd::syntax (const ArgTV* xA, int xN, EventArg* arg, bool report) const
-{
-    int eN = 0;
-    const ArgTV*    eA = arg ?                   arg->arg_list(eN) : NULL;
-
-    int cN;
-    const ArgTV*    cA = const_cast<StateCmd*>(this)->arg_list(cN);
-
-    if (xN + eN != cN) {
-        cerr << "handler has " << cN << " args, while event ("
-                               << xN << "+" << eN << ") args" << endl;
-        return false;
-    }
-
-    int cj = 0;
-
-    //
-    // xA
-    //
-    for (int xj = 0; xj < xN; ++xj, ++cj) {
-        if (*xA[xj]._ti != *cA[cj]._ti) {
-            if (report)
-                report_arg_mismatch(cerr, xN, cj, *xA[xj]._ti, *cA[cj]._ti);
-            return false;
-        }
-    }
-
-    //
-    // eA
-    //
-    for (int ej = 0; ej < eN; ++ej, ++cj) {
-        if (*eA[ej]._ti != *cA[cj]._ti) {
-            if (report)
-                report_arg_mismatch(cerr, xN, cj, *eA[ej]._ti, *cA[cj]._ti);
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// ---------------------------------------------------------------------------
-
-bool StateCmd::execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg)
-{
-    int eN = 0;
-    const ArgTV*    eA = arg ? arg->arg_list(eN) : NULL;
-
-    int cN;
-    ArgTV*          cA =      this->arg_list(cN);
-
-    if (xN + eN != cN) {
-        cerr << "handler has " << cN << " args, while event ("
-                               << xN << "+" << eN << ") args" << endl;
-        return false;
-    }
-
-    int cj = 0;
-
-    //
-    // cA <-- xA
-    //
-    for (int xj = 0; xj < xN; ++xj, ++cj) {
-        if (*xA[xj]._ti != *cA[cj]._ti) {
-            report_arg_mismatch(cerr, xN, cj, *xA[xj]._ti, *cA[cj]._ti);
-            return false;
-        }
-        cA[cj]._pv = xA[xj]._pv;
-    }
-
-    //
-    // cA <-- eA
-    //
-    for (int ej = 0; ej < eN; ++ej, ++cj) {
-        if (*eA[ej]._ti != *cA[cj]._ti) {
-            report_arg_mismatch(cerr, xN, cj, *eA[ej]._ti, *cA[cj]._ti);
-            return false;
-        }
-        cA[cj]._pv = eA[ej]._pv;
-    }
-
-    //
-    // `_execute()' will use (_arg[*]._pv) pointers to values
-    //              just set in the previous step.
-    //
-    _execute(ctx);
-
-    return true;
-}
-
 // ===========================================================================
 // MFunCmd0 ... MFunCmd5
 
-ArgTV* MFunCmd0::arg_list (int& len)
-{
-    len = 0;
-    return NULL;
-}
-
-void MFunCmd0::_execute (EvCtx& ctx) const
+void MFunCmd0::execute (EvCtx& ctx, void* arg[]) const
 {
     (_obj->*_memfun)(ctx);
 }
 
-void MFunCmd1::_execute (EvCtx& ctx) const
+void MFunCmd1::execute (EvCtx& ctx, void* arg[]) const
 {
     (_obj->*_memfun)(
         ctx,
-        *(_Arg*)_arg[0]._pv
+        *(_Arg*)arg[0]
     );
 }
 
-void MFunCmd2::_execute (EvCtx& ctx) const
+void MFunCmd2::execute (EvCtx& ctx, void* arg[]) const
 {
     (_obj->*_memfun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1]
     );
 }
 
-void MFunCmd3::_execute (EvCtx& ctx) const
+void MFunCmd3::execute (EvCtx& ctx, void* arg[]) const
 {
     (_obj->*_memfun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv,
-        *(_Arg*)_arg[2]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1],
+        *(_Arg*)arg[2]
     );
 }
 
-void MFunCmd4::_execute (EvCtx& ctx) const
+void MFunCmd4::execute (EvCtx& ctx, void* arg[]) const
 {
     (_obj->*_memfun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv,
-        *(_Arg*)_arg[2]._pv,
-        *(_Arg*)_arg[3]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1],
+        *(_Arg*)arg[2],
+        *(_Arg*)arg[3]
     );
 }
 
-void MFunCmd5::_execute (EvCtx& ctx) const
+void MFunCmd5::execute (EvCtx& ctx, void* arg[]) const
 {
     (_obj->*_memfun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv,
-        *(_Arg*)_arg[2]._pv,
-        *(_Arg*)_arg[3]._pv,
-        *(_Arg*)_arg[4]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1],
+        *(_Arg*)arg[2],
+        *(_Arg*)arg[3],
+        *(_Arg*)arg[4]
     );
 }
 
 // ===========================================================================
 // GFunCmd0 ... GFunCmd5
 
-ArgTV* GFunCmd0::arg_list (int& len)
-{
-    len = 0;
-    return NULL;
-}
-
-void GFunCmd0::_execute (EvCtx& ctx) const
+void GFunCmd0::execute (EvCtx& ctx, void* arg[]) const
 {
     (*_fun)(ctx);
 }
 
-void GFunCmd1::_execute (EvCtx& ctx) const
+void GFunCmd1::execute (EvCtx& ctx, void* arg[]) const
 {
     (*_fun)(
         ctx,
-        *(_Arg*)_arg[0]._pv
+        *(_Arg*)arg[0]
     );
 }
 
-void GFunCmd2::_execute (EvCtx& ctx) const
+void GFunCmd2::execute (EvCtx& ctx, void* arg[]) const
 {
     (*_fun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1]
     );
 }
 
-void GFunCmd3::_execute (EvCtx& ctx) const
+void GFunCmd3::execute (EvCtx& ctx, void* arg[]) const
 {
     (*_fun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv,
-        *(_Arg*)_arg[2]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1],
+        *(_Arg*)arg[2]
     );
 }
 
-void GFunCmd4::_execute (EvCtx& ctx) const
+void GFunCmd4::execute (EvCtx& ctx, void* arg[]) const
 {
     (*_fun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv,
-        *(_Arg*)_arg[2]._pv,
-        *(_Arg*)_arg[3]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1],
+        *(_Arg*)arg[2],
+        *(_Arg*)arg[3]
     );
 }
 
-void GFunCmd5::_execute (EvCtx& ctx) const
+void GFunCmd5::execute (EvCtx& ctx, void* arg[]) const
 {
     (*_fun)(
         ctx,
-        *(_Arg*)_arg[0]._pv,
-        *(_Arg*)_arg[1]._pv,
-        *(_Arg*)_arg[2]._pv,
-        *(_Arg*)_arg[3]._pv,
-        *(_Arg*)_arg[4]._pv
+        *(_Arg*)arg[0],
+        *(_Arg*)arg[1],
+        *(_Arg*)arg[2],
+        *(_Arg*)arg[3],
+        *(_Arg*)arg[4]
     );
 }
 

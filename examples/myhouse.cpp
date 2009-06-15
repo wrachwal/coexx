@@ -45,9 +45,9 @@ public:
 private:
     MyHouse (string name)
         :   Session(handler(*this, &MyHouse::_start)),
+            _coridor(*this),
             _name(name)
         {
-            set_heap(this);
         }
     ~MyHouse ()
         {}
@@ -111,18 +111,17 @@ private:
         }
 
     class Coridor {
+        MyHouse&    _house;
     public:
-        void on_coridor_msg (TEvCtx<MyHouse>& ctx, string& msg)
+        Coridor (MyHouse& house) : _house(house) {}
+        void on_coridor_msg (EvCtx& ctx, string& msg)
             {
-                cout << __FUNCTION__ << ": TEvCtx<MyHouse> -> "
-                     << ctx->_name  // NOTE: nested class has access to outer's private!
-                     << " (" << ctx->ID() << ')'
-                     << endl;
                 cout << __FUNCTION__ << ": Kernel::current_session() -> "
                      << Kernel::current_session()
                      << endl;
                 msg += string(" (called from ") + __FUNCTION__ + ")";
-                ctx->print_msg(msg);    // typed heap :)
+                // NOTE: nested class has access to outer's private!
+                _house.print_msg(msg);
             }
     } _coridor;
 

@@ -43,21 +43,204 @@ class StateCmd;
     //  class GFunCmd0 ... GFunCmd5
 
 // ===========================================================================
-// ArgTV
+// _TypeD
 
-struct ArgTV {
-    void set (const std::type_info* ti, void* pv)
-        {
-            _ti = ti;
-            _pv = pv;
-        }
-    void set (const std::type_info* ti)
-        {
-            _ti = ti;
-        }
-    const std::type_info* _ti;
-    void*                 _pv;
+template<class> class _TypeI;
+
+struct _TypeD {
+    const std::type_info*   info;
+    const _TypeD*           next;
+    size_t                  pos;
+
+    static const _TypeD* registry () { return _register(0); }
+
+private:
+    template<class> friend class _TypeI;
+    template<class T>
+    explicit _TypeD (T*) : info(&typeid(T)), next(0) { _register(this); }
+    static const _TypeD* _register (_TypeD* type);
 };
+
+// ---------------------------------------------------------------------------
+// _TypeI<T>
+
+template<class T>
+class _TypeI {
+public:
+    const _TypeD* data () const { return &_data; }
+
+private:
+    static const _TypeD _data;
+};
+
+template<class T>
+const _TypeD _TypeI<T>::_data((T*)0);
+
+// ===========================================================================
+// _TypeDN
+
+template<class>                             class _TypeI1;
+template<class, class>                      class _TypeI2;
+template<class, class, class>               class _TypeI3;
+template<class, class, class, class>        class _TypeI4;
+template<class, class, class, class, class> class _TypeI5;
+
+struct _TypeDN {
+    const _TypeD**  info;   // NULL-terminated array
+    size_t          len;
+    const _TypeDN*  next;
+    size_t          pos;
+
+    static const _TypeDN* registry () { return _register(0); }
+
+private:
+    template<class>                             friend class _TypeI1;
+    template<class, class>                      friend class _TypeI2;
+    template<class, class, class>               friend class _TypeI3;
+    template<class, class, class, class>        friend class _TypeI4;
+    template<class, class, class, class, class> friend class _TypeI5;
+
+    template<class T1> explicit
+    _TypeDN (T1*) : len(1), next(0), pos(0)
+        {
+            static const _TypeD* _tab[] = {
+                _TypeI<T1>().data(),
+                0
+            };
+            info = _tab;
+            _register(this);
+        }
+
+    template<class T1, class T2>
+    _TypeDN (T1*, T2*) : len(2), next(0), pos(0)
+        {
+            static const _TypeD* _tab[] = {
+                _TypeI<T1>().data(),
+                _TypeI<T2>().data(),
+                0
+            };
+            info = _tab;
+            _register(this);
+        }
+
+    template<class T1, class T2, class T3>
+    _TypeDN (T1*, T2*, T3*) : len(3), next(0), pos(0)
+        {
+            static const _TypeD* _tab[] = {
+                _TypeI<T1>().data(),
+                _TypeI<T2>().data(),
+                _TypeI<T3>().data(),
+                0
+            };
+            info = _tab;
+            _register(this);
+        }
+
+    template<class T1, class T2, class T3, class T4>
+    _TypeDN (T1*, T2*, T3*, T4*) : len(4), next(0), pos(0)
+        {
+            static const _TypeD* _tab[] = {
+                _TypeI<T1>().data(),
+                _TypeI<T2>().data(),
+                _TypeI<T3>().data(),
+                _TypeI<T4>().data(),
+                0
+            };
+            info = _tab;
+            _register(this);
+        }
+
+    template<class T1, class T2, class T3, class T4, class T5>
+    _TypeDN (T1*, T2*, T3*, T4*, T5*) : len(5), next(0), pos(0)
+        {
+            static const _TypeD* _tab[] = {
+                _TypeI<T1>().data(),
+                _TypeI<T2>().data(),
+                _TypeI<T3>().data(),
+                _TypeI<T4>().data(),
+                _TypeI<T5>().data(),
+                0
+            };
+            info = _tab;
+            _register(this);
+        }
+
+    static const _TypeDN* _register (_TypeDN* type);
+};
+
+// ------------------------------------
+
+bool syntax_check (const _TypeDN* hT, const _TypeDN* xT, const _TypeDN* aT);
+
+// ---------------------------------------------------------------------------
+// _TypeI1<T1>
+
+template<class T1>
+class _TypeI1 {
+public:
+    const _TypeDN* data () const { return &_data; }
+private:
+    static const _TypeDN    _data;
+};
+
+template<class T1>
+const _TypeDN _TypeI1<T1>::_data((T1*)0);
+
+// ------------------------------------
+// _TypeI2<T1, T2>
+
+template<class T1, class T2>
+class _TypeI2 {
+public:
+    const _TypeDN* data () const { return &_data; }
+private:
+    static const _TypeDN    _data;
+};
+
+template<class T1, class T2>
+const _TypeDN _TypeI2<T1, T2>::_data((T1*)0, (T2*)0);
+
+// ------------------------------------
+// _TypeI3<T1, T2, T3>
+
+template<class T1, class T2, class T3>
+class _TypeI3 {
+public:
+    const _TypeDN* data () const { return &_data; }
+private:
+    static const _TypeDN    _data;
+};
+
+template<class T1, class T2, class T3>
+const _TypeDN _TypeI3<T1, T2, T3>::_data((T1*)0, (T2*)0, (T3*)0);
+
+// ------------------------------------
+// _TypeI4<T1, T2, T3, T4>
+
+template<class T1, class T2, class T3, class T4>
+class _TypeI4 {
+public:
+    const _TypeDN* data () const { return &_data; }
+private:
+    static const _TypeDN    _data;
+};
+
+template<class T1, class T2, class T3, class T4>
+const _TypeDN _TypeI4<T1, T2, T3, T4>::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0);
+
+// ------------------------------------
+// _TypeI5<T1, T2, T3, T4, T5>
+
+template<class T1, class T2, class T3, class T4, class T5>
+class _TypeI5 {
+public:
+    const _TypeDN* data () const { return &_data; }
+private:
+    static const _TypeDN    _data;
+};
+
+template<class T1, class T2, class T3, class T4, class T5>
+const _TypeDN _TypeI5<T1, T2, T3, T4, T5>::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0);
 
 // ===========================================================================
 // EventArg
@@ -68,10 +251,11 @@ public:
     // static operator new/delete...
     //
     virtual ~EventArg ();
-    virtual const ArgTV* arg_list (int& len) const = 0;
+    virtual void**         arg_list () const = 0;
+    virtual const _TypeDN* arg_type () const = 0;
 };
 
-// ------------------------------------
+// ---------------------------------------------------------------------------
 // ValParam
 
 class ValParam : public EventArg {
@@ -80,26 +264,53 @@ public:
 };
 
 // ------------------------------------
+// ValParam_N<N>
+
+template<int N>
+class ValParam_N : public ValParam {
+public:
+    /*final*/ void** arg_list () const;
+protected:
+    void*   _arg[N];
+};
+
+template<int N>
+void** ValParam_N<N>::arg_list () const
+    {
+        return (void**)&_arg[0];
+    }
+
+// ---------------------------------------------------------------------------
 // RefParam
 
 class RefParam : public EventArg {};
 
 // ------------------------------------
-// EventArg_N<Base, N>
+// RefParam_N<N>
 
-template<class Base, int N>
-class EventArg_N : public Base {
+template<int N>
+class RefParam_N : public RefParam {
+public:
+    /*final*/ void**         arg_list () const;
+    /*final*/ const _TypeDN* arg_type () const;
+private:
+    const _TypeDN*  _info;
 protected:
-    ArgTV   _arg[N];
-    /*final*/ const ArgTV* arg_list (int& len) const;
+    RefParam_N (const _TypeDN* info) : _info(info) {}
+    void*   _arg[N];
 };
 
-template<class Base, int N>
-const ArgTV* EventArg_N<Base, N>::arg_list (int& len) const
-{
-    len = N;
-    return &_arg[0];
-}
+template<int N>
+void** RefParam_N<N>::arg_list () const
+    {
+        return (void**)&_arg[0];
+    }
+
+template<int N>
+const _TypeDN* RefParam_N<N>::arg_type () const
+    {
+        return _info;
+    }
 
 // ===========================================================================
 // StateCmd
@@ -110,29 +321,17 @@ public:
     // static operator new/delete...
     //
     virtual ~StateCmd ();
-    bool syntax (const ArgTV* xA, int xN, EventArg* arg, bool report) const;
-    bool execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg);
-    virtual ArgTV* arg_list (int& num) = 0;
-private:
-    virtual void _execute (EvCtx& ctx) const = 0;
-};
 
-// ------------------------------------
-// StateCmd_N<N>
+    const _TypeDN* par_type () const { return _info; }
 
-template<int N>
-class StateCmd_N : public StateCmd {
+    virtual void execute (EvCtx& ctx, void* arg[]) const = 0;
+
 protected:
-    ArgTV   _arg[N];
-    /*final*/ ArgTV* arg_list (int& len);
-};
+    StateCmd (const _TypeDN* info) : _info(info) {}
 
-template<int N>
-ArgTV* StateCmd_N<N>::arg_list (int& len)
-{
-    len = N;
-    return &_arg[0];
-}
+private:
+    const _TypeDN*  _info;
+};
 
 // ===========================================================================
 // TimeSpec
@@ -174,13 +373,15 @@ inline TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs)
 // ===========================================================================
 
 template<class A1>
-class ValParam1 : public EventArg_N<ValParam, 1> {
+class ValParam1 : public ValParam_N<1> {
 public:
     ValParam1 (const A1& a1)
         : _a1(a1)
         {
-            _arg[0].set(&typeid(A1), &_a1);
+            _arg[0] = &_a1;
         }
+    const _TypeDN* arg_type () const
+        { return _TypeI1<A1>().data(); }
     ValParam* clone () const
         { return new ValParam1(_a1); }
 private:
@@ -190,14 +391,16 @@ private:
 // ------------------------------------
 
 template<class A1, class A2>
-class ValParam2 : public EventArg_N<ValParam, 2> {
+class ValParam2 : public ValParam_N<2> {
 public:
     ValParam2 (const A1& a1, const A2& a2)
         : _a1(a1), _a2(a2)
         {
-            _arg[0].set(&typeid(A1), &_a1);
-            _arg[1].set(&typeid(A2), &_a2);
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
         }
+    const _TypeDN* arg_type () const
+        { return _TypeI2<A1, A2>().data(); }
     ValParam* clone () const
         { return new ValParam2(_a1, _a2); }
 private:
@@ -208,15 +411,17 @@ private:
 // ------------------------------------
 
 template<class A1, class A2, class A3>
-class ValParam3 : public EventArg_N<ValParam, 3> {
+class ValParam3 : public ValParam_N<3> {
 public:
     ValParam3 (const A1& a1, const A2& a2, const A3& a3)
         : _a1(a1), _a2(a2), _a3(a3)
         {
-            _arg[0].set(&typeid(A1), &_a1);
-            _arg[1].set(&typeid(A2), &_a2);
-            _arg[2].set(&typeid(A3), &_a3);
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
+            _arg[2] = &_a3;
         }
+    const _TypeDN* arg_type () const
+        { return _TypeI3<A1, A2, A3>().data(); }
     ValParam* clone () const
         { return new ValParam3(_a1, _a2, _a3); }
 private:
@@ -228,16 +433,18 @@ private:
 // ------------------------------------
 
 template<class A1, class A2, class A3, class A4>
-class ValParam4 : public EventArg_N<ValParam, 4> {
+class ValParam4 : public ValParam_N<4> {
 public:
     ValParam4 (const A1& a1, const A2& a2, const A3& a3, const A4& a4)
         : _a1(a1), _a2(a2), _a3(a3), _a4(a4)
         {
-            _arg[0].set(&typeid(A1), &_a1);
-            _arg[1].set(&typeid(A2), &_a2);
-            _arg[2].set(&typeid(A3), &_a3);
-            _arg[3].set(&typeid(A4), &_a4);
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
+            _arg[2] = &_a3;
+            _arg[3] = &_a4;
         }
+    const _TypeDN* arg_type () const
+        { return _TypeI4<A1, A2, A3, A4>().data(); }
     ValParam* clone () const
         { return new ValParam4(_a1, _a2, _a3, _a4); }
 private:
@@ -250,17 +457,19 @@ private:
 // ------------------------------------
 
 template<class A1, class A2, class A3, class A4, class A5>
-class ValParam5 : public EventArg_N<ValParam, 5> {
+class ValParam5 : public ValParam_N<5> {
 public:
     ValParam5 (const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5)
         : _a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5)
         {
-            _arg[0].set(&typeid(A1), &_a1);
-            _arg[1].set(&typeid(A2), &_a2);
-            _arg[2].set(&typeid(A3), &_a3);
-            _arg[3].set(&typeid(A4), &_a4);
-            _arg[4].set(&typeid(A5), &_a5);
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
+            _arg[2] = &_a3;
+            _arg[3] = &_a4;
+            _arg[4] = &_a5;
         }
+    const _TypeDN* arg_type () const
+        { return _TypeI5<A1, A2, A3, A4, A5>().data(); }
     ValParam* clone () const
         { return new ValParam5(_a1, _a2, _a3, _a4, _a5); }
 private:
@@ -275,66 +484,71 @@ private:
 // RefParam1 ... RefParam5
 // ===========================================================================
 
-class RefParam1 : public EventArg_N<RefParam, 1> {
+class RefParam1 : public RefParam_N<1> {
 public:
     template<class A1>
     RefParam1 (A1& a1)
+        :   RefParam_N<1>(_TypeI1<A1>().data())
         {
-            _arg[0].set(&typeid(A1), &a1);
+            _arg[0] = &a1;
         }
 };
 
 // ------------------------------------
 
-class RefParam2 : public EventArg_N<RefParam, 2> {
+class RefParam2 : public RefParam_N<2> {
 public:
     template<class A1, class A2>
     RefParam2 (A1& a1, A2& a2)
+        :   RefParam_N<2>(_TypeI2<A1, A2>().data())
         {
-            _arg[0].set(&typeid(A1), &a1);
-            _arg[1].set(&typeid(A2), &a2);
+            _arg[0] = &a1;
+            _arg[1] = &a2;
         }
 };
 
 // ------------------------------------
 
-class RefParam3 : public EventArg_N<RefParam, 3> {
+class RefParam3 : public RefParam_N<3> {
 public:
     template<class A1, class A2, class A3>
     RefParam3 (A1& a1, A2& a2, A3& a3)
+        :   RefParam_N<3>(_TypeI3<A1, A2, A3>().data())
         {
-            _arg[0].set(&typeid(A1), &a1);
-            _arg[1].set(&typeid(A2), &a2);
-            _arg[2].set(&typeid(A3), &a3);
+            _arg[0] = &a1;
+            _arg[1] = &a2;
+            _arg[2] = &a3;
         }
 };
 
 // ------------------------------------
 
-class RefParam4 : public EventArg_N<RefParam, 4> {
+class RefParam4 : public RefParam_N<4> {
 public:
     template<class A1, class A2, class A3, class A4>
     RefParam4 (A1& a1, A2& a2, A3& a3, A4& a4)
+        :   RefParam_N<4>(_TypeI4<A1, A2, A3, A4>().data())
         {
-            _arg[0].set(&typeid(A1), &a1);
-            _arg[1].set(&typeid(A2), &a2);
-            _arg[2].set(&typeid(A3), &a3);
-            _arg[3].set(&typeid(A4), &a4);
+            _arg[0] = &a1;
+            _arg[1] = &a2;
+            _arg[2] = &a3;
+            _arg[3] = &a4;
         }
 };
 
 // ------------------------------------
 
-class RefParam5 : public EventArg_N<RefParam, 5> {
+class RefParam5 : public RefParam_N<5> {
 public:
     template<class A1, class A2, class A3, class A4, class A5>
     RefParam5 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5)
+        :   RefParam_N<5>(_TypeI5<A1, A2, A3, A4, A5>().data())
         {
-            _arg[0].set(&typeid(A1), &a1);
-            _arg[1].set(&typeid(A2), &a2);
-            _arg[2].set(&typeid(A3), &a3);
-            _arg[3].set(&typeid(A4), &a4);
-            _arg[4].set(&typeid(A5), &a5);
+            _arg[0] = &a1;
+            _arg[1] = &a2;
+            _arg[2] = &a3;
+            _arg[3] = &a4;
+            _arg[4] = &a5;
         }
 };
 
@@ -348,155 +562,107 @@ public:
     typedef void (_Obj::*_MemFun)(EvCtx&);
     template<class Obj>
     MFunCmd0 (Obj& obj, void (Obj::*memfun)(EvCtx&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
+        :   StateCmd(0),
+            _obj((_Obj*)&obj),
+            _memfun((_MemFun)memfun)
         {}
-    template<class Heap, class Obj>
-    MFunCmd0 (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    /*final*/ ArgTV* arg_list (int& len);
-    void _execute (EvCtx& ctx) const;
     _Obj* _obj;
     void (_Obj::*_memfun)(EvCtx&);
 };
 
 // ------------------------------------
 
-class MFunCmd1 : public StateCmd_N<1> {
+class MFunCmd1 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
     typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&);
     template<class Obj, class A1>
     MFunCmd1 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1>(); }
-    template<class Heap, class Obj, class A1>
-    MFunCmd1 (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, A1&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1>(); }
+        :   StateCmd(_TypeI1<A1>().data()),
+            _obj((_Obj*)&obj),
+            _memfun((_MemFun)memfun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-        }
-    void _execute (EvCtx& ctx) const;
     _Obj* _obj;
     void (_Obj::*_memfun)(EvCtx&, _Arg&);
 };
 
 // ------------------------------------
 
-class MFunCmd2 : public StateCmd_N<2> {
+class MFunCmd2 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
     typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2>
     MFunCmd2 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2>(); }
-    template<class Heap, class Obj, class A1, class A2>
-    MFunCmd2 (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, A1&, A2&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2>(); }
+        :   StateCmd(_TypeI2<A1, A2>().data()),
+            _obj((_Obj*)&obj),
+            _memfun((_MemFun)memfun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-        }
-    void _execute (EvCtx& ctx) const;
     _Obj* _obj;
     void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
 
-class MFunCmd3 : public StateCmd_N<3> {
+class MFunCmd3 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
     typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2, class A3>
     MFunCmd3 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&, A3&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2, A3>(); }
-    template<class Heap, class Obj, class A1, class A2, class A3>
-    MFunCmd3 (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, A1&, A2&, A3&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2, A3>(); }
+        :   StateCmd(_TypeI3<A1, A2, A3>().data()),
+            _obj((_Obj*)&obj),
+            _memfun((_MemFun)memfun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2, class A3>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-            _arg[2].set(&typeid(A3));
-        }
-    void _execute (EvCtx& ctx) const;
     _Obj* _obj;
     void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
 
-class MFunCmd4 : public StateCmd_N<4> {
+class MFunCmd4 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
     typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2, class A3, class A4>
     MFunCmd4 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&, A3&, A4&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2, A3, A4>(); }
-    template<class Heap, class Obj, class A1, class A2, class A3, class A4>
-    MFunCmd4 (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, A1&, A2&, A3&, A4&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2, A3, A4>(); }
+        :   StateCmd(_TypeI4<A1, A2, A3, A4>().data()),
+            _obj((_Obj*)&obj),
+            _memfun((_MemFun)memfun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2, class A3, class A4>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-            _arg[2].set(&typeid(A3));
-            _arg[3].set(&typeid(A4));
-        }
-    void _execute (EvCtx& ctx) const;
     _Obj* _obj;
     void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
 
-class MFunCmd5 : public StateCmd_N<5> {
+class MFunCmd5 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
     typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2, class A3, class A4, class A5>
     MFunCmd5 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&, A3&, A4&, A5&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2, A3, A4, A5>(); }
-    template<class Heap, class Obj, class A1, class A2, class A3, class A4, class A5>
-    MFunCmd5 (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, A1&, A2&, A3&, A4&, A5&))
-        : _obj((_Obj*)&obj), _memfun((_MemFun)memfun)
-        { _initialize<A1, A2, A3, A4, A5>(); }
+        :   StateCmd(_TypeI5<A1, A2, A3, A4, A5>().data()),
+            _obj((_Obj*)&obj),
+            _memfun((_MemFun)memfun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2, class A3, class A4, class A5>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-            _arg[2].set(&typeid(A3));
-            _arg[3].set(&typeid(A4));
-            _arg[4].set(&typeid(A5));
-        }
-    void _execute (EvCtx& ctx) const;
     _Obj* _obj;
     void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
@@ -509,143 +675,91 @@ class GFunCmd0 : public StateCmd {
 public:
     typedef void (*_Fun)(EvCtx&);
     GFunCmd0 (void (*fun)(EvCtx&))
-        : _fun((_Fun)fun) {}
-    template<class Heap>
-    GFunCmd0 (void (*fun)(TEvCtx<Heap>&))
-        : _fun((_Fun)fun) {}
+        :   StateCmd(0),
+            _fun((_Fun)fun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    /*final*/ ArgTV* arg_list (int& len);
-    void _execute (EvCtx& ctx) const;
     void (*_fun)(EvCtx&);
 };
 
 // ------------------------------------
 
-class GFunCmd1 : public StateCmd_N<1> {
+class GFunCmd1 : public StateCmd {
 public:
     class _Arg;
     typedef void (*_Fun)(EvCtx&, _Arg&);
     template<class A1>
     GFunCmd1 (void (*fun)(EvCtx&, A1&))
-        : _fun((_Fun)fun)
-        { _initialize<A1>(); }
-    template<class Heap, class A1>
-    GFunCmd1 (void (*fun)(TEvCtx<Heap>&, A1&))
-        : _fun((_Fun)fun)
-        { _initialize<A1>(); }
+        :   StateCmd(_TypeI1<A1>().data()),
+            _fun((_Fun)fun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-        }
-    void _execute (EvCtx& ctx) const;
     void (*_fun)(EvCtx&, _Arg&);
 };
 
 // ------------------------------------
 
-class GFunCmd2 : public StateCmd_N<2> {
+class GFunCmd2 : public StateCmd {
 public:
     class _Arg;
     typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&);
     template<class A1, class A2>
     GFunCmd2 (void (*fun)(EvCtx&, A1&, A2&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2>(); }
-    template<class Heap, class A1, class A2>
-    GFunCmd2 (void (*fun)(TEvCtx<Heap>&, A1&, A2&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2>(); }
+        :   StateCmd(_TypeI2<A1, A2>().data()),
+            _fun((_Fun)fun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-        }
-    void _execute (EvCtx& ctx) const;
     void (*_fun)(EvCtx&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
 
-class GFunCmd3 : public StateCmd_N<3> {
+class GFunCmd3 : public StateCmd {
 public:
     class _Arg;
     typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&, _Arg&);
     template<class A1, class A2, class A3>
     GFunCmd3 (void (*fun)(EvCtx&, A1&, A2&, A3&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2, A3>(); }
-    template<class Heap, class A1, class A2, class A3>
-    GFunCmd3 (void (*fun)(TEvCtx<Heap>&, A1&, A2&, A3&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2, A3>(); }
+        :   StateCmd(_TypeI3<A1, A2, A3>().data()),
+            _fun((_Fun)fun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2, class A3>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-            _arg[2].set(&typeid(A3));
-        }
-    void _execute (EvCtx& ctx) const;
     void (*_fun)(EvCtx&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
 
-class GFunCmd4 : public StateCmd_N<4> {
+class GFunCmd4 : public StateCmd {
 public:
     class _Arg;
     typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class A1, class A2, class A3, class A4>
     GFunCmd4 (void (*fun)(EvCtx&, A1&, A2&, A3&, A4&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2, A3, A4>(); }
-    template<class Heap, class A1, class A2, class A3, class A4>
-    GFunCmd4 (void (*fun)(TEvCtx<Heap>&, A1&, A2&, A3&, A4&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2, A3, A4>(); }
+        :   StateCmd(_TypeI4<A1, A2, A3, A4>().data()),
+            _fun((_Fun)fun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2, class A3, class A4>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-            _arg[2].set(&typeid(A3));
-            _arg[3].set(&typeid(A4));
-        }
-    void _execute (EvCtx& ctx) const;
     void (*_fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
 
-class GFunCmd5 : public StateCmd_N<5> {
+class GFunCmd5 : public StateCmd {
 public:
     class _Arg;
     typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class A1, class A2, class A3, class A4, class A5>
     GFunCmd5 (void (*fun)(EvCtx&, A1&, A2&, A3&, A4&, A5&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2, A3, A4, A5>(); }
-    template<class Heap, class A1, class A2, class A3, class A4, class A5>
-    GFunCmd5 (void (*fun)(TEvCtx<Heap>&, A1&, A2&, A3&, A4&, A5&))
-        : _fun((_Fun)fun)
-        { _initialize<A1, A2, A3, A4, A5>(); }
+        :   StateCmd(_TypeI5<A1, A2, A3, A4, A5>().data()),
+            _fun((_Fun)fun)
+        {}
+    void execute (EvCtx& ctx, void* arg[]) const;
 private:
-    template<class A1, class A2, class A3, class A4, class A5>
-    void _initialize ()
-        {
-            _arg[0].set(&typeid(A1));
-            _arg[1].set(&typeid(A2));
-            _arg[2].set(&typeid(A3));
-            _arg[3].set(&typeid(A4));
-            _arg[4].set(&typeid(A5));
-        }
-    void _execute (EvCtx& ctx) const;
     void (*_fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
@@ -725,32 +839,6 @@ template<class Obj, class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&, P5&))
     { return new MFunCmd5(obj, memfun); }
 
-// ------------------------------------
-
-template<class Heap, class Obj>
-MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&))
-    { return new MFunCmd0(obj, memfun); }
-
-template<class Heap, class Obj, class P1>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&))
-    { return new MFunCmd1(obj, memfun); }
-
-template<class Heap, class Obj, class P1, class P2>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&))
-    { return new MFunCmd2(obj, memfun); }
-
-template<class Heap, class Obj, class P1, class P2, class P3>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&, P3&))
-    { return new MFunCmd3(obj, memfun); }
-
-template<class Heap, class Obj, class P1, class P2, class P3, class P4>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&))
-    { return new MFunCmd4(obj, memfun); }
-
-template<class Heap, class Obj, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&))
-    { return new MFunCmd5(obj, memfun); }
-
 // ---------------------------------------------------------------------------
 // handler (fun)
 // ---------------------------------------------------------------------------
@@ -773,32 +861,6 @@ StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&))
 
 template<class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&, P5&))
-    { return new GFunCmd5(fun); }
-
-// ------------------------------------
-
-template<class Heap>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&))
-    { return new GFunCmd0(fun); }
-
-template<class Heap, class P1>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&))
-    { return new GFunCmd1(fun); }
-
-template<class Heap, class P1, class P2>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&))
-    { return new GFunCmd2(fun); }
-
-template<class Heap, class P1, class P2, class P3>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&))
-    { return new GFunCmd3(fun); }
-
-template<class Heap, class P1, class P2, class P3, class P4>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&))
-    { return new GFunCmd4(fun); }
-
-template<class Heap, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&))
     { return new GFunCmd5(fun); }
 
 // ===========================================================================

@@ -109,7 +109,14 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
         return SiD::NONE();
     }
 
-    if (! r4s->_start_handler->syntax(NULL, 0, arg, true)) {
+    const _TypeDN*  hT = r4s->_start_handler->par_type();
+    const _TypeDN*  aT = arg ? arg->arg_type() : NULL;
+
+    if (! syntax_check(hT, NULL, aT)) {
+        //TODO: detailed error message
+#if 1
+        cerr << "! ERROR: invalid `start_handler'" << endl;
+#endif
         delete s;
         return SiD::NONE();
     }
@@ -289,9 +296,9 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
         ctx.sender_state = _current_context->parent->state;
 
         if (NULL != pfx) {
-            int xN;
-            const ArgTV* xA = pfx->arg_list(xN);
-            status = run.execute(ctx, xA, xN, arg);     // callback
+            const _TypeDN*  xT = pfx->arg_type();
+            void**          xV = pfx->arg_list();
+            status = run.execute(ctx, xT, xV, arg);     // callback
         }
         else {
             status = run.execute(ctx, NULL, 0, arg);
@@ -334,9 +341,9 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
         ctx.sender_state = evmsg->sender_state();
 
         if (NULL != evmsg->pfx()) {
-            int xN;
-            const ArgTV* xA = evmsg->pfx()->arg_list(xN);
-            run.execute(ctx, xA, xN, evmsg->arg());     // postback
+            const _TypeDN*  xT = evmsg->pfx()->arg_type();
+            void**          xV = evmsg->pfx()->arg_list();
+            run.execute(ctx, xT, xV, evmsg->arg());     // postback
         }
         else {
             run.execute(ctx, NULL, 0, evmsg->arg());
@@ -393,11 +400,9 @@ void r4Kernel::dispatch_evio (EvIO* evio)
         ctx.sender_state = evio->sender_state();
 
         DatIO   dio(evio->fd(), evio->mode());
+        void*   pfx[] = { &dio };
 
-        ArgTV   iop;
-        iop.set(&typeid(dio), &dio);
-
-        run.execute(ctx, &iop, 1, evio->arg());
+        run.execute(ctx, _TypeI1<DatIO>().data(), pfx, evio->arg());
     }
 }
 

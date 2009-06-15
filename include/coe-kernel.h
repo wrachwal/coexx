@@ -39,9 +39,8 @@ class Session;      // coe-session.h
 class Callback;
 
 // handler context(s)
-class                   EvCtx;
-template<class> struct TEvCtx;
-class                   DatIO;
+class EvCtx;
+class DatIO;
 
 class RefParam;
 class ValParam;
@@ -197,17 +196,6 @@ private:
 };
 
 // ------------------------------------
-// TEvCtx<Heap>
-
-template<class Heap>
-struct TEvCtx : public EvCtx {
-    TEvCtx ();
-    operator bool () const { return 0 != heap; }
-    Heap* operator-> () const { return static_cast<Heap*>(heap); }
-    operator Heap* () const { return static_cast<Heap*>(heap); }
-};
-
-// ------------------------------------
 // DatIO
 
 class DatIO : private _Noncopyable {
@@ -299,19 +287,6 @@ StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&));
 template<class Obj, class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&, P5&));
 
-template<class Heap, class Obj>
-MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&));
-template<class Heap, class Obj, class P1>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&));
-template<class Heap, class Obj, class P1, class P2>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&));
-template<class Heap, class Obj, class P1, class P2, class P3>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&, P3&));
-template<class Heap, class Obj, class P1, class P2, class P3, class P4>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&));
-template<class Heap, class Obj, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&));
-
 // ------------------------------------
 
 StateCmd* handler (void (*fun)(EvCtx&));
@@ -325,19 +300,6 @@ template<class P1, class P2, class P3, class P4>
 StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&));
 template<class P1, class P2, class P3, class P4, class P5>
 StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&, P5&));
-
-template<class Heap>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&));
-template<class Heap, class P1>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&));
-template<class Heap, class P1, class P2>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&));
-template<class Heap, class P1, class P2, class P3>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&));
-template<class Heap, class P1, class P2, class P3, class P4>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&));
-template<class Heap, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (void (*fun)(TEvCtx<Heap>&, P1&, P2&, P3&, P4&, P5&));
 
 // ===========================================================================
 

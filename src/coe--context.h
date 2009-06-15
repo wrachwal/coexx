@@ -48,7 +48,7 @@ struct ExecuteContext {
 
     ~ExecuteContext ();
 
-    bool execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg);
+    bool execute (EvCtx& ctx, const _TypeDN* xT, void* xV[], EventArg* arg);
 
     // --------------------------------
 
@@ -58,8 +58,9 @@ struct ExecuteContext {
     EvUser*         event;
     std::string     state;
     StateCmd*       handler;
-    const ArgTV*    pfx_tab;
-    int             pfx_len;
+    const _TypeDN*  prefix;
+
+    void*           argptr[5 + 5];  // pfx + arg
 
 private:
     void _print_stack (std::ostream& os);

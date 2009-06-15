@@ -40,8 +40,7 @@ ExecuteContext::ExecuteContext (r4Kernel* kernel)
     session(NULL),
     event(NULL),
     handler(NULL),
-    pfx_tab(NULL),
-    pfx_len(0)
+    prefix(NULL)
 {
     kernel->_current_context = this;
 }
@@ -57,8 +56,7 @@ ExecuteContext::ExecuteContext (r4Session* session,
     event(NULL),
     state(state),
     handler(handler),
-    pfx_tab(NULL),
-    pfx_len(0)
+    prefix(NULL)
 {
     session->_kernel->_current_context = this;
 }
@@ -74,8 +72,7 @@ ExecuteContext::ExecuteContext (r4Session* session,
     event(event),
     state(event->name()),
     handler(handler),
-    pfx_tab(NULL),
-    pfx_len(0)
+    prefix(NULL)
 {
     session->_kernel->_current_context = this;
 }
@@ -91,10 +88,26 @@ ExecuteContext::~ExecuteContext ()
 
 // ---------------------------------------------------------------------------
 
-bool ExecuteContext::execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg)
+bool ExecuteContext::execute (EvCtx& ctx, const _TypeDN* xT, void* xV[], EventArg* arg)
 {
-    pfx_tab = xA;
-    pfx_len = xN;
+    prefix = xT;
+
+    //
+    // argptr[]
+    //
+    size_t  len = xT ? xT->len : 0;
+
+    if (len) {
+        copy(xV, xV + len, argptr);
+    }
+
+    const _TypeDN*  aT = arg ? arg->arg_type() : NULL;
+
+    if (arg) {
+        void**  aV = arg->arg_list();
+        copy(aV, aV + aT->len, argptr + len);
+        len += aT->len;
+    }
 
     if (NULL == handler) {
         cerr << "! ERROR: handler not found\n";
@@ -103,12 +116,16 @@ bool ExecuteContext::execute (EvCtx& ctx, const ArgTV* xA, int xN, EventArg* arg
         return false;
     }
 
-    if (! handler->execute(ctx, xA, xN, arg)) {
+    const _TypeDN* hT = handler->par_type();
+
+    if (! syntax_check(hT, xT, aT)) {
         cerr << "! ERROR: type mismatch\n";
         _print_stack(cerr);
         cerr << flush;
         return false;
     }
+
+    handler->execute(ctx, argptr);
 
     return true;
 }
