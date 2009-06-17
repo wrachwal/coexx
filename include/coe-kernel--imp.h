@@ -23,7 +23,7 @@ THE SOFTWARE.
 *****************************************************************************/
 
 #if !defined(__COE_KERNEL_H) || defined(__COE_KERNEL__IMP_H)
-#error "!!! coe-kernel--imp.h is a private header."
+#error "never include this header directly!"
 #endif
 
 #ifndef __COE_KERNEL__IMP_H

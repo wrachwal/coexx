@@ -25,7 +25,10 @@ THE SOFTWARE.
 #ifndef __COE_THREAD__D4T_H
 #define __COE_THREAD__D4T_H
 
+#include "coe-thread.h"
 #include "coe-kernel--r4k.h"
+
+#include <vector>
 
 namespace coe { /////
 
@@ -46,8 +49,10 @@ struct d4Thread {
     d4Thread ();
     ~d4Thread ();
 
-    static d4Thread* get_tls_data ();
-    static void      set_tls_data (d4Thread* d4t);
+    static d4Thread* get_d4t_tls ();
+    static void      set_d4t_tls (d4Thread* d4t);
+
+    void* get_user_tls (const _TlsD* info);
 
     static void allocate_kid (r4Kernel& r4k);
            void allocate_tid ();
@@ -80,8 +85,6 @@ struct d4Thread {
 
     static void _export_kernel_local_data (r4Kernel*            kernel);
            void _import_kernel_local_data (EvSys_Import_Kernel& import);
-
-    static void* _thread_entry (void* arg);
 
     // --------------------------------
     //
@@ -135,12 +138,15 @@ struct d4Thread {
 
     // --------------------------------
 
+    Thread*             _handle;
     TiD                 _tid;
     pthread_t           _os_thread;
     TimeSpec            _timestamp;
 
     bool                _event_loop_running;
     r4Kernel*           _current_kernel;    // may be set by an event
+
+    std::vector<void*>  _user_tls;
 
     /*
      * event local queue(s)
@@ -170,7 +176,6 @@ struct d4Thread {
     }                   _fdset[3];
 
     int                 _msgpipe_rfd;
-
 };
 
 // ===========================================================================

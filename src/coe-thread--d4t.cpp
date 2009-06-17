@@ -22,16 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#include "coe-thread.h"
 #include "coe-thread--d4t.h"
 #include "coe-config--d4c.h"
 #include "coe-kernel--r4k.h"
 #include "coe-session--r4s.h"
+
 #include <cerrno>
+#include <iostream>
 
 #include <sys/select.h> // select() on Cygwin
 #include <unistd.h>     // read() on Linux
-#include <iostream>
 
 using namespace std;
 using namespace coe;
@@ -94,11 +94,20 @@ bool d4Thread::FdSet::fd_isset (int fd) const
 // d4Thread
 
 d4Thread::d4Thread ()
-  : _event_loop_running(false),
+:   _handle(NULL),
+    _event_loop_running(false),
     _current_kernel(NULL),
     _msgpipe_rfd(-1)
 {
+    _handle = new Thread;
+    _handle->_d4thread = this;
+
     _timestamp = get_current_time();
+
+    const _TlsD*    head = _TlsD::registry();
+    if (NULL != head) {
+        _user_tls.resize(head->info.index + 1);
+    }
 }
 
 // ------------------------------------
@@ -113,11 +122,22 @@ d4Thread::~d4Thread ()
         close(sched.msgpipe_wfd);
         sched.msgpipe_wfd = -1;
     }
+
+    for (const _TlsD* info = _TlsD::registry(); NULL != info; info = info->next) {
+        assert(info->info.index < _user_tls.size());
+        void*   tls = _user_tls[info->info.index];
+        if (NULL != tls) {
+            (*info->info.destroy)(tls);
+        }
+    }
+
+    delete _handle;
+    _handle = NULL;
 }
 
 // ---------------------------------------------------------------------------
 
-d4Thread* d4Thread::get_tls_data ()
+d4Thread* d4Thread::get_d4t_tls ()
 {
     d4Config*   cfg = d4Config::instance();
     return static_cast<d4Thread*>(pthread_getspecific(cfg->key_d4t));
@@ -125,7 +145,7 @@ d4Thread* d4Thread::get_tls_data ()
 
 // ------------------------------------
 
-void d4Thread::set_tls_data (d4Thread* d4t)
+void d4Thread::set_d4t_tls (d4Thread* d4t)
 {
     d4Config*   cfg = d4Config::instance();
     int status = pthread_setspecific(cfg->key_d4t, (void*)d4t);
@@ -133,6 +153,18 @@ void d4Thread::set_tls_data (d4Thread* d4t)
         perror("pthread_setspecific");  //TODO: appropriate error-handling
         abort();
     }
+}
+
+// ---------------------------------------------------------------------------
+
+void* d4Thread::get_user_tls (const _TlsD* info)
+{
+    assert(info->info.index < _user_tls.size());
+    void*   tls = _user_tls[info->info.index];
+    if (NULL == tls) {
+        tls = _user_tls[info->info.index] = (*info->info.create)();
+    }
+    return tls;
 }
 
 // ---------------------------------------------------------------------------
@@ -210,7 +242,7 @@ void d4Thread::run_event_loop ()
 void d4Thread::enqueue_msg_event (EvMsg* evmsg)
 {
     if (evmsg->prio_order() < 0) {
-        assert(this == get_tls_data());
+        assert(this == get_d4t_tls());
 
         _lqueue.put_tail(evmsg);
     }
@@ -995,73 +1027,5 @@ void d4Thread::_import_kernel_local_data (EvSys_Import_Kernel& import)
         if ((*i).second->active())
             ++ sched.io_requests;
     }
-}
-
-// ---------------------------------------------------------------------------
-
-namespace {
-    struct _Arg {
-        _Arg (d4Thread* d) : data(d) {}
-        d4Thread*   data;       // owned by new thread
-        Mutex       mutex;
-        CondVar     cond;
-        TiD         tid;        // predicate
-    };
-}
-
-// ------------------------------------
-
-void* d4Thread::_thread_entry (void* arg)
-{
-    _Arg*   init = (_Arg*)arg;
-
-    d4Thread*   d4t = init->data;
-
-    pthread_detach(pthread_self());
-    d4Thread::set_tls_data(d4t);
-    d4t->allocate_tid();            // --@@--
-
-    // notify the creator
-    init->tid = d4t->_tid;  // set predicate
-    init->cond.signal();    // notify the caller
-
-    //
-    // Now we can start running event loop (forever)
-    // Before we enter dequeue_event(), the `sched.state' is in safe BUSY state.
-    //
-    d4t->run_event_loop();
-
-    return NULL;
-}
-
-// ===========================================================================
-
-TiD Thread::spawn_new ()
-{
-    // when d4Config singleton is being created, signal mask (among other things)
-    // of the calling thread is modified, therefore to allow future threads
-    // to inherit that changed signal mask, the singleton instantiation
-    // should always happen in the main thread.
-    d4Config*   cfg = d4Config::instance();
-                cfg = cfg;  // suppress warning
-
-    d4Thread*   d4t = new d4Thread;
-
-    _Arg    arg(d4t);
-
-    Mutex::Guard    guard(arg.mutex);
-
-    int status = pthread_create(&d4t->_os_thread, NULL, &d4Thread::_thread_entry, &arg);
-    if (status != 0) {
-        delete d4t;
-        errno = status;
-        return TiD::NONE();
-    }
-
-    while (! arg.tid.isset()) {
-        arg.cond.wait(guard);
-    }
-
-    return arg.tid;
 }
 

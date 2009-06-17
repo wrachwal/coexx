@@ -34,6 +34,7 @@ namespace coe { /////
 
 // ---------------------------------------------------------------------------
 
+class Thread;
 class Kernel;
 class Session;      // coe-session.h
 class Callback;
@@ -62,19 +63,20 @@ enum IO_Mode {
 };
 
 // ===========================================================================
-// Kernel
+// Kernel -- current session's interface object
 
 class Kernel : private _Noncopyable {
 public:
     static Kernel& create_new ();
 
-    KiD     ID () const;
-    TiD thread () const;
+    KiD ID () const;
+
+    Thread& thread () const;
+
+    bool move_to_thread (TiD tid);
+    void run_event_loop ();
 
     TimeSpec timestamp () const;
-
-    void run_event_loop ();
-    bool run_event_loop (TiD tid);  // transfer to `tid' thread
 
     static SiD current_session ();
 

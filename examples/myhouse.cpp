@@ -54,7 +54,7 @@ private:
 
     void _start (EvCtx& ctx)
         {
-            cout << __PRETTY_FUNCTION__
+            cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
                  << ": sid=" << ctx.session.ID() << " state=" << ctx.state << endl;
 
             ctx.kernel.state("leaving", handler(*this,    &MyHouse::on_leaving_msg));
@@ -68,11 +68,18 @@ private:
             ctx.kernel.select(0, IO_read, "command", vparam(0));
 
             stop_handler(handler(*this, &MyHouse::_stop));
+
+            ctx.kernel.thread().tls<string>() = "** string set in " + ctx.state + " **";
+
+            ctx.kernel.state("on_expiry", handler(*this, &MyHouse::on_expiry));
+            AiD alarm = ctx.kernel.delay_set("on_expiry", TimeSpec(10.0));
+            cout << "Alarm " << alarm << " expires in 10 seconds." << endl;
         }
     void _stop (EvCtx& ctx)
         {
-            cout << __PRETTY_FUNCTION__
-                 << ": sid=" << ctx.session.ID() << " state=" << ctx.state << endl;
+            cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
+                    << ": sid=" << ctx.session.ID() << " state=" << ctx.state
+                 << "\n# tls<string>() -> " << ctx.kernel.thread().tls<string>() << endl;
         }
 
     void print_msg (string& msg)
@@ -163,6 +170,13 @@ private:
             pln += change;
         }
 
+    void on_expiry (EvCtx& ctx)
+        {
+            cout << "alarm " << ctx.alarm_id
+                 << " expired -- calling stop_session()..." << endl;
+            stop_session();
+        }
+
     string  _name;
 };
 
@@ -170,18 +184,24 @@ private:
 
 #define TABLEN(tab)     int(sizeof(tab) / sizeof((tab)[0]))
 
+static void print_after_house_expiry (EvCtx& ctx)
+{
+    cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
+         << "\n# tls<string>() --> " << ctx.kernel.thread().tls<string>() << endl;
+}
+
 void test_my_house ()
 {
+    Kernel& kernel = Kernel::create_new();  // will attach to current thread
+
+    // ================================
     TiD tid[10];
 
     for (int i = 0; i < 10; ++i) {
         tid[i] = Thread::spawn_new();
         cout << "created " << tid[i] << " thread." << endl;
     }
-
-    // ================================
-
-    Kernel& kernel = Kernel::create_new();
+    // --------------------------------
 
     SiD tar = MyHouse::spawn(kernel, "waldy");
 
@@ -206,12 +226,20 @@ void test_my_house ()
     kernel.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
 
 #if 1
-    bool trans = kernel.run_event_loop(tid[0]);
+    bool trans = kernel.move_to_thread(tid[0]);
          trans = trans;
     assert(trans);
 #endif
 
-    kernel.run_event_loop();    // *** block in main thread
+    // --------------------------------
+
+    Kernel& other_kernel = Kernel::create_new();
+    other_kernel.delay_set("print_after_house_expiry", TimeSpec(11.0));
+    other_kernel.state("print_after_house_expiry", handler(&::print_after_house_expiry));
+
+    // --------------------------------
+
+    other_kernel.run_event_loop();      // *** block in main thread
 }
 
 // ***************************************************************************

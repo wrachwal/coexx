@@ -53,12 +53,12 @@ r4Kernel::r4Kernel ()
     _kernel_session_context(this)
 {
     // trying attach kernel to current thread
-    _thread = d4Thread::get_tls_data();
+    _thread = d4Thread::get_d4t_tls();
 
     if (NULL == _thread) {  // thread's event loop has not been run yet
         _thread = new d4Thread;
         _thread->_os_thread = pthread_self();
-        d4Thread::set_tls_data(_thread);
+        d4Thread::set_d4t_tls(_thread);
         _thread->allocate_tid();            // --@@--
     }
 

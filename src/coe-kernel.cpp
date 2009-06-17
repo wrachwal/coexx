@@ -73,9 +73,9 @@ KiD Kernel::ID () const
     return _r4kernel->_kid;
 }
 
-TiD Kernel::thread () const
+Thread& Kernel::thread () const
 {
-    return _r4kernel->_thread->_tid;
+    return *_r4kernel->_thread->_handle;
 }
 
 TimeSpec Kernel::timestamp () const
@@ -85,7 +85,7 @@ TimeSpec Kernel::timestamp () const
 
 SiD Kernel::current_session ()
 {
-    d4Thread*   thread = d4Thread::get_tls_data();
+    d4Thread*   thread = d4Thread::get_d4t_tls();
     if (NULL != thread) {
         r4Kernel*   kernel = thread->_current_kernel;
         if (NULL != kernel) {
@@ -109,7 +109,7 @@ void Kernel::run_event_loop ()
 
 // ------------------------------------
 
-bool Kernel::run_event_loop (TiD tid)
+bool Kernel::move_to_thread (TiD tid)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(tid))
@@ -123,6 +123,7 @@ bool Kernel::run_event_loop (TiD tid)
         return false;
     }
 
+    // --@@--
     RWLock::Guard   guard(d4Thread::glob.rwlock, RWLock::READ);
 
     if (NULL == d4Thread::glob.find_thread(tid)) {
@@ -135,7 +136,6 @@ bool Kernel::run_event_loop (TiD tid)
     }
     else {
         _r4kernel->_target_thread = tid;
-        //TODO: increment refcount of the kernel session
         _r4kernel->_thread->_lqueue.put_head(new EvSys_Export_Kernel(_r4kernel));
     }
 

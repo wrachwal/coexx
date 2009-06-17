@@ -283,7 +283,7 @@ void GFunCmd5::execute (EvCtx& ctx, void* arg[]) const
 
 // ---------------------------------------------------------------------------
 
-StateCmd* handler (void (*fun)(EvCtx&))
+StateCmd* coe::handler (void (*fun)(EvCtx&))
 {
     return new GFunCmd0(fun);
 }

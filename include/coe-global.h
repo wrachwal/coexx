@@ -1,4 +1,4 @@
-// coe-thread.h
+// coe-global.h
 
 /*****************************************************************************
 Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
@@ -22,47 +22,47 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#ifndef __COE_THREAD_H
-#define __COE_THREAD_H
-
-#include "coe-ident.h"
-#include "coe-global.h"     // Factory<T>
-#include "coe--local.h"
-
-#include <typeinfo>
+#ifndef __COE_GLOBAL_H
+#define __COE_GLOBAL_H
 
 namespace coe { /////
 
 // ===========================================================================
-// Thread
+// Factory<T>
 
-struct d4Thread;
-struct _TlsD;
+template<class T>
+struct Factory {
+    static T* create ();
+    static void destroy (T* object);
+};
 
-class Thread : private _Noncopyable {
-public:
-    static TiD spawn_new ();
+// ------------------------------------
 
-    TiD ID () const;
+template<class T>
+T* Factory<T>::create ()
+    {
+        return new T;
+    }
 
-    template<class T>
-    T& tls ();
+template<class T>
+void Factory<T>::destroy (T* object)
+    {
+        delete object;
+    }
 
-    static void* next_tls_info (void* iter, LocalStorageInfo& info);
+// ===========================================================================
+// LocalStorageInfo
 
-private:
-    friend struct d4Thread;
-    Thread ();
-    void* _get_user_tls (const _TlsD*);
-
-    d4Thread*   _d4thread;
+struct LocalStorageInfo {
+    const std::type_info*   typeinfo;
+    void*                 (*create)();
+    void                  (*destroy)(void*);
+    size_t                  index;
 };
 
 // ===========================================================================
 
 } ///// namespace coe
-
-#include "coe-thread--imp.h"
 
 #endif
 

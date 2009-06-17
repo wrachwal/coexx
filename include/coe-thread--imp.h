@@ -1,4 +1,4 @@
-// coe-thread.h
+// coe-thread--imp.h
 
 /*****************************************************************************
 Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
@@ -22,47 +22,76 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#ifndef __COE_THREAD_H
-#define __COE_THREAD_H
+#if !defined(__COE_THREAD_H) || defined(__COE_THREAD__IMP_H)
+#error "never include this header directly!"
+#endif
 
-#include "coe-ident.h"
-#include "coe-global.h"     // Factory<T>
-#include "coe--local.h"
-
-#include <typeinfo>
+#ifndef __COE_THREAD__IMP_H
+#define __COE_THREAD__IMP_H
 
 namespace coe { /////
 
 // ===========================================================================
 // Thread
 
-struct d4Thread;
-struct _TlsD;
+template<class> class _TlsI;
 
-class Thread : private _Noncopyable {
-public:
-    static TiD spawn_new ();
+// ------------------------------------
+// _TlsD
 
-    TiD ID () const;
+struct _TlsD {
 
-    template<class T>
-    T& tls ();
+    _TlsD*              next;
+    LocalStorageInfo    info;
 
-    static void* next_tls_info (void* iter, LocalStorageInfo& info);
+    static const _TlsD* registry () { return _register(0); }
 
 private:
-    friend struct d4Thread;
-    Thread ();
-    void* _get_user_tls (const _TlsD*);
-
-    d4Thread*   _d4thread;
+    template<class> friend class _TlsI;
+    template<class T>
+    _TlsD (T* (*_create)(), void (*_destroy)(T*))
+        :   next(0)
+        {
+            info.typeinfo = &typeid(T);
+            info.create   = reinterpret_cast<void*(*)()>(_create);
+            info.destroy  = reinterpret_cast<void(*)(void*)>(_destroy);
+            _register(this);
+        }
+    static const _TlsD* _register (_TlsD* data);
 };
+
+// ------------------------------------
+// _TlsI<T>
+
+template<class T>
+class _TlsI {
+public:
+    const _TlsD* data () const;
+private:
+    const static _TlsD  _data;
+};
+
+template<class T>
+const _TlsD _TlsI<T>::_data(&Factory<T>::create, &Factory<T>::destroy);
+
+template<class T>
+const _TlsD* _TlsI<T>::data () const
+    {
+        return &_data;
+    }
+
+// ------------------------------------
+// T& <-- tls<T>()
+
+template<class T>
+T& Thread::tls ()
+    {
+        return *static_cast<T*>(_get_user_tls(_TlsI<T>().data()));
+    }
 
 // ===========================================================================
 
 } ///// namespace coe
-
-#include "coe-thread--imp.h"
 
 #endif
 
