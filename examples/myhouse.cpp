@@ -1,7 +1,7 @@
-// myhouse.cpp
+// myhouse.cpp -- hodgepodge, my first and ever growing example ;)
 
 #include "coe-session.h"
-#include "coe-thread.h"
+#include "coe-thread.h" // tls<T>(), run_event_loop()
 #include "coe-misc.h"   // owned_ptr
 
 #include <cstdlib>      // abs
@@ -69,6 +69,7 @@ private:
 
             stop_handler(handler(*this, &MyHouse::_stop));
 
+            ctx.kernel         .kls<string>() = "** string set in " + ctx.state + " **";
             ctx.kernel.thread().tls<string>() = "** string set in " + ctx.state + " **";
 
             ctx.kernel.state("on_expiry", handler(*this, &MyHouse::on_expiry));
@@ -79,6 +80,7 @@ private:
         {
             cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
                     << ": sid=" << ctx.session.ID() << " state=" << ctx.state
+                 << "\n# kls<string>() -> " << ctx.kernel         .kls<string>()
                  << "\n# tls<string>() -> " << ctx.kernel.thread().tls<string>() << endl;
         }
 
@@ -187,6 +189,7 @@ private:
 static void print_after_house_expiry (EvCtx& ctx)
 {
     cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
+         << "\n# kls<string>() --> " << ctx.kernel         .kls<string>()
          << "\n# tls<string>() --> " << ctx.kernel.thread().tls<string>() << endl;
 }
 
@@ -239,7 +242,8 @@ void test_my_house ()
 
     // --------------------------------
 
-    other_kernel.run_event_loop();      // *** block in main thread
+    kernel.thread().run_event_loop();       // *** block in main thread
+                                            // kernel will go to tid[0]
 }
 
 // ***************************************************************************

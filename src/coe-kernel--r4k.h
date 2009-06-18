@@ -29,6 +29,8 @@ THE SOFTWARE.
 #include "coe--util.h"          // IdentGenerator<>
 #include "coe-sys.h"            // RWLock, ...
 
+#include <vector>               // _user_kls
+
 namespace coe { /////
 
 // ---------------------------------------------------------------------------
@@ -74,6 +76,9 @@ struct r4Kernel {
     Kernel*             _handle;
 
     KiD                 _kid;
+
+    std::vector<void*>  _user_kls;
+
     IdentGenerator<SiD> _sid_generator;
 
     s4Kernel*           _s4kernel;
@@ -99,6 +104,9 @@ struct r4Kernel {
     // -----------------------------------------------------------------------
 
     r4Kernel ();
+    ~r4Kernel ();
+
+    void* get_user_kls (const _KlsD* info);
 
     void _allocate_sid (r4Session* r4s);
 

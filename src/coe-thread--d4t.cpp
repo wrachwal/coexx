@@ -104,6 +104,7 @@ d4Thread::d4Thread ()
 
     _timestamp = get_current_time();
 
+    // initiate (user's) thread local storage
     const _TlsD*    head = _TlsD::registry();
     if (NULL != head) {
         _user_tls.resize(head->info.index + 1);
@@ -114,6 +115,7 @@ d4Thread::d4Thread ()
 
 d4Thread::~d4Thread ()
 {
+    // close auxiliary descriptors (if opened)
     if (_msgpipe_rfd >= 0) {
         close(_msgpipe_rfd);
         _msgpipe_rfd = -1;
@@ -123,6 +125,7 @@ d4Thread::~d4Thread ()
         sched.msgpipe_wfd = -1;
     }
 
+    // deallocate (user's) thread local storage
     for (const _TlsD* info = _TlsD::registry(); NULL != info; info = info->next) {
         assert(info->info.index < _user_tls.size());
         void*   tls = _user_tls[info->info.index];

@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __COE_KERNEL_H
 
 #include "coe-ident.h"
+#include "coe-global.h"     // Factory<T>
 #include "coe--local.h"
 #include <time.h>           // timespec
 #include <typeinfo>
@@ -53,6 +54,7 @@ struct TimeSpec;
 
 // private data
 struct r4Kernel;
+struct _KlsD;
 
 // ---------------------------------------------------------------------------
 
@@ -72,12 +74,15 @@ public:
     KiD ID () const;
 
     Thread& thread () const;
-
     bool move_to_thread (TiD tid);
-    void run_event_loop ();
+
+    template<class T>
+    T& kls ();
+    static void* next_kls_info (void* iter, LocalStorageInfo& info);
 
     TimeSpec timestamp () const;
 
+    Session&           session ();
     static SiD current_session ();
 
     /*
@@ -147,12 +152,13 @@ public:
     void state (const std::string& ev, StateCmd* handler);
 
 private:
-    Kernel ();
-
     friend struct r4Kernel;
-    friend  class Session;
-    friend  class Callback;
-    r4Kernel    *_r4kernel;
+    Kernel ();
+    void* _get_user_kls (const _KlsD* data);
+
+    friend class Session;
+    friend class Callback;
+    r4Kernel*   _r4kernel;
 };
 
 // ===========================================================================

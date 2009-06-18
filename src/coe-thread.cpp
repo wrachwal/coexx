@@ -112,6 +112,12 @@ TiD Thread::ID () const
     return _d4thread->_tid;
 }
 
+void Thread::run_event_loop ()
+{
+    // blocks only if loop has not been run yet
+    _d4thread->run_event_loop();
+}
+
 void* Thread::_get_user_tls (const _TlsD* data)
 {
     return _d4thread->get_user_tls(data);

@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "coe-thread.h"
 #include "coe-kernel--r4k.h"
 
-#include <vector>
+#include <vector>               // _user_tls
 
 namespace coe { /////
 

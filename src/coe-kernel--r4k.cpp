@@ -67,6 +67,12 @@ r4Kernel::r4Kernel ()
     // once `kid' is known, setup sid_generator
     _sid_generator = IdentGenerator<SiD>(SiD(_kid, 0));
 
+    // initiate kernel local storage
+    const _KlsD*    head = _KlsD::registry();
+    if (NULL != head) {
+        _user_kls.resize(head->info.index + 1);
+    }
+
     //
     // create and start the kernel session
     //
@@ -80,6 +86,35 @@ r4Kernel::r4Kernel ()
     assert(NULL == _s4kernel->_r4session->_parent);
 
     _kernel_session_context.session = _s4kernel->_r4session;
+}
+
+// ------------------------------------
+
+r4Kernel::~r4Kernel ()
+{
+    // deallocate kernel local storage
+    for (const _KlsD* info = _KlsD::registry(); NULL != info; info = info->next) {
+        assert(info->info.index < _user_kls.size());
+        void*   kls = _user_kls[info->info.index];
+        if (NULL != kls) {
+            (*info->info.destroy)(kls);
+        }
+    }
+
+    delete _handle;
+    _handle = NULL;
+}
+
+// ---------------------------------------------------------------------------
+
+void* r4Kernel::get_user_kls (const _KlsD* info)
+{
+    assert(info->info.index < _user_kls.size());
+    void*   kls = _user_kls[info->info.index];
+    if (NULL == kls) {
+        kls = _user_kls[info->info.index] = (*info->info.create)();
+    }
+    return kls;
 }
 
 // ---------------------------------------------------------------------------

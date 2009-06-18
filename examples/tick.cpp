@@ -1,6 +1,7 @@
 // tick.cpp
 
 #include "coe-session.h"
+#include "coe-thread.h"     // run_event_loop()
 
 #include <iostream>
 
@@ -38,7 +39,7 @@ int main ()
 {
     Kernel& kernel = Kernel::create_new();
     MyClock::spawn(kernel);
-    kernel.run_event_loop();
+    kernel.thread().run_event_loop();
     return 0;
 }
 

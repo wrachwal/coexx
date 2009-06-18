@@ -31,7 +31,65 @@ THE SOFTWARE.
 
 namespace coe { /////
 
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// Kernel
+
+template<class> class _KlsI;
+
+// ------------------------------------
+// _KlsD
+
+struct _KlsD {
+
+    _KlsD*              next;
+    LocalStorageInfo    info;
+
+    static const _KlsD* registry () { return _register(0); }
+
+private:
+    template<class> friend class _KlsI;
+    template<class T>
+    _KlsD (T* (*_create)(), void (*_destroy)(T*))
+        :   next(0)
+        {
+            info.typeinfo = &typeid(T);
+            info.create   = reinterpret_cast<void*(*)()>(_create);
+            info.destroy  = reinterpret_cast<void(*)(void*)>(_destroy);
+            _register(this);
+        }
+    static const _KlsD* _register (_KlsD* data);
+};
+
+// ------------------------------------
+// _KlsI<T>
+
+template<class T>
+class _KlsI {
+public:
+    const _KlsD* data () const;
+private:
+    const static _KlsD  _data;
+};
+
+template<class T>
+const _KlsD _KlsI<T>::_data(&Factory<T>::create, &Factory<T>::destroy);
+
+template<class T>
+const _KlsD* _KlsI<T>::data () const
+    {
+        return &_data;
+    }
+
+// ------------------------------------
+// T& <-- kls<T>()
+
+template<class T>
+T& Kernel::kls ()
+    {
+        return *static_cast<T*>(_get_user_kls(_KlsI<T>().data()));
+    }
+
+// ***************************************************************************
 
 class EventArg;
     class ValParam;

@@ -52,6 +52,23 @@ DatIO::DatIO (int f, IO_Mode m)
 }
 
 // ===========================================================================
+// _KlsD
+
+const _KlsD* _KlsD::_register (_KlsD* data)
+{
+    static _KlsD*   head = NULL;
+
+    if (NULL != data) {
+        assert(NULL == data->next);
+        data->info.index = head ? head->info.index + 1 : 0;
+        data->next = head;
+        head = data;
+    }
+
+    return head;
+}
+
+// ===========================================================================
 // Kernel
 
 Kernel::Kernel ()
@@ -78,9 +95,34 @@ Thread& Kernel::thread () const
     return *_r4kernel->_thread->_handle;
 }
 
+void* Kernel::_get_user_kls (const _KlsD* data)
+{
+    return _r4kernel->get_user_kls(data);
+}
+
+void* next_kls_info (void* iter, LocalStorageInfo& info)
+{
+    const _KlsD*    data = iter ? static_cast<_KlsD*>(iter)->next
+                                : _KlsD::registry();
+    if (NULL != data) {
+        info = data->info;
+    }
+
+    return (void*)data;
+}
+
 TimeSpec Kernel::timestamp () const
 {
     return _r4kernel->_thread->_timestamp;
+}
+
+Session& Kernel::session ()
+{
+    assert(NULL != _r4kernel->_current_context);
+    assert(NULL != _r4kernel->_current_context->session);
+    assert(NULL != _r4kernel->_current_context->session->_handle);
+
+    return *_r4kernel->_current_context->session->_handle;
 }
 
 SiD Kernel::current_session ()
@@ -98,16 +140,6 @@ SiD Kernel::current_session ()
 }
 
 // ---------------------------------------------------------------------------
-
-void Kernel::run_event_loop ()
-{
-    if (NULL != _r4kernel && NULL != _r4kernel->_thread) {
-        // blocks only if loop has not been run yet
-        _r4kernel->_thread->run_event_loop();
-    }
-}
-
-// ------------------------------------
 
 bool Kernel::move_to_thread (TiD tid)
 {

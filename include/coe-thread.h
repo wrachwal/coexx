@@ -45,9 +45,10 @@ public:
 
     TiD ID () const;
 
+    void run_event_loop ();
+
     template<class T>
     T& tls ();
-
     static void* next_tls_info (void* iter, LocalStorageInfo& info);
 
 private:

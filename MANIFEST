@@ -27,10 +27,14 @@ include/coe-config.h
     src/coe-config--d4c.h
     src/coe-config--d4c.cpp
 
+include/coe-global.h
+
 include/coe-ident.h
     src/coe-ident.cpp
 
 include/coe-thread.h
+    src/coe-thread.cpp
+include/coe-thread--imp.h
     src/coe-thread--d4t.h
     src/coe-thread--d4t.cpp
 
