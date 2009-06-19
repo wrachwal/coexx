@@ -1,6 +1,6 @@
 // cond.cpp
 
-#include "coe-sys.h"
+#include "coe-sys-sync.h"
 
 #include <cstring>      // strerror
 #include <cstdlib>      // atoi, abort

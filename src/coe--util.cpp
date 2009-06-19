@@ -23,7 +23,7 @@ THE SOFTWARE.
 *****************************************************************************/
 
 #include "coe--util.h"
-#include "coe-sys.h"
+#include "coe-sys-sync.h"
 
 #include <cstdlib>      // malloc
 #include <cxxabi.h>

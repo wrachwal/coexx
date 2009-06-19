@@ -25,7 +25,7 @@ THE SOFTWARE.
 #ifndef __COE_CONFIG__D4C_H
 #define __COE_CONFIG__D4C_H
 
-#include "coe-sys.h"    //TODO: <pthread.h> ?!
+#include "coe-sys-sync.h"
 
 namespace coe { /////
 

@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "coe--context.h"
 #include "coe--util.h"          // IdentGenerator<>
-#include "coe-sys.h"            // RWLock, ...
+#include "coe-sys-sync.h"       // RWLock, ...
 
 #include <vector>               // _user_kls
 

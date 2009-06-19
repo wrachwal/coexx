@@ -9,8 +9,8 @@ Makefile
 
 
 
-include/coe-sys.h
-    src/coe-sys.cpp
+include/coe-sys-sync.h
+    src/coe-sys-sync.cpp
 include/coe-misc.h
 
     src/coe--list.h

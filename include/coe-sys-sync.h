@@ -1,4 +1,4 @@
-// coe-sys.h
+// coe-sys-sync.h
 
 /*****************************************************************************
 Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#ifndef __COE_SYS_H
-#define __COE_SYS_H
+#ifndef __COE_SYS_SYNC_H
+#define __COE_SYS_SYNC_H
 
 #include <pthread.h>
 #include "coe--local.h"

@@ -22,6 +22,9 @@ endif
 CXX 	 += -MMD
 CXXFLAGS += -g -O2 -Wall -pedantic -ansi -Iinclude
 
+# Satisfy rules from (*.d) whose dependencies have been moved/renamed.
+%.h: ;
+
 vpath %.o lib test examples
 
 library := lib/libcoe.a

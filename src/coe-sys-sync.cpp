@@ -1,4 +1,4 @@
-// coe-sys.cpp
+// coe-sys-sync.cpp
 
 /*****************************************************************************
 Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#include "coe-sys.h"
+#include "coe-sys-sync.h"
 
 #include <cerrno>
 #include <cstring>      // strerror
