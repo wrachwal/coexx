@@ -11,6 +11,8 @@ Makefile
 
 include/coe-sys-sync.h
     src/coe-sys-sync.cpp
+include/coe-sys-time.h
+    src/coe-sys-time.cpp
 include/coe-misc.h
 
     src/coe--list.h

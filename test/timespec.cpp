@@ -1,6 +1,6 @@
 // timespec.cpp
 
-#include "coe-kernel.h"
+#include "coe-sys-time.h"
 
 #include <iostream>
 

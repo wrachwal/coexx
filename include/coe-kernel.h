@@ -25,10 +25,10 @@ THE SOFTWARE.
 #ifndef __COE_KERNEL_H
 #define __COE_KERNEL_H
 
-#include "coe-ident.h"
+#include "coe-ident.h"      // TiD, KiD, SiD, AiD
+#include "coe-sys-time.h"   // TimeSpec
 #include "coe-global.h"     // Factory<T>
 #include "coe--local.h"
-#include <time.h>           // timespec
 #include <typeinfo>
 
 namespace coe { /////
@@ -49,8 +49,6 @@ class ValParam;
 
 class StateCmd;
     class MFunCmd0;
-
-struct TimeSpec;
 
 // private data
 struct r4Kernel;
@@ -214,41 +212,6 @@ private:
     friend struct r4Kernel;
     DatIO (int f, IO_Mode m);
 };
-
-// ===========================================================================
-// TimeSpec
-
-struct TimeSpec : public timespec {
-             TimeSpec ()                      { tv_sec = tv_nsec = 0; }
-    explicit TimeSpec (const timespec& ts);
-    explicit TimeSpec (double sec);
-    explicit TimeSpec (time_t sec)            { tv_sec = sec; tv_nsec = 0; }
-             TimeSpec (time_t sec, long nsec) { tv_sec = sec; tv_nsec = nsec; }
-
-    static TimeSpec ZERO () { return TimeSpec(); }
-
-    int compare (const TimeSpec& rhs) const;    // [ -1, 0, 1 ]
-
-    TimeSpec& operator+= (const TimeSpec& add);
-    TimeSpec& operator-= (const TimeSpec& sub);
-};
-
-// ------------------------------------
-
-bool operator== (const TimeSpec& lhs, const TimeSpec& rhs);
-bool operator!= (const TimeSpec& lhs, const TimeSpec& rhs);
-
-bool operator<  (const TimeSpec& lhs, const TimeSpec& rhs);
-bool operator<= (const TimeSpec& lhs, const TimeSpec& rhs);
-bool operator>  (const TimeSpec& lhs, const TimeSpec& rhs);
-bool operator>= (const TimeSpec& lhs, const TimeSpec& rhs);
-
-TimeSpec operator+ (const TimeSpec& lhs, const TimeSpec& rhs);
-TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs);
-
-// ------------------------------------
-
-std::ostream& operator<< (std::ostream& os, const TimeSpec& ts);
 
 // ===========================================================================
 // vparam (p1[, ...])

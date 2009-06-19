@@ -32,63 +32,6 @@ using namespace std;
 using namespace coe;
 
 // ===========================================================================
-// TimeSpec
-
-TimeSpec::TimeSpec (double sec)
-{
-    tv_sec  = time_t(sec);
-    tv_nsec = long((sec - double(tv_sec)) * 1e9);
-    if (tv_nsec < 0) {
-        tv_sec --;
-        tv_nsec += 1000000000L;
-    }
-}
-
-int TimeSpec::compare (const TimeSpec& rhs) const
-{
-    if (    tv_sec < rhs.tv_sec)
-        return -1;
-    if (rhs.tv_sec <     tv_sec)
-        return +1;
-
-    if (    tv_nsec < rhs.tv_nsec)
-        return -1;
-    if (rhs.tv_nsec <     tv_nsec)
-        return +1;
-
-    return 0;
-}
-
-TimeSpec& TimeSpec::operator+= (const TimeSpec& add)
-{
-    tv_sec  += add.tv_sec;
-    tv_nsec += add.tv_nsec;
-
-    if (tv_nsec >= 1000000000L) {
-        tv_sec ++;
-        tv_nsec -= 1000000000L;
-    }
-    return *this;
-}
-
-TimeSpec& TimeSpec::operator-= (const TimeSpec& sub)
-{
-    tv_sec  -= sub.tv_sec;
-    tv_nsec -= sub.tv_nsec;
-
-    if (tv_nsec < 0) {
-        tv_sec --;
-        tv_nsec += 1000000000L;
-    }
-    return *this;
-}
-
-ostream& coe::operator<< (ostream& os, const TimeSpec& ts)
-{
-    return os << ts.tv_sec + 1e-9 * ts.tv_nsec;
-}
-
-// ===========================================================================
 // _TypeD
 
 const _TypeD* _TypeD::_register (_TypeD* type)

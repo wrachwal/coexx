@@ -392,41 +392,6 @@ private:
 };
 
 // ===========================================================================
-// TimeSpec
-// ===========================================================================
-
-inline bool operator== (const TimeSpec& lhs, const TimeSpec& rhs)
-    { return lhs.tv_sec == rhs.tv_sec && lhs.tv_nsec == rhs.tv_nsec; }
-
-inline bool operator!= (const TimeSpec& lhs, const TimeSpec& rhs)
-    { return lhs.tv_sec != rhs.tv_sec || lhs.tv_nsec != rhs.tv_nsec; }
-
-inline bool operator<  (const TimeSpec& lhs, const TimeSpec& rhs)
-    { return lhs.compare(rhs) <  0; }
-
-inline bool operator<= (const TimeSpec& lhs, const TimeSpec& rhs)
-    { return lhs.compare(rhs) <= 0; }
-
-inline bool operator>  (const TimeSpec& lhs, const TimeSpec& rhs)
-    { return lhs.compare(rhs) >  0; }
-
-inline bool operator>= (const TimeSpec& lhs, const TimeSpec& rhs)
-    { return lhs.compare(rhs) >= 0; }
-
-inline TimeSpec operator+ (const TimeSpec& lhs, const TimeSpec& rhs)
-    {
-        TimeSpec result(lhs);
-        result += rhs;
-        return result;
-    }
-inline TimeSpec operator- (const TimeSpec& lhs, const TimeSpec& rhs)
-    {
-        TimeSpec result(lhs);
-        result -= rhs;
-        return result;
-    }
-
-// ===========================================================================
 // ValParam1<A1> ... ValParam5<A1 .. A5>
 // ===========================================================================
 
