@@ -45,9 +45,6 @@ protected:
     Session (StateCmd* start_handler);
     virtual ~Session ();
 
-    void  set_heap (void* heap);        // handlers will get it in EvCtx
-    void* get_heap () const;
-
     /*
      * Session Management
      */
@@ -56,7 +53,6 @@ protected:
     bool stop_session ();
 
 private:
-    friend  class EvCtx;                // get_heap()
     friend struct r4Kernel;
     friend struct r4Session;
     r4Session*   _r4session;

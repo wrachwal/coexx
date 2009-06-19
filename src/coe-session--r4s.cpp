@@ -38,7 +38,6 @@ r4Session::r4Session (StateCmd* start_handler)
 {
     _handle       = NULL;
     _stop_handler = NULL;
-    _heap         = NULL;
     _kernel       = NULL;
     _parent       = NULL;
 }

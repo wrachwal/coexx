@@ -118,15 +118,3 @@ bool Session::unregistrar_remove (void (*unreg)(SiD))
     return true;
 }
 
-// ---------------------------------------------------------------------------
-
-void Session::set_heap (void* heap)
-{
-    _r4session->_heap = heap;
-}
-
-void* Session::get_heap () const
-{
-    return _r4session->_heap;
-}
-

@@ -189,7 +189,6 @@ private:
 
 class EvCtx : private _Noncopyable {
 public:
-    void*       heap;
     Kernel&     kernel;
     Session&    session;
     std::string state;

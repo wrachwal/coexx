@@ -39,7 +39,6 @@ EvCtx::EvCtx (r4Kernel* k)
     session(*k->_current_context->session->_handle),
     state  ( k->_current_context->state)
 {
-    heap = session.get_heap();
 }
 
 // ---------------------------------------------------------------------------

@@ -47,8 +47,6 @@ struct r4Session {
 
     std::vector<Unregistrar>    _unregistrar;
 
-    void*               _heap;
-
     r4Kernel*           _kernel;
 
     // related sessions
