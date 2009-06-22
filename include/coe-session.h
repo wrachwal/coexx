@@ -29,28 +29,26 @@ THE SOFTWARE.
 
 namespace coe { /////
 
+struct r4Session;   // private data
+
 // ===========================================================================
 // Session
 
-struct r4Session;   // private
-
 class Session : private _Noncopyable {
 public:
+    SiD start_session (Kernel& kernel, EventArg* arg=0);
+
     SiD ID () const;
 
     bool unregistrar_set    (void (*)(SiD));
     bool unregistrar_remove (void (*)(SiD));
 
+    void stop_handler (MFunCmd0* handler);
+    bool stop_session ();
+
 protected:
     Session (StateCmd* start_handler);
     virtual ~Session ();
-
-    /*
-     * Session Management
-     */
-    SiD start_session (Kernel& kernel, EventArg* arg=0);
-    void stop_handler (MFunCmd0* handler);
-    bool stop_session ();
 
 private:
     friend struct r4Kernel;

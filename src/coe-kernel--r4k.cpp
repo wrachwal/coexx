@@ -211,11 +211,12 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
     }
 
     //
-    // call unregistar function(s)
+    // call unregistrar function(s) in LIFO order
     //
-    vector<Unregistrar>::iterator i = node._unregistrar.begin();
-    for (; i != node._unregistrar.end(); ++i) {
-        (*i)(node._sid);
+    while (! node._unregistrar.empty()) {
+        void (*funptr)(SiD) = node._unregistrar.back();
+        node._unregistrar.pop_back();   // pop before funptr call
+        (*funptr)(node._sid);
     }
 }
 
