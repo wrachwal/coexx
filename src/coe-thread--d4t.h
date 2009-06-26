@@ -144,7 +144,9 @@ struct d4Thread {
     TimeSpec            _timestamp;
 
     bool                _event_loop_running;
+
     r4Kernel*           _current_kernel;    // may be set by an event
+    EvAlarm*            _dispatched_alarm;
 
     std::vector<void*>  _user_tls;
 

@@ -97,6 +97,7 @@ d4Thread::d4Thread ()
 :   _handle(NULL),
     _event_loop_running(false),
     _current_kernel(NULL),
+    _dispatched_alarm(NULL),
     _msgpipe_rfd(-1)
 {
     _handle = new Thread;

@@ -235,7 +235,11 @@ bool r4Kernel::delete_alarm (AiD aid)
     EvAlarm*    alarm = (*i).second;
     assert(alarm->s1a_iter() == i);     // btw cheap validity check
 
-    _thread->delete_alarm(alarm);
+    if (_thread->_dispatched_alarm == alarm) {
+        _thread->_dispatched_alarm = NULL;      // mark as deleted
+    }
+    _thread->delete_alarm(alarm);       // delete
+
     return true;
 }
 
@@ -393,6 +397,10 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 
 void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 {
+    assert(NULL == _thread->_dispatched_alarm);
+
+    _thread->_dispatched_alarm = alarm;         // to track deletion
+
     r4Session*  session = alarm->target();
 
     if (! session->local.stopper.isset()) {     // alive session
@@ -410,12 +418,19 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
         run.execute(ctx, NULL, 0, alarm->arg());
     }
 
-    assert(NULL    != session->_kernel);
-    assert(_thread == session->_kernel->_thread);
+    if (NULL != _thread->_dispatched_alarm) {   // not deleted in handler(s)
 
-    //TODO: if alarm periodic - re-schedule, rather than delete
-    //
-    _thread->delete_alarm(alarm);
+        assert(alarm == _thread->_dispatched_alarm);
+
+        _thread->_dispatched_alarm = NULL;      // clean the flag
+
+        if (false/* alarm -> is-periodic */) {  // TODO
+            /* re-schedule `alarm' */
+        }
+        else {
+            _thread->delete_alarm(alarm);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
