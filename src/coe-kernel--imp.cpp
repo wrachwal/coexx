@@ -102,6 +102,25 @@ EventArg::~EventArg ()
 }
 
 // ===========================================================================
+// ValParam
+
+ValParam::~ValParam ()
+{
+    assert(! _locked);
+}
+
+void ValParam::destroy ()
+{
+    if (! _locked) {
+        delete this;
+    }
+    else {
+        assert(_locked > 0);
+        _locked = - _locked;
+    }
+}
+
+// ===========================================================================
 // StateCmd
 
 StateCmd::~StateCmd ()

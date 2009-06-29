@@ -316,9 +316,19 @@ public:
 // ---------------------------------------------------------------------------
 // ValParam
 
+struct ExecuteContext;
+
 class ValParam : public EventArg {
 public:
     virtual ValParam* clone () const = 0;
+    // implementation
+    ValParam () : _locked(0) {}
+    ValParam (const ValParam&) : _locked(0) {}
+    ~ValParam ();
+    void destroy ();
+private:
+    friend struct ExecuteContext;
+    int _locked;    // (-)delete-on-unlock, (0)free, (+)locked
 };
 
 // ------------------------------------

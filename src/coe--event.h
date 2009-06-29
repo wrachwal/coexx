@@ -165,7 +165,7 @@ public:
     const std::string& name () const { return _name; }
 
     ValParam* arg () const { return _arg; }
-    ValParam* arg (ValParam* new_arg);
+    ValParam* arg_change (ValParam* new_arg);
 
     r4Session* target () const { return _target; }
     void       target (r4Session* session);
@@ -200,12 +200,12 @@ public:
     SiD sender () const { return _sender; }
 
     ValParam* pfx () const { return _prefix; }
-    ValParam* pfx (ValParam* new_pfx);
+    void      pfx (ValParam* new_pfx);
 
 private:
     r4Session*  _source;
     SiD         _sender;
-    ValParam*   _prefix;    // used by postback(s)
+    ValParam*   _prefix;    // used by post'ed callback(s)
 };
 
 // ---------------------------------------------------------------------------

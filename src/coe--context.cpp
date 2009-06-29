@@ -40,7 +40,11 @@ ExecuteContext::ExecuteContext (r4Kernel* kernel)
     session(NULL),
     event(NULL),
     handler(NULL),
-    prefix(NULL)
+    pfx_type(NULL),
+    pfx_pval(NULL),
+    pfx_locked(NULL),
+    arg(NULL),
+    arg_locked(NULL)
 {
     kernel->_current_context = this;
 }
@@ -56,7 +60,11 @@ ExecuteContext::ExecuteContext (r4Session* session,
     event(NULL),
     state(state),
     handler(handler),
-    prefix(NULL)
+    pfx_type(NULL),
+    pfx_pval(NULL),
+    pfx_locked(NULL),
+    arg(NULL),
+    arg_locked(NULL)
 {
     session->_kernel->_current_context = this;
 }
@@ -72,7 +80,11 @@ ExecuteContext::ExecuteContext (r4Session* session,
     event(event),
     state(event->name()),
     handler(handler),
-    prefix(NULL)
+    pfx_type(NULL),
+    pfx_pval(NULL),
+    pfx_locked(NULL),
+    arg(NULL),
+    arg_locked(NULL)
 {
     session->_kernel->_current_context = this;
 }
@@ -84,21 +96,80 @@ ExecuteContext::~ExecuteContext ()
     if (NULL != session) {
         session->_kernel->_current_context = parent;
     }
+
+    if (NULL != pfx_locked) {
+        if (pfx_locked->_locked > 0) {
+            -- pfx_locked->_locked;
+        }
+        else {
+            assert(pfx_locked->_locked < 0);
+            if (0 == ++ pfx_locked->_locked) {
+                delete pfx_locked;
+            }
+        }
+    }
+
+    if (NULL != arg_locked) {
+        if (arg_locked->_locked > 0) {
+            -- arg_locked->_locked;
+        }
+        else {
+            assert(arg_locked->_locked < 0);
+            if (0 == ++ arg_locked->_locked) {
+                delete arg_locked;
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
 
-bool ExecuteContext::execute (EvCtx& ctx, const _TypeDN* xT, void* xV[], EventArg* arg)
+void ExecuteContext::prefix (const _TypeDN* type, void* pval[])
 {
-    prefix = xT;
+    assert(NULL == pfx_pval);
+    pfx_type = type;
+    pfx_pval = pval;
+}
 
+void ExecuteContext::locked_prefix (ValParam* vp)
+{
+    assert(NULL == pfx_pval);
+    if (NULL != vp) {
+        pfx_locked = vp;
+        pfx_type = vp->arg_type();
+        pfx_pval = vp->arg_list();
+        vp->_locked += vp->_locked < 0 ? -1 : +1;
+    }
+}
+
+// ------------------------------------
+
+void ExecuteContext::argument (EventArg* ea)
+{
+    assert(NULL == arg);
+    arg = ea;
+}
+
+void ExecuteContext::locked_argument (ValParam* vp)
+{
+    assert(NULL == arg);
+    if (NULL != vp) {
+        arg = arg_locked = vp;
+        vp->_locked += vp->_locked < 0 ? -1 : +1;
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+bool ExecuteContext::execute (EvCtx& ctx)
+{
     //
     // argptr[]
     //
-    size_t  len = xT ? xT->len : 0;
+    size_t  len = pfx_type ? pfx_type->len : 0;
 
     if (len) {
-        copy(xV, xV + len, argptr);
+        copy(pfx_pval, pfx_pval + len, argptr);
     }
 
     const _TypeDN*  aT = arg ? arg->arg_type() : NULL;
@@ -118,7 +189,7 @@ bool ExecuteContext::execute (EvCtx& ctx, const _TypeDN* xT, void* xV[], EventAr
 
     const _TypeDN* hT = handler->par_type();
 
-    if (! syntax_check(hT, xT, aT)) {
+    if (! syntax_check(hT, pfx_type, aT)) {
         cerr << "! ERROR: type mismatch\n";
         _print_stack(cerr);
         cerr << flush;

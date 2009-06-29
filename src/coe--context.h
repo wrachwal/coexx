@@ -48,7 +48,13 @@ struct ExecuteContext {
 
     ~ExecuteContext ();
 
-    bool execute (EvCtx& ctx, const _TypeDN* xT, void* xV[], EventArg* arg);
+    void        prefix (const _TypeDN* type, void* pval[]);
+    void locked_prefix (ValParam* vp);
+
+    void        argument (EventArg* ea);
+    void locked_argument (ValParam* vp);
+
+    bool execute (EvCtx& ctx);
 
     // --------------------------------
 
@@ -58,7 +64,13 @@ struct ExecuteContext {
     EvUser*         event;
     std::string     state;
     StateCmd*       handler;
-    const _TypeDN*  prefix;
+
+    const _TypeDN*  pfx_type;
+    void**          pfx_pval;
+    ValParam*       pfx_locked;
+
+    EventArg*       arg;
+    ValParam*       arg_locked;
 
     void*           argptr[5 + 5];  // pfx + arg
 

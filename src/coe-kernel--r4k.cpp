@@ -179,7 +179,8 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
         ctx.sender = SiD(_kid, 1);  // kernel session (itself)
     }
 
-    run.execute(ctx, NULL, 0, arg);
+    run.argument(arg);
+    run.execute(ctx);
 
     delete r4s->_start_handler;
     r4s->_start_handler = NULL;
@@ -207,7 +208,7 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
             ctx.sender_state = _current_context->parent->state;
         }
 
-        run.execute(ctx, NULL, 0, NULL/*no-arg*/);
+        run.execute(ctx);
     }
 
     //
@@ -263,9 +264,9 @@ bool r4Kernel::adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, Val
     alarm->sender_state(_current_context->state);
 
     if (update) {
-        ValParam*   old_arg = alarm->arg(new_arg);
-        if (old_arg != new_arg) {
-            delete old_arg;
+        ValParam*   old_arg = alarm->arg_change(new_arg);
+        if (NULL != old_arg) {
+            old_arg->destroy();
         }
     }
 
@@ -335,14 +336,9 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
         ctx.sender       = _current_context->parent->session->_sid;
         ctx.sender_state = _current_context->parent->state;
 
-        if (NULL != pfx) {
-            const _TypeDN*  xT = pfx->arg_type();
-            void**          xV = pfx->arg_list();
-            status = run.execute(ctx, xT, xV, arg);     // callback
-        }
-        else {
-            status = run.execute(ctx, NULL, 0, arg);
-        }
+        run.locked_prefix(pfx);
+        run.argument(arg);
+        status = run.execute(ctx);
     }
     else {
 #if 1
@@ -380,14 +376,9 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
         ctx.sender       = evmsg->sender();
         ctx.sender_state = evmsg->sender_state();
 
-        if (NULL != evmsg->pfx()) {
-            const _TypeDN*  xT = evmsg->pfx()->arg_type();
-            void**          xV = evmsg->pfx()->arg_list();
-            run.execute(ctx, xT, xV, evmsg->arg());     // postback
-        }
-        else {
-            run.execute(ctx, NULL, 0, evmsg->arg());
-        }
+        run.locked_prefix  (evmsg->pfx());
+        run.locked_argument(evmsg->arg());
+        run.execute(ctx);
     }
 
     delete evmsg;
@@ -415,7 +406,8 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
         ctx.sender_state = alarm->sender_state();
         ctx.alarm_id     = alarm->aid();
 
-        run.execute(ctx, NULL, 0, alarm->arg());
+        run.locked_argument(alarm->arg());
+        run.execute(ctx);
     }
 
     if (NULL != _thread->_dispatched_alarm) {   // not deleted in handler(s)
@@ -453,7 +445,9 @@ void r4Kernel::dispatch_evio (EvIO* evio)
         DatIO   dio(evio->fd(), evio->mode());
         void*   pfx[] = { &dio };
 
-        run.execute(ctx, _TypeI1<DatIO>().data(), pfx, evio->arg());
+        run.prefix(_TypeI1<DatIO>().data(), pfx);
+        run.locked_argument(evio->arg());
+        run.execute(ctx);
     }
 }
 

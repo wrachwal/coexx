@@ -57,11 +57,13 @@ EvUser::EvUser (const string& name, ValParam* arg)
 
 EvUser::~EvUser ()
 {
-    delete _arg;
-    _arg = NULL;    // just in case
+    if (NULL != _arg) {
+        _arg->destroy();
+        _arg = NULL;    // just in case
+    }
 }
 
-ValParam* EvUser::arg (ValParam* new_arg)
+ValParam* EvUser::arg_change (ValParam* new_arg)
 {
     ValParam* old_arg = _arg;
     _arg = new_arg;
@@ -107,8 +109,10 @@ EvMsg::EvMsg (const string& name, ValParam* arg)
 
 EvMsg::~EvMsg ()
 {
-    delete _prefix;
-    _prefix = NULL;     // just in case
+    if (NULL != _prefix) {
+        _prefix->destroy();
+        _prefix = NULL;     // just in case
+    }
 }
 
 void EvMsg::source (r4Session* session)
@@ -117,11 +121,12 @@ void EvMsg::source (r4Session* session)
     _source = session;
 }
 
-ValParam* EvMsg::pfx (ValParam* new_pfx)
+void EvMsg::pfx (ValParam* new_pfx)
 {
-    ValParam* old_prefix = _prefix;
+    if (NULL != _prefix) {
+        _prefix->destroy();
+    }
     _prefix = new_pfx;
-    return old_prefix;
 }
 
 void EvMsg::dispatch ()

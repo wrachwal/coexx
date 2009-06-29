@@ -732,7 +732,10 @@ bool d4Thread::create_io_watcher (EvIO* new_evio)
     EvIO*   old_evio = session->find_io_watcher(fd, mode);
 
     if (NULL != old_evio) {
-        delete old_evio->arg(new_evio->arg(NULL));
+        ValParam*   old_arg = old_evio->arg_change(new_evio->arg_change(NULL));
+        if (NULL != old_arg) {
+            old_arg->destroy();
+        }
         delete new_evio;
     }
     else {

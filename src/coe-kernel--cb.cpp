@@ -43,8 +43,10 @@ Callback::Callback (SiD target, const string& evname, ValParam* prefix)
 
 Callback::~Callback ()
 {
-    delete _prefix;
-    _prefix = NULL; // just in case
+    if (NULL != _prefix) {
+        _prefix->destroy();
+        _prefix = NULL; // just in case
+    }
 }
 
 // ---------------------------------------------------------------------------
