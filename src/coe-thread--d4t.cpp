@@ -495,10 +495,23 @@ void d4Thread::_select_io (const TimeSpec* due)
 
             // read a byte from the notification pipe
             if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
-                char    buf[32];
+
+                char    buf[16];
                 ssize_t nbytes = read(_msgpipe_rfd, buf, 8);    // try 8, but 1 expected
-                        nbytes = nbytes;
-                assert(1 == nbytes);
+
+                if (nbytes == -1) {
+                    if (errno != EINTR && errno != EAGAIN) {
+                        perror("read(pipe)");
+                        abort();
+                    }
+                }
+                else {
+                    if (nbytes != 1) {
+                        cerr << "read(pipe): " << nbytes << " bytes read!" << endl;
+                        abort();
+                    }
+                }
+
                 -- result;
             }
 
