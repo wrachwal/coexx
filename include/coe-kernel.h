@@ -39,10 +39,10 @@ class Thread;
 class Kernel;
 class Session;      // coe-session.h
 class Callback;
+class EventContext;
 
 // handler context(s)
-class EvCtx;
-class DatIO;
+class IO_Ctx;
 
 class RefParam;
 class ValParam;
@@ -82,6 +82,9 @@ public:
 
     Session&           session ();
     static SiD current_session ();
+
+    const EventContext& context ()         const;   // same as *context(0)
+    const EventContext* context (int back) const;   // 0, 1, ... -1, -2, ...
 
     /*
      * Asynchronous Messages
@@ -185,31 +188,34 @@ private:
 };
 
 // ===========================================================================
-// EvCtx
+// EventContext
 
-class EvCtx : private _Noncopyable {
+class EventContext : private _Noncopyable {
 public:
-    Kernel&     kernel;
-    Session&    session;
-    std::string state;
-    SiD         sender;
-    std::string sender_state;
-    AiD         alarm_id;   // set if timer event
+    enum Type { INIT, START, STOP, CALL, POST, ALARM, SELECT, SIGNAL };
+
+    Type           type         () const;
+    const Session& session      () const;   //XXX: or safer, but less flexible SiD
+    std::string    state        () const;
+    SiD            sender       () const;
+    std::string    sender_state () const;
+
+    AiD            alarm_id     () const;   // type() == ALARM
+
 private:
-    friend struct   r4Kernel;
-    explicit EvCtx (r4Kernel* k);
+    EventContext ();    // non-constructible
 };
 
-// ------------------------------------
-// DatIO
+// ===========================================================================
+// IO_Ctx
 
-class DatIO : private _Noncopyable {
+class IO_Ctx : private _Noncopyable {
 public:
-    const int       filedes;
+    const int       fileno;
     const IO_Mode   mode;
 private:
     friend struct r4Kernel;
-    DatIO (int f, IO_Mode m);
+    IO_Ctx (int f, IO_Mode m);
 };
 
 // ===========================================================================
@@ -245,31 +251,31 @@ RefParam* rparam (P1&, P2&, P3&, P4&, P5&);
 // handler (fun)
 
 template<class Obj>
-MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(EvCtx&));
+MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(Kernel&));
 template<class Obj, class P1>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&));
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&));
 template<class Obj, class P1, class P2>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&));
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&));
 template<class Obj, class P1, class P2, class P3>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&));
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&));
 template<class Obj, class P1, class P2, class P3, class P4>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&));
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&));
 template<class Obj, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&, P5&));
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
 
 // ------------------------------------
 
-StateCmd* handler (void (*fun)(EvCtx&));
+StateCmd* handler (void (*fun)(Kernel&));
 template<class P1>
-StateCmd* handler (void (*fun)(EvCtx&, P1&));
+StateCmd* handler (void (*fun)(Kernel&, P1&));
 template<class P1, class P2>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&));
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&));
 template<class P1, class P2, class P3>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&));
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&));
 template<class P1, class P2, class P3, class P4>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&));
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&));
 template<class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&, P5&));
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
 
 // ===========================================================================
 

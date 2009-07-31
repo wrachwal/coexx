@@ -130,42 +130,42 @@ StateCmd::~StateCmd ()
 // ===========================================================================
 // MFunCmd0 ... MFunCmd5
 
-void MFunCmd0::execute (EvCtx& ctx, void* arg[]) const
+void MFunCmd0::execute (Kernel& kernel, void* arg[]) const
 {
-    (_obj->*_memfun)(ctx);
+    (_obj->*_memfun)(kernel);
 }
 
-void MFunCmd1::execute (EvCtx& ctx, void* arg[]) const
+void MFunCmd1::execute (Kernel& kernel, void* arg[]) const
 {
     (_obj->*_memfun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0]
     );
 }
 
-void MFunCmd2::execute (EvCtx& ctx, void* arg[]) const
+void MFunCmd2::execute (Kernel& kernel, void* arg[]) const
 {
     (_obj->*_memfun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1]
     );
 }
 
-void MFunCmd3::execute (EvCtx& ctx, void* arg[]) const
+void MFunCmd3::execute (Kernel& kernel, void* arg[]) const
 {
     (_obj->*_memfun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1],
         *(_Arg*)arg[2]
     );
 }
 
-void MFunCmd4::execute (EvCtx& ctx, void* arg[]) const
+void MFunCmd4::execute (Kernel& kernel, void* arg[]) const
 {
     (_obj->*_memfun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1],
         *(_Arg*)arg[2],
@@ -173,10 +173,10 @@ void MFunCmd4::execute (EvCtx& ctx, void* arg[]) const
     );
 }
 
-void MFunCmd5::execute (EvCtx& ctx, void* arg[]) const
+void MFunCmd5::execute (Kernel& kernel, void* arg[]) const
 {
     (_obj->*_memfun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1],
         *(_Arg*)arg[2],
@@ -188,42 +188,42 @@ void MFunCmd5::execute (EvCtx& ctx, void* arg[]) const
 // ===========================================================================
 // GFunCmd0 ... GFunCmd5
 
-void GFunCmd0::execute (EvCtx& ctx, void* arg[]) const
+void GFunCmd0::execute (Kernel& kernel, void* arg[]) const
 {
-    (*_fun)(ctx);
+    (*_fun)(kernel);
 }
 
-void GFunCmd1::execute (EvCtx& ctx, void* arg[]) const
+void GFunCmd1::execute (Kernel& kernel, void* arg[]) const
 {
     (*_fun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0]
     );
 }
 
-void GFunCmd2::execute (EvCtx& ctx, void* arg[]) const
+void GFunCmd2::execute (Kernel& kernel, void* arg[]) const
 {
     (*_fun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1]
     );
 }
 
-void GFunCmd3::execute (EvCtx& ctx, void* arg[]) const
+void GFunCmd3::execute (Kernel& kernel, void* arg[]) const
 {
     (*_fun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1],
         *(_Arg*)arg[2]
     );
 }
 
-void GFunCmd4::execute (EvCtx& ctx, void* arg[]) const
+void GFunCmd4::execute (Kernel& kernel, void* arg[]) const
 {
     (*_fun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1],
         *(_Arg*)arg[2],
@@ -231,10 +231,10 @@ void GFunCmd4::execute (EvCtx& ctx, void* arg[]) const
     );
 }
 
-void GFunCmd5::execute (EvCtx& ctx, void* arg[]) const
+void GFunCmd5::execute (Kernel& kernel, void* arg[]) const
 {
     (*_fun)(
-        ctx,
+        kernel,
         *(_Arg*)arg[0],
         *(_Arg*)arg[1],
         *(_Arg*)arg[2],
@@ -245,7 +245,7 @@ void GFunCmd5::execute (EvCtx& ctx, void* arg[]) const
 
 // ---------------------------------------------------------------------------
 
-StateCmd* coe::handler (void (*fun)(EvCtx&))
+StateCmd* coe::handler (void (*fun)(Kernel&))
 {
     return new GFunCmd0(fun);
 }

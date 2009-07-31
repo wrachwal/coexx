@@ -167,20 +167,11 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
 
     _allocate_sid(r4s);                     // --@@--
 
-    ExecuteContext  run(r4s, ".start", r4s->_start_handler);
-
-    EvCtx   ctx(this);
-
-    if (NULL != r4s->_parent) {
-        ctx.sender       = _current_context->parent->session->_sid;
-        ctx.sender_state = _current_context->parent->state;
-    }
-    else {
-        ctx.sender = SiD(_kid, 1);  // kernel session (itself)
-    }
+    ExecuteContext  run(r4s, EventContext::START, ".start");
 
     run.argument(arg);
-    run.execute(ctx);
+
+    run.execute(*_handle, r4s->_start_handler);
 
     delete r4s->_start_handler;
     r4s->_start_handler = NULL;
@@ -197,18 +188,12 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
     //
     if (NULL != node._stop_handler) {
 
-        ExecuteContext  run(&node, ".stop", node._stop_handler);
+        ExecuteContext  run(&node, EventContext::STOP, ".stop", &root);
 
-        EvCtx   ctx(this);
+        // EventContext.sender will be a session on which stop_session()
+        // was called i.e. the root.ID
 
-        // sender is always a session on which stop_session() was called
-        ctx.sender = root._sid;
-
-        if (&root == _current_context->parent->session) {
-            ctx.sender_state = _current_context->parent->state;
-        }
-
-        run.execute(ctx);
+        run.execute(*_handle, node._stop_handler);
     }
 
     //
@@ -329,16 +314,12 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
 
         assert(this == session->_kernel);
 
-        ExecuteContext  run(session, ev, find_state_handler(on.id(), ev));
-
-        EvCtx   ctx(this);
-
-        ctx.sender       = _current_context->parent->session->_sid;
-        ctx.sender_state = _current_context->parent->state;
+        ExecuteContext  run(session, EventContext::CALL, ev);
 
         run.locked_prefix(pfx);
         run.argument(arg);
-        status = run.execute(ctx);
+
+        status = run.execute(*_handle, find_state_handler(on.id(), ev));
     }
     else {
 #if 1
@@ -367,18 +348,12 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 
     if (! session->local.stopper.isset()) {     // alive session
 
-        ExecuteContext  run(session,
-                            evmsg,
-                            find_state_handler(session->_sid.id(), evmsg->name()));
-
-        EvCtx   ctx(this);
-
-        ctx.sender       = evmsg->sender();
-        ctx.sender_state = evmsg->sender_state();
+        ExecuteContext  run(session, evmsg);
 
         run.locked_prefix  (evmsg->pfx());
         run.locked_argument(evmsg->arg());
-        run.execute(ctx);
+
+        run.execute(*_handle, find_state_handler(session->_sid.id(), evmsg->name()));
     }
 
     delete evmsg;
@@ -396,18 +371,11 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
 
     if (! session->local.stopper.isset()) {     // alive session
 
-        ExecuteContext  run(session,
-                            alarm,
-                            find_state_handler(session->_sid.id(), alarm->name()));
-
-        EvCtx   ctx(this);
-
-        ctx.sender       = session->_sid;
-        ctx.sender_state = alarm->sender_state();
-        ctx.alarm_id     = alarm->aid();
+        ExecuteContext  run(session, alarm);
 
         run.locked_argument(alarm->arg());
-        run.execute(ctx);
+
+        run.execute(*_handle, find_state_handler(session->_sid.id(), alarm->name()));
     }
 
     if (NULL != _thread->_dispatched_alarm) {   // not deleted in handler(s)
@@ -433,21 +401,15 @@ void r4Kernel::dispatch_evio (EvIO* evio)
 
     if (! session->local.stopper.isset()) {     // alive session
 
-        ExecuteContext  run(session,
-                            evio,
-                            find_state_handler(session->_sid.id(), evio->name()));
+        ExecuteContext  run(session, evio);
 
-        EvCtx   ctx(this);
+        IO_Ctx  ioctx(evio->fd(), evio->mode());
+        void*   pfx[] = { &ioctx };
 
-        ctx.sender       = session->_sid;
-        ctx.sender_state = evio->sender_state();
-
-        DatIO   dio(evio->fd(), evio->mode());
-        void*   pfx[] = { &dio };
-
-        run.prefix(_TypeI1<DatIO>().data(), pfx);
+        run.prefix(_TypeI1<IO_Ctx>().data(), pfx);
         run.locked_argument(evio->arg());
-        run.execute(ctx);
+
+        run.execute(*_handle, find_state_handler(session->_sid.id(), evio->name()));
     }
 }
 

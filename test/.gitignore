@@ -1,0 +1,7 @@
+# test/.gitignore
+
+cond
+list
+timespec
+typeinfo
+

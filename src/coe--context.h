@@ -38,13 +38,13 @@ struct ExecuteContext {
 
     explicit ExecuteContext (r4Kernel* kernel);
 
-    ExecuteContext (r4Session*   session,
+    ExecuteContext (r4Session* session,
+                    EventContext::Type type,
                     const std::string& state,
-                    StateCmd*    handler);
+                    r4Session* stopper = 0);
 
-    ExecuteContext (r4Session*   session,
-                    EvUser*      event,
-                    StateCmd*    handler);
+    ExecuteContext (r4Session* session,
+                    EvUser*    event);
 
     ~ExecuteContext ();
 
@@ -54,25 +54,28 @@ struct ExecuteContext {
     void        argument (EventArg* ea);
     void locked_argument (ValParam* vp);
 
-    bool execute (EvCtx& ctx);
+    bool execute (Kernel& kernel, StateCmd* handler);
 
     // --------------------------------
 
-    ExecuteContext* parent;
-    int             level;
-    r4Session*      session;
-    EvUser*         event;
-    std::string     state;
-    StateCmd*       handler;
+    void*               magic;
+    ExecuteContext*     parent;
+    int                 level;
+    EventContext::Type  type;
+    r4Session*          session;
+    std::string         state;
+    SiD                 sender;
+    std::string         sender_state;
+    AiD                 alarm_id;
 
-    const _TypeDN*  pfx_type;
-    void**          pfx_pval;
-    ValParam*       pfx_locked;
+    const _TypeDN*      pfx_type;
+    void**              pfx_pval;
+    ValParam*           pfx_locked;
 
-    EventArg*       arg;
-    ValParam*       arg_locked;
+    EventArg*           arg;
+    ValParam*           arg_locked;
 
-    void*           argptr[5 + 5];  // pfx + arg
+    void*               argptr[5 + 5];  // pfx + arg
 
 private:
     void _print_stack (std::ostream& os);

@@ -33,7 +33,7 @@ s4Kernel::s4Kernel ()
 {
 }
 
-void s4Kernel::_start (EvCtx& ctx)
+void s4Kernel::_start (Kernel& kernel)
 {
 }
 

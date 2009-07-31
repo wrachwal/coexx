@@ -32,20 +32,10 @@ using namespace std;
 using namespace coe;
 
 // ===========================================================================
-// EvCtx
+// IO_Ctx
 
-EvCtx::EvCtx (r4Kernel* k)
-  : kernel (*k->_handle),
-    session(*k->_current_context->session->_handle),
-    state  ( k->_current_context->state)
-{
-}
-
-// ---------------------------------------------------------------------------
-// DatIO
-
-DatIO::DatIO (int f, IO_Mode m)
-  : filedes(f),
+IO_Ctx::IO_Ctx (int f, IO_Mode m)
+:   fileno(f),
     mode(m)
 {
 }
@@ -136,6 +126,11 @@ SiD Kernel::current_session ()
         }
     }
     return SiD::NONE();
+}
+
+const EventContext& Kernel::context () const
+{
+    return *reinterpret_cast<EventContext*>(_r4kernel->_current_context);
 }
 
 // ---------------------------------------------------------------------------
@@ -435,5 +430,54 @@ void Kernel::state (const string& ev)
 void Kernel::state (const string& ev, StateCmd* handler)
 {
     _r4kernel->state__cmd(ev, handler);
+}
+
+// ===========================================================================
+// EventContext
+
+EventContext::Type EventContext::type () const
+{
+    const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
+    assert(this == ctx->magic);
+    return ctx->type;
+}
+
+const Session& EventContext::session () const
+{
+    const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
+    assert(this == ctx->magic);
+    //
+    //TODO: providing this api implies that `delete this' on a Session
+    //must throw an exception
+    //
+    return *ctx->session->_handle;
+}
+
+string EventContext::state () const
+{
+    const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
+    assert(this == ctx->magic);
+    return ctx->state;
+}
+
+SiD EventContext::sender () const
+{
+    const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
+    assert(this == ctx->magic);
+    return ctx->sender;
+}
+
+string EventContext::sender_state () const
+{
+    const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
+    assert(this == ctx->magic);
+    return ctx->sender_state;
+}
+
+AiD EventContext::alarm_id () const
+{
+    const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
+    assert(this == ctx->magic);
+    return ctx->alarm_id;
 }
 

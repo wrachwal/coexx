@@ -160,7 +160,7 @@ public:
 
     /*final*/ bool is_event_of (KiD kernel) const;
 
-    virtual void describe (std::ostream& os) const = 0;
+    virtual EventContext::Type event_type () const = 0;
 
     const std::string& name () const { return _name; }
 
@@ -192,7 +192,7 @@ public:
     ~EvMsg ();
 
     /*final*/ void dispatch ();
-    /*final*/ void describe (std::ostream& os) const;
+    /*final*/ EventContext::Type event_type () const;
 
     void       source (r4Session* r4s);
     r4Session* source () const { return _source; }
@@ -219,7 +219,7 @@ public:
     ~EvAlarm ();
 
     /*final*/ void dispatch ();
-    /*final*/ void describe (std::ostream& os) const;
+    /*final*/ EventContext::Type event_type () const;
 
     void aid (AiD a);
     AiD  aid () const { return _aid; }
@@ -260,7 +260,7 @@ public:
     ~EvIO ();
 
     /*final*/ void dispatch ();
-    /*final*/ void describe (std::ostream& os) const;
+    /*final*/ EventContext::Type event_type () const;
 
     int     fd   () const { return _fd; }
     IO_Mode mode () const { return _mode; }

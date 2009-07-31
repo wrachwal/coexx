@@ -52,49 +52,49 @@ private:
     ~MyHouse ()
         {}
 
-    void _start (EvCtx& ctx)
+    void _start (Kernel& kernel)
         {
-            cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
-                 << ": sid=" << ctx.session.ID() << " state=" << ctx.state << endl;
+            cout << __PRETTY_FUNCTION__ << " in thread " << kernel.thread().ID()
+                 << ": sid=" << kernel.session().ID() << " state=" << kernel.context().state() << endl;
 
-            ctx.kernel.state("leaving", handler(*this,    &MyHouse::on_leaving_msg));
-            ctx.kernel.state("coridor", handler(_coridor, &Coridor::on_coridor_msg));
-            ctx.kernel.state("room2",   handler(*this,    &MyHouse::on_room2));
-            ctx.kernel.state("knock",   handler(*this,    &MyHouse::on_knock));
-            ctx.kernel.state("wife",    handler(*this,    &MyHouse::on_wife));
-            ctx.kernel.state("money",   handler(*this,    &MyHouse::on_money));
+            kernel.state("leaving", handler(*this,    &MyHouse::on_leaving_msg));
+            kernel.state("coridor", handler(_coridor, &Coridor::on_coridor_msg));
+            kernel.state("room2",   handler(*this,    &MyHouse::on_room2));
+            kernel.state("knock",   handler(*this,    &MyHouse::on_knock));
+            kernel.state("wife",    handler(*this,    &MyHouse::on_wife));
+            kernel.state("money",   handler(*this,    &MyHouse::on_money));
 
-            ctx.kernel.state("command", handler(*this,    &MyHouse::on_command));
-            ctx.kernel.select(0, IO_read, "command", vparam(0));
+            kernel.state("command", handler(*this,    &MyHouse::on_command));
+            kernel.select(0, IO_read, "command", vparam(0));
 
             stop_handler(handler(*this, &MyHouse::_stop));
 
-            ctx.kernel         .kls<string>() = "** string set in " + ctx.state + " **";
-            ctx.kernel.thread().tls<string>() = "** string set in " + ctx.state + " **";
+            kernel         .kls<string>() = "** string set in " + kernel.context().state() + " **";
+            kernel.thread().tls<string>() = "** string set in " + kernel.context().state() + " **";
 
-            ctx.kernel.state("on_expiry", handler(*this, &MyHouse::on_expiry));
-            AiD alarm = ctx.kernel.delay_set("on_expiry", TimeSpec(10.0));
+            kernel.state("on_expiry", handler(*this, &MyHouse::on_expiry));
+            AiD alarm = kernel.delay_set("on_expiry", TimeSpec(10.0));
             cout << "Alarm " << alarm << " expires in 10 seconds." << endl;
         }
-    void _stop (EvCtx& ctx)
+    void _stop (Kernel& kernel)
         {
-            cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
-                    << ": sid=" << ctx.session.ID() << " state=" << ctx.state
-                 << "\n# kls<string>() -> " << ctx.kernel         .kls<string>()
-                 << "\n# tls<string>() -> " << ctx.kernel.thread().tls<string>() << endl;
+            cout << __PRETTY_FUNCTION__ << " in thread " << kernel.thread().ID()
+                    << ": sid=" << kernel.session().ID() << " state=" << kernel.context().state()
+                 << "\n# kls<string>() -> " << kernel         .kls<string>()
+                 << "\n# tls<string>() -> " << kernel.thread().tls<string>() << endl;
         }
 
     void print_msg (string& msg)
         { cout << _name << " << " << msg << endl; }
 
-    void on_command (EvCtx& ctx, DatIO& io, int& count)
+    void on_command (Kernel& kernel, IO_Ctx& io, int& count)
         {
             char    buf[256];
 
-            ssize_t nbytes = read(io.filedes, buf, sizeof(buf)-1);
+            ssize_t nbytes = read(io.fileno, buf, sizeof(buf)-1);
 
             if (nbytes <= 0) {
-                ctx.kernel.select(io.filedes, io.mode);
+                kernel.select(io.fileno, io.mode);
             }
             else {
                 buf[nbytes] = 0;
@@ -108,12 +108,12 @@ private:
                 else
                 if (0 == strncmp(buf, "close", 5)) {
                     cout << "### leaving out command prompt" << endl;
-                    ctx.kernel.select(io.filedes, io.mode);
+                    kernel.select(io.fileno, io.mode);
                 }
             }
         }
 
-    void on_leaving_msg (EvCtx& ctx, string& msg)
+    void on_leaving_msg (Kernel& kernel, string& msg)
         {
             msg += string(" (called from ") + __FUNCTION__ + ")";
             print_msg(msg);
@@ -123,7 +123,7 @@ private:
         MyHouse&    _house;
     public:
         Coridor (MyHouse& house) : _house(house) {}
-        void on_coridor_msg (EvCtx& ctx, string& msg)
+        void on_coridor_msg (Kernel& kernel, string& msg)
             {
                 cout << __FUNCTION__ << ": Kernel::current_session() -> "
                      << Kernel::current_session()
@@ -134,20 +134,20 @@ private:
             }
     } _coridor;
 
-    void on_room2 (EvCtx& ctx, const DatIO& io, string& msg)
+    void on_room2 (Kernel& kernel, const IO_Ctx& io, string& msg)
         {
             cout << __FUNCTION__
-                 << " <IO: fd=" << io.filedes << " mode=" << io.mode << ">"
+                 << " <IO: fd=" << io.fileno << " mode=" << io.mode << ">"
                  << " a1=\"" << msg << '"'
                  << endl;
         }
 
-    void on_knock (EvCtx& ctx)
+    void on_knock (Kernel& kernel)
         {
             cout << "someone knocks to the door..." << endl;
         }
 
-    void on_wife (EvCtx& ctx, owned_ptr<Flowers>& flowers)
+    void on_wife (Kernel& kernel, owned_ptr<Flowers>& flowers)
         {
             cout << "wife is given " << *flowers << endl;
             delete flowers.release();
@@ -156,15 +156,15 @@ private:
             // ------------------------
 
             int cash = 10;
-            ctx.kernel.call(ID(), "money", rparam(cash));
+            kernel.call(ID(), "money", rparam(cash));
             cout << "and she now have " << cash << "." << endl;
 
             cash = 1;
-            ctx.kernel.call(ID(), "money", rparam(cash));
+            kernel.call(ID(), "money", rparam(cash));
             cout << "and she now have " << cash << "." << endl;
         }
 
-    void on_money (EvCtx& ctx, int& pln)
+    void on_money (Kernel& kernel, int& pln)
         {
             cout << "i got " << pln << " zlotych and ";
             int change = pln <= 1 ? +50 : -pln/2;
@@ -172,9 +172,9 @@ private:
             pln += change;
         }
 
-    void on_expiry (EvCtx& ctx)
+    void on_expiry (Kernel& kernel)
         {
-            cout << "alarm " << ctx.alarm_id
+            cout << "alarm " << kernel.context().alarm_id()
                  << " expired -- calling stop_session()..." << endl;
             stop_session();
         }
@@ -186,11 +186,11 @@ private:
 
 #define TABLEN(tab)     int(sizeof(tab) / sizeof((tab)[0]))
 
-static void print_after_house_expiry (EvCtx& ctx)
+static void print_after_house_expiry (Kernel& kernel)
 {
-    cout << __PRETTY_FUNCTION__ << " in thread " << ctx.kernel.thread().ID()
-         << "\n# kls<string>() --> " << ctx.kernel         .kls<string>()
-         << "\n# tls<string>() --> " << ctx.kernel.thread().tls<string>() << endl;
+    cout << __PRETTY_FUNCTION__ << " in thread " << kernel.thread().ID()
+         << "\n# kls<string>() --> " << kernel         .kls<string>()
+         << "\n# tls<string>() --> " << kernel.thread().tls<string>() << endl;
 }
 
 void test_my_house ()
@@ -227,6 +227,8 @@ void test_my_house ()
     kernel.post(tar, "knock", vparam((char*)"excessive argument!"));
 
     kernel.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
+
+    kernel.call(SiD(kernel.ID(), 1/*root*/), "wrong-path");
 
 #if 1
     bool trans = kernel.move_to_thread(tid[0]);

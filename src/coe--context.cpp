@@ -35,11 +35,11 @@ using namespace coe;
 // ExecuteContext
 
 ExecuteContext::ExecuteContext (r4Kernel* kernel)
-:   parent(kernel->_current_context),
+:   magic(this),
+    parent(kernel->_current_context),
     level(0),
+    type(EventContext::INIT),
     session(NULL),
-    event(NULL),
-    handler(NULL),
     pfx_type(NULL),
     pfx_pval(NULL),
     pfx_locked(NULL),
@@ -52,14 +52,15 @@ ExecuteContext::ExecuteContext (r4Kernel* kernel)
 // ------------------------------------
 
 ExecuteContext::ExecuteContext (r4Session* session,
+                                EventContext::Type type,
                                 const string& state,
-                                StateCmd* handler)
-:   parent(session->_kernel->_current_context),
+                                r4Session* stopper)
+:   magic(this),
+    parent(session->_kernel->_current_context),
     level(parent->level + 1),
+    type(type),
     session(session),
-    event(NULL),
     state(state),
-    handler(handler),
     pfx_type(NULL),
     pfx_pval(NULL),
     pfx_locked(NULL),
@@ -67,34 +68,97 @@ ExecuteContext::ExecuteContext (r4Session* session,
     arg_locked(NULL)
 {
     session->_kernel->_current_context = this;
+
+    switch (type) {
+
+        case EventContext::START:
+            if (NULL != session->_parent) {
+                sender       = parent->session->_sid;
+                sender_state = parent->state;
+            }
+            else {  // kernel session
+                sender = session->_sid;     // itself
+                assert(sender.id() == 1);
+            }
+            break;
+
+        case EventContext::STOP:
+            sender = stopper->_sid;
+            if (stopper == parent->session) {
+                sender_state = parent->state;
+            }
+            break;
+
+        case EventContext::CALL:
+            sender       = parent->session->_sid;
+            sender_state = parent->state;
+            break;
+
+        default:
+            assert(0);
+            break;
+    }
 }
 
 // ------------------------------------
 
 ExecuteContext::ExecuteContext (r4Session* session,
-                                EvUser* event,
-                                StateCmd* handler)
-:   parent(session->_kernel->_current_context),
-    level(parent->level + 1),
+                                EvUser* event)
+:   magic(this),
+    parent(NULL),
+    level(0),
+    type(event->event_type()),
     session(session),
-    event(event),
     state(event->name()),
-    handler(handler),
+    sender_state(event->sender_state()),
     pfx_type(NULL),
     pfx_pval(NULL),
     pfx_locked(NULL),
     arg(NULL),
     arg_locked(NULL)
 {
+    assert(&session->_kernel->_kernel_session_context
+        == session->_kernel->       _current_context);
+
     session->_kernel->_current_context = this;
+
+    switch (type) {
+
+        case EventContext::POST:
+            sender = static_cast<EvMsg*>(event)->sender();
+            break;
+
+        case EventContext::ALARM:
+            sender   = session->_sid;
+            alarm_id = static_cast<EvAlarm*>(event)->aid();
+            break;
+
+        case EventContext::SELECT:
+            sender = session->_sid;
+            break;
+
+        default:
+            assert(0);
+            break;
+    }
 }
 
 // ---------------------------------------------------------------------------
 
 ExecuteContext::~ExecuteContext ()
 {
+    magic = NULL;
+
     if (NULL != session) {
-        session->_kernel->_current_context = parent;
+
+        if (NULL != parent) {
+            session->_kernel->_current_context = parent;
+        }
+        else {
+            assert(0 == level);
+            session->_kernel->_current_context =
+                &session->_kernel->_kernel_session_context;
+        }
     }
 
     if (NULL != pfx_locked) {
@@ -161,7 +225,7 @@ void ExecuteContext::locked_argument (ValParam* vp)
 
 // ---------------------------------------------------------------------------
 
-bool ExecuteContext::execute (EvCtx& ctx)
+bool ExecuteContext::execute (Kernel& kernel, StateCmd* handler)
 {
     //
     // argptr[]
@@ -196,7 +260,7 @@ bool ExecuteContext::execute (EvCtx& ctx)
         return false;
     }
 
-    handler->execute(ctx, argptr);
+    handler->execute(kernel, argptr);
 
     return true;
 }
@@ -205,20 +269,83 @@ bool ExecuteContext::execute (EvCtx& ctx)
 
 void ExecuteContext::_print_stack (ostream& os)
 {
-    for (ExecuteContext* ctx = this; ctx && ctx->parent; ctx = ctx->parent) {
+    for (ExecuteContext* ctx = this; ctx != NULL; ctx = ctx->parent) {
         ctx->_print_frame(os);
     }
 }
 
 // ------------------------------------
 
+#define TAR_EV  (1<<0)
+#define SRC_EV  (1<<1)
+#define SRC_SE  (1<<2)
+
 void ExecuteContext::_print_frame (ostream& os)
 {
-    os << '#' << level << ' ';
-    if (event)
-        event->describe(os);
-    else
-        os << session->_sid << " at (" << state << ")";
+    const char* et = "";
+    int         ff = 0;
+
+    switch (type) {
+
+        case EventContext::INIT:
+            et = "INIT";
+            ff |= (state.empty() ? 0 : TAR_EV);
+            break;
+
+        case EventContext::START:
+            et = "START";
+            break;
+
+        case EventContext::STOP:
+            et = "STOP";
+            ff |= (sender == parent->session->_sid ? 0 : SRC_SE);
+            break;
+
+        case EventContext::CALL:
+            et = "CALL";
+            ff |= TAR_EV;
+            break;
+
+        case EventContext::POST:
+            ff |= TAR_EV | SRC_EV | (session->_sid == sender ? 0 : SRC_SE);
+            et = (ff & SRC_SE) ? "POST" : "YIELD";
+            break;
+
+        case EventContext::ALARM:
+            et = "ALARM";
+            ff |= TAR_EV | SRC_EV;
+            break;
+
+        case EventContext::SELECT:
+            et = "SELECT";
+            ff |= TAR_EV | SRC_EV;
+            break;
+
+        case EventContext::SIGNAL:
+            et = "SIGNAL";
+            ff |= TAR_EV | SRC_EV;
+            break;
+    }
+
+    os << '#' << level << ' ' << et << ' ' << session->_sid;
+
+    if (ff & TAR_EV)
+        os << " at (" << state << ')';
+
+    if (ff & (SRC_SE | SRC_EV)) {
+
+        os << " <-";
+
+        if (ff & SRC_SE) {
+            os << ' ' << sender;
+            if (ff & SRC_EV)
+                os << " at";
+        }
+
+        if (ff & SRC_SE)
+            os << " (" << sender_state << ')';
+    }
+
     os << '\n';
 
     //TODO: print arguments

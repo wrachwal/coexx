@@ -36,7 +36,7 @@ struct s4Kernel : public Session {
     r4Kernel*   _r4kernel;
 
     s4Kernel ();
-    /*final*/ void _start (EvCtx& ctx);
+    /*final*/ void _start (Kernel& kernel);
 };
 
 // ===========================================================================

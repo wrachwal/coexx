@@ -136,10 +136,9 @@ void EvMsg::dispatch ()
     kernel->dispatch_evmsg(this);
 }
 
-void EvMsg::describe (ostream& os) const
+EventContext::Type EvMsg::event_type () const
 {
-    os << "POST " << _target->_sid << " at (" << _name << ") <- "
-                  << _sender       << " at (" << _sender_state << ")";
+    return EventContext::POST;
 }
 
 // ===========================================================================
@@ -191,10 +190,9 @@ void EvAlarm::dispatch ()
     kernel->dispatch_alarm(this);
 }
 
-void EvAlarm::describe (ostream& os) const
+EventContext::Type EvAlarm::event_type () const
 {
-    os << "ALARM " << _target->_sid << " at (" << _name << " <- "
-                                               << _sender_state << ")";
+    return EventContext::ALARM;
 }
 
 // ===========================================================================
@@ -229,10 +227,9 @@ void EvIO::dispatch ()
     kernel->dispatch_evio(this);
 }
 
-void EvIO::describe (ostream& os) const
+EventContext::Type EvIO::event_type () const
 {
-    os << "I/O " << _target->_sid << " at (" << _name << " <- "
-                                             << _sender_state << ")";
+    return EventContext::SELECT;
 }
 
 // ===========================================================================

@@ -5,13 +5,6 @@ Cygwin/
 GNU-Linux/
 Solaris/
 
-/examples/myhouse
-/examples/tick
-/test/cond
-/test/list
-/test/timespec
-/test/typeinfo
-
 *.a
 *.exe
 *.o

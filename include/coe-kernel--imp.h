@@ -392,7 +392,7 @@ public:
 
     const _TypeDN* par_type () const { return _info; }
 
-    virtual void execute (EvCtx& ctx, void* arg[]) const = 0;
+    virtual void execute (Kernel& kernel, void* arg[]) const = 0;
 
 protected:
     StateCmd (const _TypeDN* info) : _info(info) {}
@@ -592,17 +592,17 @@ public:
 class MFunCmd0 : public StateCmd {
 public:
     class _Obj;
-    typedef void (_Obj::*_MemFun)(EvCtx&);
+    typedef void (_Obj::*_MemFun)(Kernel&);
     template<class Obj>
-    MFunCmd0 (Obj& obj, void (Obj::*memfun)(EvCtx&))
+    MFunCmd0 (Obj& obj, void (Obj::*memfun)(Kernel&))
         :   StateCmd(0),
             _obj((_Obj*)&obj),
             _memfun((_MemFun)memfun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
     _Obj* _obj;
-    void (_Obj::*_memfun)(EvCtx&);
+    void (_Obj::*_memfun)(Kernel&);
 };
 
 // ------------------------------------
@@ -611,17 +611,17 @@ class MFunCmd1 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
-    typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&);
+    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&);
     template<class Obj, class A1>
-    MFunCmd1 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&))
+    MFunCmd1 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&))
         :   StateCmd(_TypeI1<A1>().data()),
             _obj((_Obj*)&obj),
             _memfun((_MemFun)memfun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
     _Obj* _obj;
-    void (_Obj::*_memfun)(EvCtx&, _Arg&);
+    void (_Obj::*_memfun)(Kernel&, _Arg&);
 };
 
 // ------------------------------------
@@ -630,17 +630,17 @@ class MFunCmd2 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
-    typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&);
+    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2>
-    MFunCmd2 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&))
+    MFunCmd2 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&))
         :   StateCmd(_TypeI2<A1, A2>().data()),
             _obj((_Obj*)&obj),
             _memfun((_MemFun)memfun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
     _Obj* _obj;
-    void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&);
+    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
@@ -649,17 +649,17 @@ class MFunCmd3 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
-    typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&, _Arg&);
+    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2, class A3>
-    MFunCmd3 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&, A3&))
+    MFunCmd3 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&, A3&))
         :   StateCmd(_TypeI3<A1, A2, A3>().data()),
             _obj((_Obj*)&obj),
             _memfun((_MemFun)memfun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
     _Obj* _obj;
-    void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&, _Arg&);
+    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
@@ -668,17 +668,17 @@ class MFunCmd4 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
-    typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
+    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2, class A3, class A4>
-    MFunCmd4 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&, A3&, A4&))
+    MFunCmd4 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&, A3&, A4&))
         :   StateCmd(_TypeI4<A1, A2, A3, A4>().data()),
             _obj((_Obj*)&obj),
             _memfun((_MemFun)memfun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
     _Obj* _obj;
-    void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
+    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
@@ -687,17 +687,17 @@ class MFunCmd5 : public StateCmd {
 public:
     class _Obj;
     class _Arg;
-    typedef void (_Obj::*_MemFun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
+    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class Obj, class A1, class A2, class A3, class A4, class A5>
-    MFunCmd5 (Obj& obj, void (Obj::*memfun)(EvCtx&, A1&, A2&, A3&, A4&, A5&))
+    MFunCmd5 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&, A3&, A4&, A5&))
         :   StateCmd(_TypeI5<A1, A2, A3, A4, A5>().data()),
             _obj((_Obj*)&obj),
             _memfun((_MemFun)memfun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
     _Obj* _obj;
-    void (_Obj::*_memfun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
+    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
 // ===========================================================================
@@ -706,14 +706,14 @@ private:
 
 class GFunCmd0 : public StateCmd {
 public:
-    typedef void (*_Fun)(EvCtx&);
-    GFunCmd0 (void (*fun)(EvCtx&))
+    typedef void (*_Fun)(Kernel&);
+    GFunCmd0 (void (*fun)(Kernel&))
         :   StateCmd(0),
             _fun((_Fun)fun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
-    void (*_fun)(EvCtx&);
+    void (*_fun)(Kernel&);
 };
 
 // ------------------------------------
@@ -721,15 +721,15 @@ private:
 class GFunCmd1 : public StateCmd {
 public:
     class _Arg;
-    typedef void (*_Fun)(EvCtx&, _Arg&);
+    typedef void (*_Fun)(Kernel&, _Arg&);
     template<class A1>
-    GFunCmd1 (void (*fun)(EvCtx&, A1&))
+    GFunCmd1 (void (*fun)(Kernel&, A1&))
         :   StateCmd(_TypeI1<A1>().data()),
             _fun((_Fun)fun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
-    void (*_fun)(EvCtx&, _Arg&);
+    void (*_fun)(Kernel&, _Arg&);
 };
 
 // ------------------------------------
@@ -737,15 +737,15 @@ private:
 class GFunCmd2 : public StateCmd {
 public:
     class _Arg;
-    typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&);
+    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&);
     template<class A1, class A2>
-    GFunCmd2 (void (*fun)(EvCtx&, A1&, A2&))
+    GFunCmd2 (void (*fun)(Kernel&, A1&, A2&))
         :   StateCmd(_TypeI2<A1, A2>().data()),
             _fun((_Fun)fun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
-    void (*_fun)(EvCtx&, _Arg&, _Arg&);
+    void (*_fun)(Kernel&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
@@ -753,15 +753,15 @@ private:
 class GFunCmd3 : public StateCmd {
 public:
     class _Arg;
-    typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&, _Arg&);
+    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&, _Arg&);
     template<class A1, class A2, class A3>
-    GFunCmd3 (void (*fun)(EvCtx&, A1&, A2&, A3&))
+    GFunCmd3 (void (*fun)(Kernel&, A1&, A2&, A3&))
         :   StateCmd(_TypeI3<A1, A2, A3>().data()),
             _fun((_Fun)fun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
-    void (*_fun)(EvCtx&, _Arg&, _Arg&, _Arg&);
+    void (*_fun)(Kernel&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
@@ -769,15 +769,15 @@ private:
 class GFunCmd4 : public StateCmd {
 public:
     class _Arg;
-    typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
+    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class A1, class A2, class A3, class A4>
-    GFunCmd4 (void (*fun)(EvCtx&, A1&, A2&, A3&, A4&))
+    GFunCmd4 (void (*fun)(Kernel&, A1&, A2&, A3&, A4&))
         :   StateCmd(_TypeI4<A1, A2, A3, A4>().data()),
             _fun((_Fun)fun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
-    void (*_fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&);
+    void (*_fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
 // ------------------------------------
@@ -785,15 +785,15 @@ private:
 class GFunCmd5 : public StateCmd {
 public:
     class _Arg;
-    typedef void (*_Fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
+    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
     template<class A1, class A2, class A3, class A4, class A5>
-    GFunCmd5 (void (*fun)(EvCtx&, A1&, A2&, A3&, A4&, A5&))
+    GFunCmd5 (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&))
         :   StateCmd(_TypeI5<A1, A2, A3, A4, A5>().data()),
             _fun((_Fun)fun)
         {}
-    void execute (EvCtx& ctx, void* arg[]) const;
+    void execute (Kernel& kernel, void* arg[]) const;
 private:
-    void (*_fun)(EvCtx&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
+    void (*_fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
 };
 
 // ===========================================================================
@@ -849,27 +849,27 @@ RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 // ===========================================================================
 
 template<class Obj>
-MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(EvCtx&))
+MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(Kernel&))
     { return new MFunCmd0(obj, memfun); }
 
 template<class Obj, class P1>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&))
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&))
     { return new MFunCmd1(obj, memfun); }
 
 template<class Obj, class P1, class P2>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&))
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&))
     { return new MFunCmd2(obj, memfun); }
 
 template<class Obj, class P1, class P2, class P3>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&))
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&))
     { return new MFunCmd3(obj, memfun); }
 
 template<class Obj, class P1, class P2, class P3, class P4>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&))
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&))
     { return new MFunCmd4(obj, memfun); }
 
 template<class Obj, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&, P5&))
+StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
     { return new MFunCmd5(obj, memfun); }
 
 // ---------------------------------------------------------------------------
@@ -877,23 +877,23 @@ StateCmd* handler (Obj& obj, void (Obj::*memfun)(EvCtx&, P1&, P2&, P3&, P4&, P5&
 // ---------------------------------------------------------------------------
 
 template<class P1>
-StateCmd* handler (void (*fun)(EvCtx&, P1&))
+StateCmd* handler (void (*fun)(Kernel&, P1&))
     { return new GFunCmd1(fun); }
 
 template<class P1, class P2>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&))
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&))
     { return new GFunCmd2(fun); }
 
 template<class P1, class P2, class P3>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&))
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&))
     { return new GFunCmd3(fun); }
 
 template<class P1, class P2, class P3, class P4>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&))
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&))
     { return new GFunCmd4(fun); }
 
 template<class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (void (*fun)(EvCtx&, P1&, P2&, P3&, P4&, P5&))
+StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
     { return new GFunCmd5(fun); }
 
 // ===========================================================================

@@ -55,9 +55,12 @@ include/coe-session.h
     src/coe-session--r4s.h
     src/coe-session--r4s.cpp
 
-include/coe-wheel.h
 
 
+examples/myhouse.cpp
+examples/tick.cpp
+examples/tick.pl
+examples/safe-cb.cpp
 
 test/typeinfo.cpp
 test/list.cpp
@@ -66,10 +69,7 @@ test/timespec.cpp
 
 
 
-examples/myhouse.cpp
-examples/tick.cpp
-examples/tick.pl
-
-
-.gitignore
+         .gitignore
+examples/.gitignore
+    test/.gitignore
 

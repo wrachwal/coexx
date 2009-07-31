@@ -75,19 +75,19 @@ private:
             delete _cb;
             _cb = NULL;
         }
-    void _start (EvCtx& ctx)
+    void _start (Kernel& kernel)
         {
             cout << "@ " << __FUNCTION__ << endl;
             stop_handler(handler(*this, &::MySession::_stop));
 
             cout << "# creating callback..." << endl;
-            _cb = ctx.kernel.callback("kick", vparam(Sensitive()));
-            ctx.kernel.state("kick", handler(*this, &MySession::kick));
+            _cb = kernel.callback("kick", vparam(Sensitive()));
+            kernel.state("kick", handler(*this, &MySession::kick));
 
             cout << "# POST'ing callback..." << endl;
-            _cb->post(ctx.kernel, vparam(10));
+            _cb->post(kernel, vparam(10));
         }
-    void kick (EvCtx& ctx, Sensitive& counter, int& limit)
+    void kick (Kernel& kernel, Sensitive& counter, int& limit)
         {
             cout << "@ " << __FUNCTION__ << ": counter=" << counter.val() << endl;
 
@@ -96,7 +96,7 @@ private:
                 counter.inc();
 
                 cout << "# CALL'ing callback..." << endl;
-                _cb->call(ctx.kernel, vparam(limit));   // recursion via callback
+                _cb->call(kernel, vparam(limit));   // recursion via callback
             }
             else {
 
@@ -112,7 +112,7 @@ private:
             // will still be valid even after `delete _cb' has been done.
             cout << "$ " << __FUNCTION__ << ": counter=" << counter.val() << endl;
         }
-    void _stop (EvCtx& ctx)
+    void _stop (Kernel& kernel)
         {
             cout << "@ " << __FUNCTION__ << endl;
         }
@@ -122,7 +122,7 @@ private:
 
 // ***************************************************************************
 
-void terminate (EvCtx& ctx)
+void terminate (Kernel& kernel)
 {
     cout << "@ " << __FUNCTION__ << endl;
     exit(0);

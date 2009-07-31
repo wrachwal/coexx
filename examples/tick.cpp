@@ -20,16 +20,16 @@ private:
     MyClock () : Session(handler(*this, &MyClock::_start))
         {
         }
-    void _start (EvCtx& ctx)
+    void _start (Kernel& kernel)
         {
-            ctx.kernel.yield("next");
-            ctx.kernel.state("next", handler(*this, &MyClock::next));
+            kernel.yield("next");
+            kernel.state("next", handler(*this, &MyClock::next));
         }
-    void next (EvCtx& ctx)
+    void next (Kernel& kernel)
         {
-            cout << "tick... (from " << ctx.sender
-                 << ", state "       << ctx.sender_state << ")" << endl;
-            ctx.kernel.delay_set("next", TimeSpec(1, 0));
+            cout << "tick... (from " << kernel.context().sender()
+                 << ", state "       << kernel.context().sender_state() << ")" << endl;
+            kernel.delay_set("next", TimeSpec(1, 0));
         }
 };
 
