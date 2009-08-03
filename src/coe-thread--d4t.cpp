@@ -295,10 +295,10 @@ void d4Thread::_pqueue_pending_events ()    // --@@--
 void d4Thread::_pqueue_expired_alarms ()    // --@@--
 {
     // add 1ns to construct fine upper bound key
-    TimeSpec    now = get_current_time() + TimeSpec(0, 1);
+    TimeSpec    upr_time = _timestamp + TimeSpec(0, 1);
 
     DueSidAid_Map::iterator upr =
-        _dsa_map.upper_bound(DueSidAid_Key(now, SiD::NONE(), AiD::NONE()));
+        _dsa_map.upper_bound(DueSidAid_Key(upr_time, SiD::NONE(), AiD::NONE()));
 
     //FIXME: on linux i get this assert quite often; debug it.
 #if 0
@@ -388,21 +388,19 @@ EvCommon* d4Thread::dequeue_event ()
 
             for (;;) {
 
-                bool    time_expired = false;
-
                 if (_dsa_map.empty()) {
                     sched.cond.wait(guard);
                 }
                 else {
                     TimeSpec due = (*_dsa_map.begin()).first.due;
-                    if (! sched.cond.timedwait(guard, due)) {
-                        time_expired = true;
-                    }
+                    sched.cond.timedwait(guard, due);
                 }
 
                 _pqueue_pending_events();
 
-                if (time_expired) {
+                _timestamp = get_current_time();
+
+                if (! _dsa_map.empty() && _timestamp >= (*_dsa_map.begin()).first.due) {
                     _pqueue_expired_alarms();
                 }
 
@@ -454,11 +452,11 @@ void d4Thread::_select_io (const TimeSpec* due)
         if (NULL != due) {
             TimeSpec    delta = *due - get_current_time();
             if (delta > TimeSpec::ZERO()) {
-                delta += TimeSpec(0, 999);
+                delta += TimeSpec(0, 999);  // ns(s) to us(s) round up
                 tmo.tv_sec  = delta.tv_sec;
                 tmo.tv_usec = delta.tv_nsec / 1000;
             }
-            else {
+            else {  // polling
                 tmo.tv_sec  = 0;
                 tmo.tv_usec = 0;
             }
@@ -470,12 +468,17 @@ void d4Thread::_select_io (const TimeSpec* due)
                             _fdset[IO_error].sel_set(),
                             (due ? &tmo : NULL));
 
-        if (result == -1 && EINTR == errno) {
-            continue;
-        }
+        if (result == -1) {
 
-        if (result < 0) {
-            perror("select");   //TODO
+            if (errno == EINTR) {
+                continue;
+            }
+
+            //
+            //TODO: diagnostics on EBADF and possibly EINVAL
+            //
+
+            perror("select");
             abort();
         }
 
@@ -488,10 +491,13 @@ void d4Thread::_select_io (const TimeSpec* due)
 
         _pqueue_pending_events();
 
-        if (result == 0) {
+        _timestamp = get_current_time();
+
+        if (NULL != due && _timestamp >= *due) {
             _pqueue_expired_alarms();
         }
-        else {
+
+        if (result > 0) {
 
             // read a byte from the notification pipe
             if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
