@@ -425,8 +425,8 @@ void d4Thread::_select_io (const TimeSpec* due)
     for (;;) {
 
         /******************************
-                    select
-         ******************************/
+            file descriptors sets
+        ******************************/
 
         for (int i = 0; i < TABLEN(_fdset); ++i)
             _fdset[i].zero();
@@ -447,99 +447,112 @@ void d4Thread::_select_io (const TimeSpec* due)
         for (int i = 0; i < TABLEN(_fdset); ++i)
             max_fd = max(max_fd, _fdset[i].max_fd);
 
-        struct timeval  tmo;
+        for (;;) {
 
-        if (NULL != due) {
-            TimeSpec    delta = *due - get_current_time();
-            if (delta > TimeSpec::ZERO()) {
-                delta += TimeSpec(0, 999);  // ns(s) to us(s) round up
-                tmo.tv_sec  = delta.tv_sec;
-                tmo.tv_usec = delta.tv_nsec / 1000;
-            }
-            else {  // polling
-                tmo.tv_sec  = 0;
-                tmo.tv_usec = 0;
-            }
-        }
+            /******************************
+                        timeout
+            ******************************/
 
-        int result = select(max_fd + 1,
-                            _fdset[IO_read ].sel_set(),
-                            _fdset[IO_write].sel_set(),
-                            _fdset[IO_error].sel_set(),
-                            (due ? &tmo : NULL));
+            struct timeval  tmo;
 
-        if (result == -1) {
-
-            if (errno == EINTR) {
-                continue;
+            if (NULL != due) {
+                TimeSpec    delta = *due - get_current_time();
+                if (delta > TimeSpec::ZERO()) {
+                    delta += TimeSpec(0, 999);  // ns(s) to us(s) round up
+                    tmo.tv_sec  = delta.tv_sec;
+                    tmo.tv_usec = delta.tv_nsec / 1000;
+                }
+                else {  // polling
+                    tmo.tv_sec  = 0;
+                    tmo.tv_usec = 0;
+                }
             }
 
-            //
-            //TODO: diagnostics on EBADF and possibly EINVAL
-            //
+            /******************************
+                        select
+            ******************************/
 
-            perror("select");
-            abort();
-        }
+            int result = select(max_fd + 1,
+                                _fdset[IO_read ].sel_set(),
+                                _fdset[IO_write].sel_set(),
+                                _fdset[IO_error].sel_set(),
+                                (due ? &tmo : NULL));
 
-        /******************************
-                update (guarded)
-         ******************************/
+            if (result == -1) {
 
-        // --@@--
-        Mutex::Guard    guard(sched.mutex);
+                if (errno == EINTR) {
+                    continue;       // goto (timeout)
+                }
 
-        _pqueue_pending_events();
+                //
+                //TODO: diagnostics on EBADF and possibly EINVAL
+                //
 
-        _timestamp = get_current_time();
+                perror("select");
+                abort();
+            }
 
-        if (NULL != due && _timestamp >= *due) {
-            _pqueue_expired_alarms();
-        }
+            /******************************
+                    update (guarded)
+            ******************************/
 
-        if (result > 0) {
+            // --@@--
+            Mutex::Guard    guard(sched.mutex);
 
-            // read a byte from the notification pipe
-            if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
+            _pqueue_pending_events();
 
-                char    buf[16];
-                ssize_t nbytes = read(_msgpipe_rfd, buf, 8);    // try 8, but 1 expected
+            _timestamp = get_current_time();
 
-                if (nbytes == -1) {
-                    if (errno != EINTR && errno != EAGAIN) {
+            if (NULL != due && _timestamp >= *due) {
+                _pqueue_expired_alarms();
+            }
+
+            if (result > 0) {
+
+                // read a byte from the notification pipe
+                if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
+
+                    char    buf[16];
+                    ssize_t nbytes = read(_msgpipe_rfd, buf, 8);    // try 8, expected 1
+
+                    if (nbytes == -1) {
+                        if (errno == EINTR || errno == EAGAIN) {
+                            break;      // goto (file descriptors sets)
+                        }
                         perror("read(pipe)");
                         abort();
                     }
+                    else {
+                        if (nbytes != 1) {
+                            cerr << "read(pipe): " << nbytes << " bytes read!" << endl;
+                            abort();
+                        }
+                    }
+
+                    -- result;
                 }
-                else {
-                    if (nbytes != 1) {
-                        cerr << "read(pipe): " << nbytes << " bytes read!" << endl;
-                        abort();
+
+                //
+                // _pqueue_io_events
+                //
+                if (result > 0) {
+                    for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
+                        EvIO*   evio = (*i).second;
+                        if (evio->active() && _fdset[evio->mode()].fd_isset(evio->fd())) {
+                            _pqueue.put_tail(evio);
+                        }
                     }
                 }
-
-                -- result;
             }
 
-            //
-            // _pqueue_io_events
-            //
-            if (result > 0) {
-                for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
-                    EvIO*   evio = (*i).second;
-                    if (evio->active() && _fdset[evio->mode()].fd_isset(evio->fd())) {
-                        _pqueue.put_tail(evio);
-                    }
-                }
+            if (! _pqueue.empty()) {
+                sched.state = Sched::BUSY;
+                return;
             }
-        }
 
-        if (! _pqueue.empty()) {
-            sched.state = Sched::BUSY;
-            break;
-        }
+        } ///// for (;;) -- timeout
 
-    } ///// for (;;)
+    } ///// for (;;) -- file descriptors sets
 }
 
 // ---------------------------------------------------------------------------
