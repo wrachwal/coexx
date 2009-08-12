@@ -310,6 +310,8 @@ public:
     /*final*/ void dispatch ();
     /*final*/ bool is_event_of (KiD kernel) const;
 
+    r4Kernel* kernel () const { return _kernel; }
+
     //
     // public data members used by `d4Thread' APIs:
     //      _export_kernel_local_data

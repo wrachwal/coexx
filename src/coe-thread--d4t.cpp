@@ -192,13 +192,12 @@ void d4Thread::allocate_kid (r4Kernel& r4k)
     assert(NULL != r4k._thread);
 
     // --@@--
-    RWLock::Guard   g_guard(              glob.rwlock, RWLock::WRITE);
-    RWLock::Guard   l_guard(r4k._thread->local.rwlock, RWLock::WRITE);
+    RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
 
     r4k._kid = glob.kid_generator.generate_next(glob.kid_map);
+    r4k._thread->_list_kernel.put_tail(&r4k);
 
     glob.kid_map[r4k._kid] = &r4k;
-    r4k._thread->local.list_kernel.put_tail(&r4k);
 }
 
 // ---------------------------------------------------------------------------
@@ -918,10 +917,6 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
     }
 
     // --@@--
-    RWLock::Guard   l0_guard(tt[0]->local.rwlock, RWLock::WRITE);
-    RWLock::Guard   l1_guard(tt[1]->local.rwlock, RWLock::WRITE);
-
-    // --@@--
     Mutex::Guard    s0_guard(tt[0]->sched.mutex);
     Mutex::Guard    s1_guard(tt[1]->sched.mutex);
 
@@ -931,21 +926,19 @@ void d4Thread::_export_kernel_local_data (r4Kernel* kernel)
 
     kernel->_thread = target;   // thread re-assignment
 
-    //      source              target / import
+    //      source              import
     //      ======     --->     ===============
-    // (1)  local.list_kernel   target->local.list_kernel
+    // (1)  _list_kernel        import->_kernel
     // (2)  _lqueue             import->lqueue
     // (3)  _pqueue             import->pqueue
     // (4)  sched.pending       import->pqueue (appended)
     // (5)  _dsa_map            import->dsa_map
     // (6)  _fms_map            import->fms_map
 
-    EvSys_Import_Kernel*    import = new EvSys_Import_Kernel(kernel);
-
     // (1)
-    target->local.list_kernel.put_tail(
-        source->local.list_kernel.remove(kernel));
-    assert(target->local.list_kernel.peek_tail() == kernel);
+    EvSys_Import_Kernel*    import = new EvSys_Import_Kernel(
+                                                source->_list_kernel.remove(kernel)
+                                            );
 
     // (2)
     for (_EvCommon::Queue::iterator i = source->_lqueue.begin();
@@ -1037,6 +1030,9 @@ void d4Thread::_import_kernel_local_data (EvSys_Import_Kernel& import)
 {
     // --@@--
     Mutex::Guard    guard(sched.mutex);
+
+    // (1) import._kernel ---> _list_kernel
+    _list_kernel.put_tail(import.kernel());
 
     // (2) import.lqueue ---> _lqueue
     while (! import.lqueue.empty()) {

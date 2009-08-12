@@ -107,16 +107,6 @@ struct d4Thread {
 
     // --------------------------------
     //
-    struct Local {
-
-        RWLock              rwlock;
-
-        _r4Kernel::List     list_kernel;
-
-    } local;
-
-    // --------------------------------
-    //
     struct Sched {
 
         Sched ();
@@ -145,10 +135,12 @@ struct d4Thread {
 
     bool                _event_loop_running;
 
-    r4Kernel*           _current_kernel;    // may be set by an event
-    EvAlarm*            _dispatched_alarm;
-
     std::vector<void*>  _user_tls;
+
+    _r4Kernel::List     _list_kernel;
+
+    r4Kernel*           _current_kernel;    // set by EvUser events
+    EvAlarm*            _dispatched_alarm;  // set to track deletion
 
     /*
      * event local queue(s)
