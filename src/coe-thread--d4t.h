@@ -46,7 +46,7 @@ typedef std::map<KiD, r4Kernel*> Kid_Map;
 
 struct d4Thread {
 
-    d4Thread ();
+    explicit d4Thread (bool quit_check_enabled);
     ~d4Thread ();
 
     static d4Thread* get_d4t_tls ();
@@ -59,7 +59,8 @@ struct d4Thread {
 
     static TimeSpec get_current_time ();
 
-    void run_event_loop ();
+    void run_event_loop (bool (*quit)(Thread&));
+    bool _quit_loop_check ();
 
     void enqueue_msg_event (EvMsg* evmsg);
     void _wakeup_waiting_thread ();
@@ -134,6 +135,9 @@ struct d4Thread {
     TimeSpec            _timestamp;
 
     bool                _event_loop_running;
+    bool                _quit_check_enabled;
+
+    bool              (*_quit_check_pred)(Thread&);
 
     std::vector<void*>  _user_tls;
 

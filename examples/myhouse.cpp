@@ -4,7 +4,7 @@
 #include "coe-thread.h" // tls<T>(), run_event_loop()
 #include "coe-misc.h"   // owned_ptr
 
-#include <cstdlib>      // abs
+#include <cstdlib>      // abs, exit
 #include <cstring>      // strncmp
 #include <unistd.h>     // read() on Linux
 #include <iostream>
@@ -193,9 +193,20 @@ static void print_after_house_expiry (Kernel& kernel)
          << "\n# tls<string>() --> " << kernel.thread().tls<string>() << endl;
 }
 
+static void exit_app (Kernel& kernel)
+{
+    cout << "### the app is about to exit(0)." << endl;
+    exit(0);
+}
+
+static bool unloop (Thread& thread)
+{
+    return true;
+}
+
 void test_my_house ()
 {
-    Kernel& kernel = Kernel::create_new();  // will attach to current thread
+    Kernel& kernel1 = Kernel::create_new();     // will attach to current thread
 
     // ================================
     TiD tid[10];
@@ -206,46 +217,58 @@ void test_my_house ()
     }
     // --------------------------------
 
-    SiD tar = MyHouse::spawn(kernel, "waldy");
+    SiD tar = MyHouse::spawn(kernel1, "waldy");
 
-    kernel.post(tar, "leaving", vparam(string("it's the string argument ;)")));
+    kernel1.post(tar, "leaving", vparam(string("it's the string argument ;)")));
 
     //GOOD: I had to add (char*) cast to prevent from below the error.
     // dynacall.cpp: In constructor 'PostArgs1<A1>::PostArgs1(const A1&) [with A1 = char [22]]':
     // dynacall.cpp:192:   instantiated from 'bool Kernel::post(SiD, const std::string&, const A1&) [with A1 = char [22]]'
     // dynacall.cpp:307:   instantiated from here
     // dynacall.cpp:148: error: ISO C++ forbids assignment of arrays
-    kernel.post(tar, "leaving", vparam((char*)"raw C-style string :("));
+    kernel1.post(tar, "leaving", vparam((char*)"raw C-style string :("));
 
-    kernel.post(tar, "leaving", vparam(string("once again with valid string type :)")));
+    kernel1.post(tar, "leaving", vparam(string("once again with valid string type :)")));
 
-    kernel.post(tar, "coridor", vparam(string("and to the coridor... :)")));
+    kernel1.post(tar, "coridor", vparam(string("and to the coridor... :)")));
 
-    kernel.post(tar, "coridor");   // :( mismatch number of params
+    kernel1.post(tar, "coridor");   // :( mismatch number of params
 
-    kernel.post(tar, "knock");
-    kernel.post(tar, "knock", vparam((char*)"excessive argument!"));
+    kernel1.post(tar, "knock");
+    kernel1.post(tar, "knock", vparam((char*)"excessive argument!"));
 
-    kernel.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
+    kernel1.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
 
-    kernel.call(SiD(kernel.ID(), 1/*root*/), "wrong-path");
+    kernel1.call(SiD(kernel1.ID(), 1/*root*/), "wrong-path");
 
-#if 1
-    bool trans = kernel.move_to_thread(tid[0]);
-         trans = trans;
-    assert(trans);
-#endif
+    kernel1.move_to_thread(tid[0]);
 
     // --------------------------------
 
-    Kernel& other_kernel = Kernel::create_new();
-    other_kernel.delay_set("print_after_house_expiry", TimeSpec(11.0));
-    other_kernel.state("print_after_house_expiry", handler(&::print_after_house_expiry));
+    Kernel& kernel2 = Kernel::create_new();
+    kernel2.delay_set("print_after_house_expiry", TimeSpec(11.0));
+    kernel2.state("print_after_house_expiry", handler(&::print_after_house_expiry));
+
+    kernel2.move_to_thread(tid[1]);
 
     // --------------------------------
 
-    kernel.thread().run_event_loop();       // *** block in main thread
-                                            // kernel will go to tid[0]
+    Thread& t_main = kernel1.thread();  // could be kernel2 as well
+
+    // Block main thread until both kernels reach their target threads.
+    // BEWARE: After run_event_loop() kernel1/kernel2 references
+    // must *not* be used, and for this reason we kept the reference
+    // to the main thread earlier.
+    t_main.run_event_loop(&::unloop);
+
+    Kernel& kernel3 = Kernel::create_new();
+    kernel3.delay_set("last_print", TimeSpec(12.0));
+    kernel3.state("last_print", handler(&::print_after_house_expiry));
+
+    kernel3.delay_set("exit_app", TimeSpec(15.0));
+    kernel3.state("exit_app", handler(&::exit_app));
+
+    t_main.run_event_loop();    // block infinitely
 }
 
 // ***************************************************************************

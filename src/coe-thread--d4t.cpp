@@ -93,9 +93,11 @@ bool d4Thread::FdSet::fd_isset (int fd) const
 // ===========================================================================
 // d4Thread
 
-d4Thread::d4Thread ()
+d4Thread::d4Thread (bool quit_check_enabled)
 :   _handle(NULL),
     _event_loop_running(false),
+    _quit_check_enabled(quit_check_enabled),
+    _quit_check_pred(NULL),
     _current_kernel(NULL),
     _dispatched_alarm(NULL),
     _msgpipe_rfd(-1)
@@ -225,18 +227,92 @@ TimeSpec d4Thread::get_current_time ()
 
 // ---------------------------------------------------------------------------
 
-void d4Thread::run_event_loop ()
+void d4Thread::run_event_loop (bool (*quit)(Thread&))
 {
     if (! _event_loop_running) {
-        _event_loop_running = true;
 
-        EvCommon*   ev;
-        while ((ev = dequeue_event()) != NULL) {
-            ev->dispatch();
-            _current_kernel = NULL;
+        _event_loop_running = true;
+        _quit_check_pred    = quit;
+
+        bool initial_quit_check_enabled = _quit_check_enabled;
+        if ( initial_quit_check_enabled) {
+            // --@@--
+            RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
+            // threads initially _quit_check_enabled need their _tid's
+            // to be re-inserted in glob.tid_map when run_event_loop()
+            // is called for the second and next times.
+            glob.tid_map[_tid] = this;
         }
 
+        do {
+
+            EvCommon*   ev;
+            while ((ev = dequeue_event()) != NULL) {
+                ev->dispatch();
+                _current_kernel = NULL;
+            }
+
+        } while (! _quit_loop_check());
+
+        _quit_check_enabled = initial_quit_check_enabled;
         _event_loop_running = false;
+    }
+}
+
+// ------------------------------------
+
+bool d4Thread::_quit_loop_check ()
+{
+    assert(_list_kernel.empty());
+
+    // There is no kernel, there were no events, but beware: a system event may
+    // be queued in the meantime, including one which would transfer a foreign
+    // kernel to this thread, so in the critical section we re-check _pending
+    // queue emptiness, and if still empty, temporarily disable the thread in
+    // the glob.tid_map, and then outside the critical section safely call
+    // user's _quit_check_pred function.
+
+    Tid_Map::iterator   t;
+    {
+        // --@@--
+        RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
+
+        if (! _pqueue.empty()) {    // got system event
+            return false;
+        }
+
+        t = glob.tid_map.find(_tid);
+
+        assert(t != glob.tid_map.end());
+        assert(this == (*t).second);
+
+        // To prevent _tid being reused (very unlikely condition) by the
+        // tid_generator, only the value is reset, rather than the whole pair
+        // removed.
+        (*t).second = NULL;
+    }
+
+    assert(NULL != _quit_check_pred);
+
+    if ((*_quit_check_pred)(*_handle)) {    // call user's predicate
+
+        // --@@--
+        RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
+
+        glob.tid_map.erase(t);  // remove completely
+
+        return true;
+    }
+    else {
+        // --@@--
+        RWLock::Guard   guard(glob.rwlock, RWLock::WRITE);
+
+        assert(t != glob.tid_map.end());
+        assert(NULL == (*t).second);
+
+        (*t).second = this;     // restore
+
+        return false;
     }
 }
 
@@ -349,6 +425,15 @@ EvCommon* d4Thread::dequeue_event ()
         // - mark this condition, so next time do normal block for i/o and timer
         // events, otherwise we'd eat all cpu for endless polling.
         //
+
+        if (_quit_check_enabled) {
+            if (_list_kernel.empty() && NULL != _quit_check_pred)
+                return NULL;
+        }
+        else {
+            if (! _list_kernel.empty())
+                _quit_check_enabled = true;
+        }
 
         /******************************
                     waiting...

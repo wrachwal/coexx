@@ -23,9 +23,11 @@ THE SOFTWARE.
 *****************************************************************************/
 
 #include "coe-config--d4c.h"
+#include "coe-thread--d4t.h"
 
 #include <cstdio>   // perror
 #include <cstdlib>  // abort
+#include <cerrno>
 
 using namespace std;
 using namespace coe;
@@ -34,6 +36,27 @@ using namespace coe;
 
 static Mutex       s_instance_mutex;
 d4Config* d4Config::_instance = NULL;
+
+// ===========================================================================
+
+static void destroy_d4t (void* value)
+{
+    /*
+     * Doing silly thing just to satisfy potential implementations that
+     * could conform to a bug in the original standard.
+     * ("Programming with POSIX Threads" by David R. Butenhof, p.167)
+     */
+    int status = pthread_setspecific(d4Config::instance()->key_d4t, NULL);
+    if (status != 0) {
+        //TODO: better error-handling
+        errno = status;
+        perror("destroy_d4t: pthread_setspecific");
+        abort();
+    }
+
+    d4Thread*   d4t = static_cast<d4Thread*>(value);
+    delete d4t;
+}
 
 // ===========================================================================
 // d4Config
@@ -54,9 +77,10 @@ d4Config* d4Config::instance ()
 
             //TODO: in case of errors here, throw exception!
 
-            int status = pthread_key_create(&d4c->key_d4t, NULL); //TODO: add destructor
+            int status = pthread_key_create(&d4c->key_d4t, &::destroy_d4t);
             if (status != 0) {
                 //TODO: better error-handling
+                errno = status;
                 perror("pthread_key_create");
                 abort();
             }

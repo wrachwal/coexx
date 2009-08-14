@@ -41,11 +41,11 @@ struct _TlsD;
 
 class Thread : private _Noncopyable {
 public:
-    static TiD spawn_new ();
+    static TiD spawn_new (bool (*quit)(Thread&) = 0);
 
     TiD ID () const;
 
-    void run_event_loop ();
+    void run_event_loop (bool (*quit)(Thread&) = 0);
 
     template<class T>
     T& tls ();
