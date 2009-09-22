@@ -35,8 +35,8 @@ using namespace coe;
 // IO_Ctx
 
 IO_Ctx::IO_Ctx (int f, IO_Mode m)
-:   fileno(f),
-    mode(m)
+:   _fileno(f),
+    _mode(m)
 {
 }
 

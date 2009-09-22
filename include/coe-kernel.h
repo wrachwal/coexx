@@ -211,11 +211,13 @@ private:
 
 class IO_Ctx : private _Noncopyable {
 public:
-    const int       fileno;
-    const IO_Mode   mode;
+    int     fileno () const { return _fileno; }
+    IO_Mode mode   () const { return _mode; }
 private:
     friend struct r4Kernel;
     IO_Ctx (int f, IO_Mode m);
+    int     _fileno;
+    IO_Mode _mode;
 };
 
 // ===========================================================================

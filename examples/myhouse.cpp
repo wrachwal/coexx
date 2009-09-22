@@ -91,10 +91,10 @@ private:
         {
             char    buf[256];
 
-            ssize_t nbytes = read(io.fileno, buf, sizeof(buf)-1);
+            ssize_t nbytes = read(io.fileno(), buf, sizeof(buf)-1);
 
             if (nbytes <= 0) {
-                kernel.select(io.fileno, io.mode);
+                kernel.select(io.fileno(), io.mode());
             }
             else {
                 buf[nbytes] = 0;
@@ -108,7 +108,7 @@ private:
                 else
                 if (0 == strncmp(buf, "close", 5)) {
                     cout << "### leaving out command prompt" << endl;
-                    kernel.select(io.fileno, io.mode);
+                    kernel.select(io.fileno(), io.mode());
                 }
             }
         }
@@ -137,7 +137,7 @@ private:
     void on_room2 (Kernel& kernel, const IO_Ctx& io, string& msg)
         {
             cout << __FUNCTION__
-                 << " <IO: fd=" << io.fileno << " mode=" << io.mode << ">"
+                 << " <IO: fd=" << io.fileno() << " mode=" << io.mode() << ">"
                  << " a1=\"" << msg << '"'
                  << endl;
         }
