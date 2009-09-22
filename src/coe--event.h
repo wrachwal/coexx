@@ -163,6 +163,7 @@ public:
     virtual EventContext::Type event_type () const = 0;
 
     const std::string& name () const { return _name; }
+    void               name_change (const std::string& new_name);
 
     ValParam* arg () const { return _arg; }
     ValParam* arg_change (ValParam* new_arg);

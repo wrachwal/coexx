@@ -848,10 +848,16 @@ bool d4Thread::create_io_watcher (EvIO* new_evio)
     EvIO*   old_evio = session->find_io_watcher(fd, mode);
 
     if (NULL != old_evio) {
+
+        // update name, arg, and sender_state
+        old_evio->name_change(new_evio->name());
         ValParam*   old_arg = old_evio->arg_change(new_evio->arg_change(NULL));
         if (NULL != old_arg) {
             old_arg->destroy();
         }
+        old_evio->sender_state(new_evio->sender_state());
+
+        new_evio->active(false);    // precondtion for safe delete
         delete new_evio;
     }
     else {

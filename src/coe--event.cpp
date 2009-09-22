@@ -63,6 +63,11 @@ EvUser::~EvUser ()
     }
 }
 
+void EvUser::name_change (const string& new_name)
+{
+    _name = new_name;
+}
+
 ValParam* EvUser::arg_change (ValParam* new_arg)
 {
     ValParam* old_arg = _arg;
