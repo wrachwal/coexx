@@ -223,6 +223,13 @@ private:
 // ===========================================================================
 // vparam (p1[, ...])
 
+#ifdef  COEXX_DOC_ONLY
+struct ValParam {
+    ValParam* clone () const;
+    template<class _Arg> _Arg* argptr (size_t index);
+};
+#endif
+
 template<class P1>
 ValParam* vparam (const P1&);
 template<class P1, class P2>

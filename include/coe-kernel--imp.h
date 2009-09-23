@@ -320,7 +320,10 @@ struct ExecuteContext;
 
 class ValParam : public EventArg {
 public:
+    // documented API
     virtual ValParam* clone () const = 0;
+    template<class _Arg>
+    _Arg* argptr (size_t index);
     // implementation
     ValParam () : _locked(0) {}
     ValParam (const ValParam&) : _locked(0) {}
@@ -330,6 +333,15 @@ private:
     friend struct ExecuteContext;
     int _locked;    // (-)delete-on-unlock, (0)free, (+)locked
 };
+
+template<class _Arg>
+_Arg* ValParam::argptr (size_t index)
+    {
+        const _TypeDN*  tdn = arg_type();
+        return index < tdn->len && &typeid(_Arg) == tdn->info[index]->info
+             ? static_cast<_Arg*>(arg_list()[index])
+             : 0;
+    }
 
 // ------------------------------------
 // ValParam_N<N>
