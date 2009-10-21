@@ -441,6 +441,14 @@ EvCommon* d4Thread::dequeue_event ()
 
         sched.state = Sched::WAIT;          // no queued event (must wait)
 
+        assert(sched.io_requests >= 0);
+#if 0
+        if (sched.io_requests)
+            cout << "********** SELECT (" << sched.io_requests << ")" << endl;
+        else
+            cout << ";;;;;;;;;; COND-VAR" << endl;
+#endif
+
         if (sched.io_requests) {
 
             if (_msgpipe_rfd < 0) {
@@ -608,7 +616,10 @@ void d4Thread::_select_io (const TimeSpec* due)
                     }
                     else {
                         if (nbytes != 1) {
-                            cerr << "read(pipe): " << nbytes << " bytes read!" << endl;
+                            for (int i = 0; i < nbytes; ++i)
+                                buf[i] = buf[i] == '@' ? '@' : '.';
+                            (cerr << "read(pipe): " << nbytes
+                                  << " bytes \"").write(buf, nbytes) << "\" read!" << endl;
                             abort();
                         }
                     }
