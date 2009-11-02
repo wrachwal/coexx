@@ -114,7 +114,9 @@ struct d4Thread {
 
         Mutex               mutex;
         CondVar             cond;
+
         int                 msgpipe_wfd;
+        int                 msgpipe_flag;
 
         enum State {
             BUSY,

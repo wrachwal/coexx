@@ -60,6 +60,7 @@ r4Kernel* d4Thread::Glob::find_kernel (KiD kid) const
 
 d4Thread::Sched::Sched ()
   : msgpipe_wfd(-1),
+    msgpipe_flag(0),
     state(BUSY),
     io_requests(0)
 {
@@ -345,9 +346,12 @@ void d4Thread::_wakeup_waiting_thread ()    // --@@--
 {
     if (sched.io_requests) {
         // write a byte to notification pipe
-        ssize_t nbytes = write(sched.msgpipe_wfd, "@", 1);
-                nbytes = nbytes;
-        assert(1 == nbytes);
+        if (! sched.msgpipe_flag) {
+            ssize_t nbytes = write(sched.msgpipe_wfd, "@", 1);
+                    nbytes = nbytes;
+            assert(1 == nbytes);
+            sched.msgpipe_flag = 1;
+        }
     }
     else {
         sched.cond.signal();
@@ -622,6 +626,7 @@ void d4Thread::_select_io (const TimeSpec* due)
                                   << " bytes \"").write(buf, nbytes) << "\" read!" << endl;
                             abort();
                         }
+                        sched.msgpipe_flag = 0;     // pipe emptied
                     }
 
                     -- result;
@@ -631,6 +636,27 @@ void d4Thread::_select_io (const TimeSpec* due)
                 // _pqueue_io_events
                 //
                 if (result > 0) {
+
+                    if (sched.msgpipe_flag) {
+                        /*
+                         * `msgpipe' might not luck into the select altogether with other
+                         * descriptors, but definitely should do the next time.
+                         * If the pipe has been signalled I increment the flag in order to
+                         * isolate a potential application bug which emptying the
+                         * pipe breaks its signalling capability.
+                         */
+                        sched.msgpipe_flag ++;
+                    }
+                    if (sched.msgpipe_flag > 2) {
+                        /*
+                         * If tests confirm this never occurs, or if so, only due to a bug
+                         * as stated in the comment above, remove the following
+                         * assert completely or raise an exception.
+                         */
+                        assert(sched.msgpipe_flag <= 2);
+                        sched.msgpipe_flag = 0;
+                    }
+
                     for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
                         EvIO*   evio = (*i).second;
                         if (evio->active() && _fdset[evio->mode()].fd_isset(evio->fd())) {
