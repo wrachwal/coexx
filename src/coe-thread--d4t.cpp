@@ -577,7 +577,30 @@ void d4Thread::_select_io (const TimeSpec* due)
             if (result == -1) {
 
                 if (errno == EINTR) {
-                    continue;       // goto (timeout)
+
+                    //
+                    // According to POSIX `continue' was sufficient,
+                    // but changed to `break' due to Linux behavior.
+                    //
+
+                    /* From POSIX `select' page
+                     * (http://www.opengroup.org/onlinepubs/9699919799/):
+                     * On failure, the objects pointed to by the readfds,
+                     * writefds, and errorfds arguments shall not be modified.
+                     * If the timeout interval expires without the specified
+                     * condition being true for any of the specified file
+                     * descriptors, the objects pointed to by the readfds,
+                     * writefds, and errorfds arguments shall have all bits set
+                     * to 0.
+                     **/
+
+                    /* From Linux `select' manpage:
+                     * On error, -1 is returned, and errno is set appropriately;
+                     * the  sets  and  timeout become undefined, so do not rely
+                     * on their contents after an error.
+                     **/
+
+                    break;      // goto (file descriptors sets)
                 }
 
                 //
