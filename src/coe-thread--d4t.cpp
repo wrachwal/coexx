@@ -543,158 +543,153 @@ void d4Thread::_select_io (const TimeSpec* due)
         for (int i = 0; i < TABLEN(_fdset); ++i)
             max_fd = max(max_fd, _fdset[i].max_fd);
 
-        for (;;) {
+        /******************************
+                    timeout
+        ******************************/
 
-            /******************************
-                        timeout
-            ******************************/
+        struct timeval  tmo;
 
-            struct timeval  tmo;
+        if (NULL != due) {
+            TimeSpec    delta = *due - get_current_time();
+            if (delta > TimeSpec::ZERO()) {
+                delta += TimeSpec(0, 999);  // ns(s) to us(s) round up
+                tmo.tv_sec  = delta.tv_sec;
+                tmo.tv_usec = delta.tv_nsec / 1000;
+            }
+            else {  // polling
+                tmo.tv_sec  = 0;
+                tmo.tv_usec = 0;
+            }
+        }
 
-            if (NULL != due) {
-                TimeSpec    delta = *due - get_current_time();
-                if (delta > TimeSpec::ZERO()) {
-                    delta += TimeSpec(0, 999);  // ns(s) to us(s) round up
-                    tmo.tv_sec  = delta.tv_sec;
-                    tmo.tv_usec = delta.tv_nsec / 1000;
-                }
-                else {  // polling
-                    tmo.tv_sec  = 0;
-                    tmo.tv_usec = 0;
-                }
+        /******************************
+                    select
+        ******************************/
+
+        int result = select(max_fd + 1,
+                            _fdset[IO_read ].sel_set(),
+                            _fdset[IO_write].sel_set(),
+                            _fdset[IO_error].sel_set(),
+                            (due ? &tmo : NULL));
+
+        if (result == -1) {
+
+            if (errno == EINTR) {
+
+                /*
+                 * From POSIX `select' page
+                 * (http://www.opengroup.org/onlinepubs/9699919799/):
+                 * On failure, the objects pointed to by the readfds,
+                 * writefds, and errorfds arguments shall not be modified.
+                 * If the timeout interval expires without the specified
+                 * condition being true for any of the specified file
+                 * descriptors, the objects pointed to by the readfds,
+                 * writefds, and errorfds arguments shall have all bits set
+                 * to 0.
+                 *
+                 * From Linux `select' manpage:
+                 * On error, -1 is returned, and errno is set appropriately;
+                 * the  sets  and  timeout become undefined, so do not rely
+                 * on their contents after an error.
+                 *
+                 **/
+
+                continue;       // goto (file descriptors sets)
             }
 
-            /******************************
-                        select
-            ******************************/
+            //
+            //TODO: diagnostics on EBADF and possibly EINVAL
+            //
 
-            int result = select(max_fd + 1,
-                                _fdset[IO_read ].sel_set(),
-                                _fdset[IO_write].sel_set(),
-                                _fdset[IO_error].sel_set(),
-                                (due ? &tmo : NULL));
+            perror("select");
+            abort();
+        }
 
-            if (result == -1) {
+        /******************************
+                update (guarded)
+        ******************************/
 
-                if (errno == EINTR) {
+        // --@@--
+        Mutex::Guard    guard(sched.mutex);
 
-                    //
-                    // According to POSIX `continue' was sufficient,
-                    // but changed to `break' due to Linux behavior.
-                    //
+        _pqueue_pending_events();
 
-                    /* From POSIX `select' page
-                     * (http://www.opengroup.org/onlinepubs/9699919799/):
-                     * On failure, the objects pointed to by the readfds,
-                     * writefds, and errorfds arguments shall not be modified.
-                     * If the timeout interval expires without the specified
-                     * condition being true for any of the specified file
-                     * descriptors, the objects pointed to by the readfds,
-                     * writefds, and errorfds arguments shall have all bits set
-                     * to 0.
-                     **/
+        _timestamp = get_current_time();
 
-                    /* From Linux `select' manpage:
-                     * On error, -1 is returned, and errno is set appropriately;
-                     * the  sets  and  timeout become undefined, so do not rely
-                     * on their contents after an error.
-                     **/
+        if (NULL != due && _timestamp >= *due) {
+            _pqueue_expired_alarms();
+        }
 
-                    break;      // goto (file descriptors sets)
+        if (result > 0) {
+
+            // read a byte from the notification pipe
+            if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
+
+                char    buf[16];
+                ssize_t nbytes = read(_msgpipe_rfd, buf, 8);    // try 8, expected 1
+
+                if (nbytes == -1) {
+                    if (errno == EINTR || errno == EAGAIN) {
+                        continue;       // goto (file descriptors sets)
+                    }
+                    perror("read(pipe)");
+                    abort();
                 }
-
-                //
-                //TODO: diagnostics on EBADF and possibly EINVAL
-                //
-
-                perror("select");
-                abort();
-            }
-
-            /******************************
-                    update (guarded)
-            ******************************/
-
-            // --@@--
-            Mutex::Guard    guard(sched.mutex);
-
-            _pqueue_pending_events();
-
-            _timestamp = get_current_time();
-
-            if (NULL != due && _timestamp >= *due) {
-                _pqueue_expired_alarms();
-            }
-
-            if (result > 0) {
-
-                // read a byte from the notification pipe
-                if (_fdset[IO_read].fd_isset(_msgpipe_rfd)) {
-
-                    char    buf[16];
-                    ssize_t nbytes = read(_msgpipe_rfd, buf, 8);    // try 8, expected 1
-
-                    if (nbytes == -1) {
-                        if (errno == EINTR || errno == EAGAIN) {
-                            break;      // goto (file descriptors sets)
-                        }
-                        perror("read(pipe)");
+                else {
+                    if (nbytes != 1) {
+                        for (int i = 0; i < nbytes; ++i)
+                            buf[i] = buf[i] == '@' ? '@' : '.';
+                        (cerr << "read(pipe): " << nbytes
+                              << " bytes \"").write(buf, nbytes) << "\" read!" << endl;
                         abort();
                     }
-                    else {
-                        if (nbytes != 1) {
-                            for (int i = 0; i < nbytes; ++i)
-                                buf[i] = buf[i] == '@' ? '@' : '.';
-                            (cerr << "read(pipe): " << nbytes
-                                  << " bytes \"").write(buf, nbytes) << "\" read!" << endl;
-                            abort();
-                        }
-                        sched.msgpipe_flag = 0;     // pipe emptied
-                    }
-
-                    -- result;
+                    sched.msgpipe_flag = 0;     // pipe emptied
                 }
 
-                //
-                // _pqueue_io_events
-                //
-                if (result > 0) {
+                -- result;
+            }
 
-                    if (sched.msgpipe_flag) {
-                        /*
-                         * `msgpipe' might not luck into the select altogether with other
-                         * descriptors, but definitely should do the next time.
-                         * If the pipe has been signalled I increment the flag in order to
-                         * isolate a potential application bug which emptying the
-                         * pipe breaks its signalling capability.
-                         */
-                        sched.msgpipe_flag ++;
-                    }
-                    if (sched.msgpipe_flag > 2) {
-                        /*
-                         * If tests confirm this never occurs, or if so, only due to a bug
-                         * as stated in the comment above, remove the following
-                         * assert completely or raise an exception.
-                         */
-                        assert(sched.msgpipe_flag <= 2);
-                        sched.msgpipe_flag = 0;
-                    }
+            //
+            // _pqueue_io_events
+            //
+            if (result > 0) {
 
-                    for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
-                        EvIO*   evio = (*i).second;
-                        if (evio->active() && _fdset[evio->mode()].fd_isset(evio->fd())) {
-                            _pqueue.put_tail(evio);
-                        }
+                if (sched.msgpipe_flag) {
+                    /*
+                     * `msgpipe' might not luck into the select altogether with other
+                     * descriptors, but definitely should do the next time.
+                     * If the pipe has been signalled I increment the flag in order to
+                     * isolate a potential application bug which emptying the
+                     * pipe breaks its signalling capability.
+                     */
+                    sched.msgpipe_flag ++;
+                }
+                if (sched.msgpipe_flag > 2) {
+                    /*
+                     * If tests confirm this never occurs, or if so, only due to a bug
+                     * as stated in the comment above, remove the following
+                     * assert completely or raise an exception.
+                     */
+                    assert(sched.msgpipe_flag <= 2);
+                    sched.msgpipe_flag = 0;
+                }
+
+                for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
+                    EvIO*   evio = (*i).second;
+                    if (evio->active() && _fdset[evio->mode()].fd_isset(evio->fd())) {
+                        _pqueue.put_tail(evio);
                     }
                 }
             }
+        }
 
-            if (! _pqueue.empty()) {
-                sched.state = Sched::BUSY;
-                return;
-            }
-
-        } ///// for (;;) -- timeout
+        //
+        // check the predicate
+        //
+        if (! _pqueue.empty()) {
+            sched.state = Sched::BUSY;
+            return;
+        }
 
     } ///// for (;;) -- file descriptors sets
 }
