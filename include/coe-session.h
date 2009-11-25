@@ -36,7 +36,8 @@ struct r4Session;   // private data
 
 class Session : private _Noncopyable {
 public:
-    SiD start_session (Kernel& kernel, EventArg* arg=0);
+    void start_handler (StateCmd* handler);
+    SiD  start_session (Kernel& kernel, EventArg* arg=0);
 
     SiD ID () const;
 

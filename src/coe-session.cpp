@@ -52,6 +52,12 @@ Session::~Session ()
 
 // ---------------------------------------------------------------------------
 
+void Session::start_handler (StateCmd* handler)
+{
+    delete _r4session->_start_handler;
+    _r4session->_start_handler = handler;
+}
+
 SiD Session::start_session (Kernel& kernel, EventArg* arg)
 {
     r4Kernel*   r4k = kernel._r4kernel;
