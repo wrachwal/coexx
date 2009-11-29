@@ -25,11 +25,13 @@ THE SOFTWARE.
 #ifndef __COE_KERNEL_H
 #define __COE_KERNEL_H
 
-#include "coe-ident.h"      // TiD, KiD, SiD, AiD
-#include "coe-sys-time.h"   // TimeSpec
-#include "coe-global.h"     // Factory<T>
+#include "coe-ident.h"          // TiD, KiD, SiD, AiD
+#include "coe-sys-time.h"       // TimeSpec
+#include "coe-global.h"         // Factory<T>
 #include "coe--local.h"
+
 #include <typeinfo>
+#include "coe-kernel--dcl.h"
 
 namespace coe { /////
 
@@ -46,9 +48,6 @@ class IO_Ctx;
 
 class RefParam;
 class ValParam;
-
-class StateCmd;
-    class MFunCmd0;
 
 // private data
 struct r4Kernel;
@@ -150,7 +149,7 @@ public:
      * Event Handler Management
      */
     void state (const std::string& ev);         // reset
-    void state (const std::string& ev, StateCmd* handler);
+    void state (const std::string& ev, const HandlerX& handler);
 
 private:
     friend struct r4Kernel;
@@ -260,31 +259,47 @@ RefParam* rparam (P1&, P2&, P3&, P4&, P5&);
 // handler (fun)
 
 template<class Obj>
-MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(Kernel&));
+Handler0 handler (Obj& obj, void (Obj::*fun)(Kernel&));
 template<class Obj, class P1>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&));
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&));
 template<class Obj, class P1, class P2>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&));
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&));
 template<class Obj, class P1, class P2, class P3>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&));
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&));
 template<class Obj, class P1, class P2, class P3, class P4>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&));
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&));
 template<class Obj, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6>
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&));
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&));
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&));
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&));
 
 // ------------------------------------
 
-StateCmd* handler (void (*fun)(Kernel&));
+Handler0 handler (void (*fun)(Kernel&));
 template<class P1>
-StateCmd* handler (void (*fun)(Kernel&, P1&));
+HandlerX handler (void (*fun)(Kernel&, P1&));
 template<class P1, class P2>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&));
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&));
 template<class P1, class P2, class P3>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&));
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&));
 template<class P1, class P2, class P3, class P4>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&));
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&));
 template<class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
+template<class P1, class P2, class P3, class P4, class P5, class P6>
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&));
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&));
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&));
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&));
 
 // ===========================================================================
 

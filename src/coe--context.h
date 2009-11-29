@@ -54,7 +54,7 @@ struct ExecuteContext {
     void        argument (EventArg* ea);
     void locked_argument (ValParam* vp);
 
-    bool execute (Kernel& kernel, StateCmd* handler);
+    bool execute (Kernel& kernel, const HandlerX& handler);
 
     // --------------------------------
 

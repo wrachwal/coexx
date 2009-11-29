@@ -33,13 +33,12 @@ using namespace coe;
 
 // ===========================================================================
 
-r4Session::r4Session (StateCmd* start_handler)
-:   _start_handler(start_handler)
+r4Session::r4Session (const HandlerX& start_handler)
+:   _handle(NULL)
+,   _start_handler(start_handler)
+,   _kernel(NULL)
+,   _parent(NULL)
 {
-    _handle       = NULL;
-    _stop_handler = NULL;
-    _kernel       = NULL;
-    _parent       = NULL;
 }
 
 r4Session::~r4Session ()
@@ -48,12 +47,6 @@ r4Session::~r4Session ()
     assert(NULL == _link_children.next);
     assert(_list_alarm.empty());
     assert(_list_evio.empty());
-
-    delete _start_handler;
-    _start_handler = NULL;
-
-    delete _stop_handler;
-    _stop_handler = NULL;
 }
 
 void r4Session::destroy ()

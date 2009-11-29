@@ -35,7 +35,7 @@ using namespace coe;
 // ===========================================================================
 // Session
 
-Session::Session (StateCmd* start_handler)
+Session::Session (const HandlerX& start_handler)
 {
     _r4session = new r4Session(start_handler);
 }
@@ -52,9 +52,8 @@ Session::~Session ()
 
 // ---------------------------------------------------------------------------
 
-void Session::start_handler (StateCmd* handler)
+void Session::start_handler (const HandlerX& handler)
 {
-    delete _r4session->_start_handler;
     _r4session->_start_handler = handler;
 }
 
@@ -70,9 +69,8 @@ SiD Session::start_session (Kernel& kernel, EventArg* arg)
 
 // ---------------------------------------------------------------------------
 
-void Session::stop_handler (MFunCmd0* handler)
+void Session::stop_handler (const Handler0& handler)
 {
-    delete _r4session->_stop_handler;
     _r4session->_stop_handler = handler;
 }
 

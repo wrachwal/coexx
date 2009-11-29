@@ -121,132 +121,207 @@ void ValParam::destroy ()
 }
 
 // ===========================================================================
-// StateCmd
+// HandlerX
 
-StateCmd::~StateCmd ()
+void HandlerX::execute (Kernel& kernel, void* arg[]) const
 {
-}
-
-// ===========================================================================
-// MFunCmd0 ... MFunCmd5
-
-void MFunCmd0::execute (Kernel& kernel, void* arg[]) const
-{
-    (_obj->*_memfun)(kernel);
-}
-
-void MFunCmd1::execute (Kernel& kernel, void* arg[]) const
-{
-    (_obj->*_memfun)(
-        kernel,
-        *(_Arg*)arg[0]
-    );
-}
-
-void MFunCmd2::execute (Kernel& kernel, void* arg[]) const
-{
-    (_obj->*_memfun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1]
-    );
-}
-
-void MFunCmd3::execute (Kernel& kernel, void* arg[]) const
-{
-    (_obj->*_memfun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1],
-        *(_Arg*)arg[2]
-    );
-}
-
-void MFunCmd4::execute (Kernel& kernel, void* arg[]) const
-{
-    (_obj->*_memfun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1],
-        *(_Arg*)arg[2],
-        *(_Arg*)arg[3]
-    );
-}
-
-void MFunCmd5::execute (Kernel& kernel, void* arg[]) const
-{
-    (_obj->*_memfun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1],
-        *(_Arg*)arg[2],
-        *(_Arg*)arg[3],
-        *(_Arg*)arg[4]
-    );
-}
-
-// ===========================================================================
-// GFunCmd0 ... GFunCmd5
-
-void GFunCmd0::execute (Kernel& kernel, void* arg[]) const
-{
-    (*_fun)(kernel);
-}
-
-void GFunCmd1::execute (Kernel& kernel, void* arg[]) const
-{
-    (*_fun)(
-        kernel,
-        *(_Arg*)arg[0]
-    );
-}
-
-void GFunCmd2::execute (Kernel& kernel, void* arg[]) const
-{
-    (*_fun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1]
-    );
-}
-
-void GFunCmd3::execute (Kernel& kernel, void* arg[]) const
-{
-    (*_fun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1],
-        *(_Arg*)arg[2]
-    );
-}
-
-void GFunCmd4::execute (Kernel& kernel, void* arg[]) const
-{
-    (*_fun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1],
-        *(_Arg*)arg[2],
-        *(_Arg*)arg[3]
-    );
-}
-
-void GFunCmd5::execute (Kernel& kernel, void* arg[]) const
-{
-    (*_fun)(
-        kernel,
-        *(_Arg*)arg[0],
-        *(_Arg*)arg[1],
-        *(_Arg*)arg[2],
-        *(_Arg*)arg[3],
-        *(_Arg*)arg[4]
-    );
-}
-
-// ---------------------------------------------------------------------------
-
-StateCmd* coe::handler (void (*fun)(Kernel&))
-{
-    return new GFunCmd0(fun);
+    if (_obj) {
+        if (NULL == _tdn) {
+            (_obj->*_fun.m0)(kernel);
+        }
+        else {
+            switch (_tdn->len) {
+                case 1:
+                    (_obj->*_fun.m1)(
+                        kernel,
+                        *(A*)arg[0]
+                    );
+                    break;
+                case 2:
+                    (_obj->*_fun.m2)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1]
+                    );
+                    break;
+                case 3:
+                    (_obj->*_fun.m3)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2]
+                    );
+                    break;
+                case 4:
+                    (_obj->*_fun.m4)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3]
+                    );
+                    break;
+                case 5:
+                    (_obj->*_fun.m5)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4]
+                    );
+                    break;
+                case 6:
+                    (_obj->*_fun.m6)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5]
+                    );
+                    break;
+                case 7:
+                    (_obj->*_fun.m7)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5],
+                        *(A*)arg[6]
+                    );
+                    break;
+                case 8:
+                    (_obj->*_fun.m8)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5],
+                        *(A*)arg[6],
+                        *(A*)arg[7]
+                    );
+                    break;
+                case 9:
+                    (_obj->*_fun.m9)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5],
+                        *(A*)arg[6],
+                        *(A*)arg[7],
+                        *(A*)arg[8]
+                    );
+                    break;
+            }
+        }
+    }
+    else {
+        if (NULL == _tdn) {
+            (*_fun.g0)(kernel);
+        }
+        else {
+            switch (_tdn->len) {
+                case 1:
+                    (*_fun.g1)(
+                        kernel,
+                        *(A*)arg[0]
+                    );
+                    break;
+                case 2:
+                    (*_fun.g2)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1]
+                    );
+                    break;
+                case 3:
+                    (*_fun.g3)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2]
+                    );
+                    break;
+                case 4:
+                    (*_fun.g4)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3]
+                    );
+                    break;
+                case 5:
+                    (*_fun.g5)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4]
+                    );
+                    break;
+                case 6:
+                    (*_fun.g6)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5]
+                    );
+                    break;
+                case 7:
+                    (*_fun.g7)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5],
+                        *(A*)arg[6]
+                    );
+                    break;
+                case 8:
+                    (*_fun.g8)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5],
+                        *(A*)arg[6],
+                        *(A*)arg[7]
+                    );
+                    break;
+                case 9:
+                    (*_fun.g9)(
+                        kernel,
+                        *(A*)arg[0],
+                        *(A*)arg[1],
+                        *(A*)arg[2],
+                        *(A*)arg[3],
+                        *(A*)arg[4],
+                        *(A*)arg[5],
+                        *(A*)arg[6],
+                        *(A*)arg[7],
+                        *(A*)arg[8]
+                    );
+                    break;
+            }
+        }
+    }
 }
 

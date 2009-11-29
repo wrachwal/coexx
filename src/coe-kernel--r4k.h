@@ -37,7 +37,6 @@ namespace coe { /////
 
 class Kernel;
 class Session;
-class StateCmd;
 
 struct d4Thread;
 struct s4Kernel;
@@ -96,9 +95,9 @@ struct r4Kernel {
     /*
      * handlers ("commands")
      */
-    // _s1ev_cmd : sid/1 x ev-name --> StateCmd*
+    // _s1ev_cmd : sid/1 x ev-name --> HandlerX
     typedef std::pair<SiD::IntType, std::string> S1Ev;
-    typedef std::map<S1Ev, StateCmd*>            S1Ev_Cmd;
+    typedef std::map<S1Ev, HandlerX>             S1Ev_Cmd;
     S1Ev_Cmd            _s1ev_cmd;
 
     // -----------------------------------------------------------------------
@@ -116,8 +115,8 @@ struct r4Kernel {
     bool delete_alarm (AiD aid);
     bool adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, ValParam* new_arg);
 
-    StateCmd* find_state_handler (SiD::IntType sid1, const std::string& ev);
-    void state__cmd (const std::string& ev, StateCmd* cmd);
+    HandlerX find_state_handler (SiD::IntType sid1, const std::string& ev);
+    void state__cmd (const std::string& ev, const HandlerX& cmd);
 
     bool call__arg (SiD on, const std::string& ev, ValParam* pfx, EventArg* arg);
 

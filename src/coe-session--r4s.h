@@ -42,8 +42,8 @@ struct r4Session {
     Session*            _handle;
     SiD                 _sid;
 
-    StateCmd*           _start_handler;
-    MFunCmd0*           _stop_handler;
+    HandlerX            _start_handler;
+    Handler0            _stop_handler;
 
     std::vector<Unregistrar>    _unregistrar;
 
@@ -69,7 +69,7 @@ struct r4Session {
 
     // --------------------------------
 
-    r4Session (StateCmd* start_handler);
+    r4Session (const HandlerX& start_handler);
     ~r4Session ();
     void destroy ();
 

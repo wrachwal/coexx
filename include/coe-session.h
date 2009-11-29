@@ -36,7 +36,7 @@ struct r4Session;   // private data
 
 class Session : private _Noncopyable {
 public:
-    void start_handler (StateCmd* handler);
+    void start_handler (const HandlerX& handler);
     SiD  start_session (Kernel& kernel, EventArg* arg=0);
 
     SiD ID () const;
@@ -44,11 +44,11 @@ public:
     bool unregistrar_set    (void (*)(SiD));
     bool unregistrar_remove (void (*)(SiD));
 
-    void stop_handler (MFunCmd0* handler);
+    void stop_handler (const Handler0& handler);
     bool stop_session ();
 
 protected:
-    Session (StateCmd* start_handler);
+    Session (const HandlerX& start_handler);
     virtual ~Session ();
 
 private:

@@ -23,7 +23,7 @@ THE SOFTWARE.
 *****************************************************************************/
 
 #if !defined(__COE_KERNEL_H) || defined(__COE_KERNEL__IMP_H)
-#error "never include this header directly!"
+#error "Never include this header directly!"
 #endif
 
 #ifndef __COE_KERNEL__IMP_H
@@ -96,209 +96,6 @@ class EventArg;
     //  class ValParam1<A1> ... ValParam5<A1 .. A5>
     class RefParam;
     //  class RefParam1     ... RefParam5
-class StateCmd;
-    //  class MFunCmd0 ... MFunCmd5
-    //  class GFunCmd0 ... GFunCmd5
-
-// ===========================================================================
-// _TypeD
-
-template<class> class _TypeI;
-
-struct _TypeD {
-    const std::type_info*   info;
-    const _TypeD*           next;
-    size_t                  pos;
-
-    static const _TypeD* registry () { return _register(0); }
-
-private:
-    template<class> friend class _TypeI;
-    template<class T>
-    explicit _TypeD (T*) : info(&typeid(T)), next(0) { _register(this); }
-    static const _TypeD* _register (_TypeD* type);
-};
-
-// ---------------------------------------------------------------------------
-// _TypeI<T>
-
-template<class T>
-class _TypeI {
-public:
-    const _TypeD* data () const { return &_data; }
-
-private:
-    static const _TypeD _data;
-};
-
-template<class T>
-const _TypeD _TypeI<T>::_data((T*)0);
-
-// ===========================================================================
-// _TypeDN
-
-template<class>                             class _TypeI1;
-template<class, class>                      class _TypeI2;
-template<class, class, class>               class _TypeI3;
-template<class, class, class, class>        class _TypeI4;
-template<class, class, class, class, class> class _TypeI5;
-
-struct _TypeDN {
-    const _TypeD**  info;   // NULL-terminated array
-    size_t          len;
-    const _TypeDN*  next;
-    size_t          pos;
-
-    static const _TypeDN* registry () { return _register(0); }
-
-private:
-    template<class>                             friend class _TypeI1;
-    template<class, class>                      friend class _TypeI2;
-    template<class, class, class>               friend class _TypeI3;
-    template<class, class, class, class>        friend class _TypeI4;
-    template<class, class, class, class, class> friend class _TypeI5;
-
-    template<class T1> explicit
-    _TypeDN (T1*) : len(1), next(0), pos(0)
-        {
-            static const _TypeD* _tab[] = {
-                _TypeI<T1>().data(),
-                0
-            };
-            info = _tab;
-            _register(this);
-        }
-
-    template<class T1, class T2>
-    _TypeDN (T1*, T2*) : len(2), next(0), pos(0)
-        {
-            static const _TypeD* _tab[] = {
-                _TypeI<T1>().data(),
-                _TypeI<T2>().data(),
-                0
-            };
-            info = _tab;
-            _register(this);
-        }
-
-    template<class T1, class T2, class T3>
-    _TypeDN (T1*, T2*, T3*) : len(3), next(0), pos(0)
-        {
-            static const _TypeD* _tab[] = {
-                _TypeI<T1>().data(),
-                _TypeI<T2>().data(),
-                _TypeI<T3>().data(),
-                0
-            };
-            info = _tab;
-            _register(this);
-        }
-
-    template<class T1, class T2, class T3, class T4>
-    _TypeDN (T1*, T2*, T3*, T4*) : len(4), next(0), pos(0)
-        {
-            static const _TypeD* _tab[] = {
-                _TypeI<T1>().data(),
-                _TypeI<T2>().data(),
-                _TypeI<T3>().data(),
-                _TypeI<T4>().data(),
-                0
-            };
-            info = _tab;
-            _register(this);
-        }
-
-    template<class T1, class T2, class T3, class T4, class T5>
-    _TypeDN (T1*, T2*, T3*, T4*, T5*) : len(5), next(0), pos(0)
-        {
-            static const _TypeD* _tab[] = {
-                _TypeI<T1>().data(),
-                _TypeI<T2>().data(),
-                _TypeI<T3>().data(),
-                _TypeI<T4>().data(),
-                _TypeI<T5>().data(),
-                0
-            };
-            info = _tab;
-            _register(this);
-        }
-
-    static const _TypeDN* _register (_TypeDN* type);
-};
-
-// ------------------------------------
-
-bool syntax_check (const _TypeDN* hT, const _TypeDN* xT, const _TypeDN* aT);
-
-// ---------------------------------------------------------------------------
-// _TypeI1<T1>
-
-template<class T1>
-class _TypeI1 {
-public:
-    const _TypeDN* data () const { return &_data; }
-private:
-    static const _TypeDN    _data;
-};
-
-template<class T1>
-const _TypeDN _TypeI1<T1>::_data((T1*)0);
-
-// ------------------------------------
-// _TypeI2<T1, T2>
-
-template<class T1, class T2>
-class _TypeI2 {
-public:
-    const _TypeDN* data () const { return &_data; }
-private:
-    static const _TypeDN    _data;
-};
-
-template<class T1, class T2>
-const _TypeDN _TypeI2<T1, T2>::_data((T1*)0, (T2*)0);
-
-// ------------------------------------
-// _TypeI3<T1, T2, T3>
-
-template<class T1, class T2, class T3>
-class _TypeI3 {
-public:
-    const _TypeDN* data () const { return &_data; }
-private:
-    static const _TypeDN    _data;
-};
-
-template<class T1, class T2, class T3>
-const _TypeDN _TypeI3<T1, T2, T3>::_data((T1*)0, (T2*)0, (T3*)0);
-
-// ------------------------------------
-// _TypeI4<T1, T2, T3, T4>
-
-template<class T1, class T2, class T3, class T4>
-class _TypeI4 {
-public:
-    const _TypeDN* data () const { return &_data; }
-private:
-    static const _TypeDN    _data;
-};
-
-template<class T1, class T2, class T3, class T4>
-const _TypeDN _TypeI4<T1, T2, T3, T4>::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0);
-
-// ------------------------------------
-// _TypeI5<T1, T2, T3, T4, T5>
-
-template<class T1, class T2, class T3, class T4, class T5>
-class _TypeI5 {
-public:
-    const _TypeDN* data () const { return &_data; }
-private:
-    static const _TypeDN    _data;
-};
-
-template<class T1, class T2, class T3, class T4, class T5>
-const _TypeDN _TypeI5<T1, T2, T3, T4, T5>::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0);
 
 // ===========================================================================
 // EventArg
@@ -391,27 +188,6 @@ const _TypeDN* RefParam_N<N>::arg_type () const
     {
         return _info;
     }
-
-// ===========================================================================
-// StateCmd
-
-class StateCmd {
-public:
-    //
-    // static operator new/delete...
-    //
-    virtual ~StateCmd ();
-
-    const _TypeDN* par_type () const { return _info; }
-
-    virtual void execute (Kernel& kernel, void* arg[]) const = 0;
-
-protected:
-    StateCmd (const _TypeDN* info) : _info(info) {}
-
-private:
-    const _TypeDN*  _info;
-};
 
 // ===========================================================================
 // ValParam1<A1> ... ValParam5<A1 .. A5>
@@ -598,217 +374,6 @@ public:
 };
 
 // ===========================================================================
-// MFunCmd0 ... MFunCmd5
-// ===========================================================================
-
-class MFunCmd0 : public StateCmd {
-public:
-    class _Obj;
-    typedef void (_Obj::*_MemFun)(Kernel&);
-    template<class Obj>
-    MFunCmd0 (Obj& obj, void (Obj::*memfun)(Kernel&))
-        :   StateCmd(0),
-            _obj((_Obj*)&obj),
-            _memfun((_MemFun)memfun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    _Obj* _obj;
-    void (_Obj::*_memfun)(Kernel&);
-};
-
-// ------------------------------------
-
-class MFunCmd1 : public StateCmd {
-public:
-    class _Obj;
-    class _Arg;
-    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&);
-    template<class Obj, class A1>
-    MFunCmd1 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&))
-        :   StateCmd(_TypeI1<A1>().data()),
-            _obj((_Obj*)&obj),
-            _memfun((_MemFun)memfun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    _Obj* _obj;
-    void (_Obj::*_memfun)(Kernel&, _Arg&);
-};
-
-// ------------------------------------
-
-class MFunCmd2 : public StateCmd {
-public:
-    class _Obj;
-    class _Arg;
-    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&);
-    template<class Obj, class A1, class A2>
-    MFunCmd2 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&))
-        :   StateCmd(_TypeI2<A1, A2>().data()),
-            _obj((_Obj*)&obj),
-            _memfun((_MemFun)memfun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    _Obj* _obj;
-    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&);
-};
-
-// ------------------------------------
-
-class MFunCmd3 : public StateCmd {
-public:
-    class _Obj;
-    class _Arg;
-    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&, _Arg&);
-    template<class Obj, class A1, class A2, class A3>
-    MFunCmd3 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&, A3&))
-        :   StateCmd(_TypeI3<A1, A2, A3>().data()),
-            _obj((_Obj*)&obj),
-            _memfun((_MemFun)memfun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    _Obj* _obj;
-    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&, _Arg&);
-};
-
-// ------------------------------------
-
-class MFunCmd4 : public StateCmd {
-public:
-    class _Obj;
-    class _Arg;
-    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
-    template<class Obj, class A1, class A2, class A3, class A4>
-    MFunCmd4 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&, A3&, A4&))
-        :   StateCmd(_TypeI4<A1, A2, A3, A4>().data()),
-            _obj((_Obj*)&obj),
-            _memfun((_MemFun)memfun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    _Obj* _obj;
-    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
-};
-
-// ------------------------------------
-
-class MFunCmd5 : public StateCmd {
-public:
-    class _Obj;
-    class _Arg;
-    typedef void (_Obj::*_MemFun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
-    template<class Obj, class A1, class A2, class A3, class A4, class A5>
-    MFunCmd5 (Obj& obj, void (Obj::*memfun)(Kernel&, A1&, A2&, A3&, A4&, A5&))
-        :   StateCmd(_TypeI5<A1, A2, A3, A4, A5>().data()),
-            _obj((_Obj*)&obj),
-            _memfun((_MemFun)memfun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    _Obj* _obj;
-    void (_Obj::*_memfun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
-};
-
-// ===========================================================================
-// GFunCmd0 .. GFunCmd5
-// ===========================================================================
-
-class GFunCmd0 : public StateCmd {
-public:
-    typedef void (*_Fun)(Kernel&);
-    GFunCmd0 (void (*fun)(Kernel&))
-        :   StateCmd(0),
-            _fun((_Fun)fun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    void (*_fun)(Kernel&);
-};
-
-// ------------------------------------
-
-class GFunCmd1 : public StateCmd {
-public:
-    class _Arg;
-    typedef void (*_Fun)(Kernel&, _Arg&);
-    template<class A1>
-    GFunCmd1 (void (*fun)(Kernel&, A1&))
-        :   StateCmd(_TypeI1<A1>().data()),
-            _fun((_Fun)fun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    void (*_fun)(Kernel&, _Arg&);
-};
-
-// ------------------------------------
-
-class GFunCmd2 : public StateCmd {
-public:
-    class _Arg;
-    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&);
-    template<class A1, class A2>
-    GFunCmd2 (void (*fun)(Kernel&, A1&, A2&))
-        :   StateCmd(_TypeI2<A1, A2>().data()),
-            _fun((_Fun)fun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    void (*_fun)(Kernel&, _Arg&, _Arg&);
-};
-
-// ------------------------------------
-
-class GFunCmd3 : public StateCmd {
-public:
-    class _Arg;
-    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&, _Arg&);
-    template<class A1, class A2, class A3>
-    GFunCmd3 (void (*fun)(Kernel&, A1&, A2&, A3&))
-        :   StateCmd(_TypeI3<A1, A2, A3>().data()),
-            _fun((_Fun)fun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    void (*_fun)(Kernel&, _Arg&, _Arg&, _Arg&);
-};
-
-// ------------------------------------
-
-class GFunCmd4 : public StateCmd {
-public:
-    class _Arg;
-    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
-    template<class A1, class A2, class A3, class A4>
-    GFunCmd4 (void (*fun)(Kernel&, A1&, A2&, A3&, A4&))
-        :   StateCmd(_TypeI4<A1, A2, A3, A4>().data()),
-            _fun((_Fun)fun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    void (*_fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&);
-};
-
-// ------------------------------------
-
-class GFunCmd5 : public StateCmd {
-public:
-    class _Arg;
-    typedef void (*_Fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
-    template<class A1, class A2, class A3, class A4, class A5>
-    GFunCmd5 (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&))
-        :   StateCmd(_TypeI5<A1, A2, A3, A4, A5>().data()),
-            _fun((_Fun)fun)
-        {}
-    void execute (Kernel& kernel, void* arg[]) const;
-private:
-    void (*_fun)(Kernel&, _Arg&, _Arg&, _Arg&, _Arg&, _Arg&);
-};
-
-// ===========================================================================
 // vparam (p1[, ...])
 // ===========================================================================
 
@@ -860,53 +425,97 @@ RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
 // handler (obj, memfun)
 // ===========================================================================
 
-template<class Obj>
-MFunCmd0* handler (Obj& obj, void (Obj::*memfun)(Kernel&))
-    { return new MFunCmd0(obj, memfun); }
+template<class Obj> inline
+Handler0 handler (Obj& obj, void (Obj::*fun)(Kernel&))
+    { return Handler0(obj, fun); }
 
-template<class Obj, class P1>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&))
-    { return new MFunCmd1(obj, memfun); }
+template<class Obj, class P1> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&))
+    { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&))
-    { return new MFunCmd2(obj, memfun); }
+template<class Obj, class P1, class P2> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&))
+    { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2, class P3>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&))
-    { return new MFunCmd3(obj, memfun); }
+template<class Obj, class P1, class P2, class P3> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&))
+    { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2, class P3, class P4>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&))
-    { return new MFunCmd4(obj, memfun); }
+template<class Obj, class P1, class P2, class P3, class P4> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&))
+    { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (Obj& obj, void (Obj::*memfun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
-    { return new MFunCmd5(obj, memfun); }
+template<class Obj, class P1, class P2, class P3, class P4, class P5> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
+    { return HandlerX(obj, fun); }
+
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&))
+    { return HandlerX(obj, fun); }
+
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6,
+                    class P7> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&,
+                                                      P7&))
+    { return HandlerX(obj, fun); }
+
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6,
+                    class P7, class P8> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&,
+                                                      P7&, P8&))
+    { return HandlerX(obj, fun); }
+
+template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6,
+                    class P7, class P8, class P9> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&,
+                                                      P7&, P8&, P9&))
+    { return HandlerX(obj, fun); }
 
 // ---------------------------------------------------------------------------
 // handler (fun)
 // ---------------------------------------------------------------------------
 
-template<class P1>
-StateCmd* handler (void (*fun)(Kernel&, P1&))
-    { return new GFunCmd1(fun); }
+inline
+Handler0 handler (void (*fun)(Kernel&))
+    { return Handler0(fun); }
 
-template<class P1, class P2>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&))
-    { return new GFunCmd2(fun); }
+template<class P1> inline
+HandlerX handler (void (*fun)(Kernel&, P1&))
+    { return HandlerX(fun); }
 
-template<class P1, class P2, class P3>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&))
-    { return new GFunCmd3(fun); }
+template<class P1, class P2> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&))
+    { return HandlerX(fun); }
 
-template<class P1, class P2, class P3, class P4>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&))
-    { return new GFunCmd4(fun); }
+template<class P1, class P2, class P3> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&))
+    { return HandlerX(fun); }
 
-template<class P1, class P2, class P3, class P4, class P5>
-StateCmd* handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
-    { return new GFunCmd5(fun); }
+template<class P1, class P2, class P3, class P4> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&))
+    { return HandlerX(fun); }
+
+template<class P1, class P2, class P3, class P4, class P5> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
+    { return HandlerX(fun); }
+
+template<class P1, class P2, class P3, class P4, class P5, class P6> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&))
+    { return HandlerX(fun); }
+
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&))
+    { return HandlerX(fun); }
+
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+         class P8> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&))
+    { return HandlerX(fun); }
+
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7,
+         class P8, class P9> inline
+HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&))
+    { return HandlerX(fun); }
 
 // ===========================================================================
 

@@ -31,6 +31,8 @@ THE SOFTWARE.
 using namespace std;
 using namespace coe;
 
+static const HandlerX   NullHandler;
+
 // ===========================================================================
 // IO_Ctx
 
@@ -422,12 +424,12 @@ bool Kernel::select_resume (int fd, IO_Mode mode)
 
 void Kernel::state (const string& ev)
 {
-    _r4kernel->state__cmd(ev, NULL);
+    _r4kernel->state__cmd(ev, ::NullHandler);
 }
 
 // ------------------------------------
 
-void Kernel::state (const string& ev, StateCmd* handler)
+void Kernel::state (const string& ev, const HandlerX& handler)
 {
     _r4kernel->state__cmd(ev, handler);
 }

@@ -225,7 +225,7 @@ void ExecuteContext::locked_argument (ValParam* vp)
 
 // ---------------------------------------------------------------------------
 
-bool ExecuteContext::execute (Kernel& kernel, StateCmd* handler)
+bool ExecuteContext::execute (Kernel& kernel, const HandlerX& handler)
 {
     //
     // argptr[]
@@ -244,14 +244,14 @@ bool ExecuteContext::execute (Kernel& kernel, StateCmd* handler)
         len += aT->len;
     }
 
-    if (NULL == handler) {
+    if (! handler) {
         cerr << "! ERROR: handler not found\n";
         _print_stack(cerr);
         cerr << flush;
         return false;
     }
 
-    const _TypeDN* hT = handler->par_type();
+    const _TypeDN* hT = handler.par_type();
 
     if (! syntax_check(hT, pfx_type, aT)) {
         cerr << "! ERROR: type mismatch\n";
@@ -260,7 +260,7 @@ bool ExecuteContext::execute (Kernel& kernel, StateCmd* handler)
         return false;
     }
 
-    handler->execute(kernel, argptr);
+    handler.execute(kernel, argptr);
 
     return true;
 }

@@ -139,12 +139,12 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
     if (NULL != r4s->_handle)               // resource is already attached
         return r4s->_sid;
 
-    if (NULL == r4s->_start_handler) {      // _start_handler not set
+    if (! r4s->_start_handler) {            // _start_handler not set
         delete s;
         return SiD::NONE();
     }
 
-    const _TypeDN*  hT = r4s->_start_handler->par_type();
+    const _TypeDN*  hT = r4s->_start_handler.par_type();
     const _TypeDN*  aT = arg ? arg->arg_type() : NULL;
 
     if (! syntax_check(hT, NULL, aT)) {
@@ -173,9 +173,6 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
 
     run.execute(*_handle, r4s->_start_handler);
 
-    delete r4s->_start_handler;
-    r4s->_start_handler = NULL;
-
     return r4s->_sid;
 }
 
@@ -186,7 +183,7 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
     //
     // call `_stop_handler'
     //
-    if (NULL != node._stop_handler) {
+    if (node._stop_handler) {
 
         ExecuteContext  run(&node, EventContext::STOP, ".stop", &root);
 
@@ -261,31 +258,27 @@ bool r4Kernel::adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, Val
 
 // ---------------------------------------------------------------------------
 
-StateCmd* r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
+HandlerX r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
 {
-    S1Ev_Cmd::iterator  sh = _s1ev_cmd.find(make_pair(sid1, ev));
-    return (sh == _s1ev_cmd.end()) ? NULL : (*sh).second;
+    S1Ev_Cmd::iterator  i = _s1ev_cmd.find(make_pair(sid1, ev));
+    return (i == _s1ev_cmd.end()) ? HandlerX() : (*i).second;
 }
 
 // ---------------------------------------------------------------------------
 
-void r4Kernel::state__cmd (const string& ev, StateCmd* cmd)
+void r4Kernel::state__cmd (const string& ev, const HandlerX& cmd)
 {
     //TODO: check if _current_session is allowable to accept Kernel::state()
 
     S1Ev    s1ev(_current_context->session->_sid.id(), ev);
 
-    S1Ev_Cmd::iterator  kv = _s1ev_cmd.find(s1ev);
-
-    if (kv != _s1ev_cmd.end()) {
-        swap(cmd, (*kv).second);
-        delete cmd;
-        if (NULL == (*kv).second)
-            _s1ev_cmd.erase(kv);
-    }
-    else
-    if (NULL != cmd) {
+    if (cmd) {
         _s1ev_cmd.insert(S1Ev_Cmd::value_type(s1ev, cmd));
+    }
+    else {
+        //@@@XXX with planned CoeStr implementation there might be a Kernel
+        //policy telling whether to remove an entry or reset only a value.
+        _s1ev_cmd.erase(s1ev);
     }
 }
 
