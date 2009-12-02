@@ -387,8 +387,6 @@ const _TypeDN _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
 // ===========================================================================
 // HandlerX
 
-class Handler0;
-
 class HandlerX {
 public:
     HandlerX () : _obj(0), _tdn(0) { _fun.ptr = 0; }
@@ -399,7 +397,11 @@ public:
 
     void execute (Kernel& kernel, void* arg[]) const;
 
+    // --------------------------------
+
     class _Obj; class A;
+    typedef void (_Obj::*MFun0) (Kernel&);
+    typedef void       (*GFun0) (Kernel&);
     typedef void (_Obj::*MFun1) (Kernel&, A&);
     typedef void       (*GFun1) (Kernel&, A&);
     typedef void (_Obj::*MFun2) (Kernel&, A&, A&);
@@ -420,6 +422,11 @@ public:
     typedef void       (*GFun9) (Kernel&, A&, A&, A&, A&, A&, A&, A&, A&, A&);
 
     // --------------------------------
+
+    template<class Obj>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&))
+        : _obj((_Obj*)&obj), _tdn(0)
+        { _fun.m0 = MFun0(fun); }
 
     template<class Obj, class A1>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&))
@@ -474,6 +481,10 @@ public:
 
     // --------------------------------
 
+    HandlerX (void (*fun)(Kernel&))
+        : _obj(0), _tdn(0)
+        { _fun.g0 = GFun0(fun); }
+
     template<class A1>
     HandlerX (void (*fun)(Kernel&, A1&))
         : _obj(0), _tdn(_TypeI1<A1>().data())
@@ -522,21 +533,6 @@ public:
         { _fun.g9 = GFun9(fun); }
 
 private:
-    friend class Handler0;
-
-    typedef void (_Obj::*MFun0) (Kernel&);
-    typedef void       (*GFun0) (Kernel&);
-
-    template<class Obj>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&))
-        : _obj((_Obj*)&obj), _tdn(0)
-        { _fun.m0 = MFun0(fun); }
-
-    explicit
-    HandlerX (void (*fun)(Kernel&))
-        : _obj(0), _tdn(0)
-        { _fun.g0 = GFun0(fun); }
-
     union {
         void* ptr;
         MFun0 m0; GFun0 g0;
@@ -559,21 +555,39 @@ private:
 
 class Handler0 {
 public:
-    Handler0 () {}
+    Handler0 () : _obj(0) { _fun.ptr = 0; }
 
-    operator const HandlerX& () const { return _h0; }
+    operator const void* () const { return _fun.ptr; }
 
-    operator const void* () const { return _h0._fun.ptr; }
+    operator HandlerX () const
+        {
+            return _obj ? HandlerX(*_obj, _fun.m0) : HandlerX(_fun.g0);
+        }
+
+    void execute (Kernel& kernel) const;
+
+    // --------------------------------
+
+    class _Obj;
+    typedef void (_Obj::*MFun0) (Kernel&);
+    typedef void       (*GFun0) (Kernel&);
 
     template<class Obj>
     Handler0 (Obj& obj, void (Obj::*fun)(Kernel&))
-        : _h0(obj, fun) {}
-    explicit
+        : _obj((_Obj*)&obj)
+        { _fun.m0 = MFun0(fun); }
+
     Handler0 (void (*fun)(Kernel&))
-        : _h0(fun) {}
+        : _obj(0)
+        { _fun.g0 = GFun0(fun); }
 
 private:
-    HandlerX    _h0;
+    union {
+        void* ptr;
+        MFun0 m0;
+        GFun0 g0;
+    }       _fun;
+    _Obj*   _obj;
 };
 
 // ===========================================================================

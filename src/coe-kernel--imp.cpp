@@ -325,3 +325,16 @@ void HandlerX::execute (Kernel& kernel, void* arg[]) const
     }
 }
 
+// ===========================================================================
+// Handler0
+
+void Handler0::execute (Kernel& kernel) const
+{
+    if (_obj) {
+        (_obj->*_fun.m0)(kernel);
+    }
+    else {
+        (*_fun.g0)(kernel);
+    }
+}
+
