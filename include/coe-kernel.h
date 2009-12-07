@@ -107,7 +107,7 @@ public:
     /*
      * Timer Events (Delayed Messages)
      */
-    // Name-Based Timers
+    // TODO: Name-Based Timers
     bool alarm     (const std::string ev);      // reset
     bool alarm     (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
     bool alarm_add (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
@@ -123,7 +123,7 @@ public:
     bool delay_adjust (AiD aid, TimeSpec secs_from_now);
     bool delay_adjust (AiD aid, TimeSpec secs_from_now, ValParam* vp);
     //
-    // Periodicity
+    // TODO: Periodicity
     bool set_periodic       (AiD aid, TimeSpec interval);
     bool     periodic_clear (AiD aid);
     //
@@ -150,6 +150,11 @@ public:
      */
     void state (const std::string& ev);         // reset
     void state (const std::string& ev, const HandlerX& handler);
+
+    /*
+     * A way to continue after a normal handler returns
+     */
+    void continuation (Handler0 cont);
 
 private:
     friend struct r4Kernel;

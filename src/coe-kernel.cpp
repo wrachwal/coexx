@@ -434,6 +434,13 @@ void Kernel::state (const string& ev, const HandlerX& handler)
     _r4kernel->state__cmd(ev, handler);
 }
 
+// ---------------------------------------------------------------------------
+
+void Kernel::continuation (Handler0 cont)
+{
+    _r4kernel->_current_context->continuation = cont;
+}
+
 // ===========================================================================
 // EventContext
 

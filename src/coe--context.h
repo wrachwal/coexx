@@ -62,11 +62,14 @@ struct ExecuteContext {
     ExecuteContext*     parent;
     int                 level;
     EventContext::Type  type;
+
     r4Session*          session;
     std::string         state;
     SiD                 sender;
     std::string         sender_state;
     AiD                 alarm_id;
+
+    Handler0            continuation;
 
     const _TypeDN*      pfx_type;
     void**              pfx_pval;

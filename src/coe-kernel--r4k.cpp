@@ -173,6 +173,12 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
 
     run.execute(*_handle, r4s->_start_handler);
 
+    while (run.continuation) {
+        Handler0    cont = run.continuation;
+        run.continuation = Handler0();
+        cont.execute(*_handle);
+    }
+
     return r4s->_sid;
 }
 
@@ -191,6 +197,12 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
         // was called i.e. the root.ID
 
         run.execute(*_handle, node._stop_handler);
+
+        while (run.continuation) {
+            Handler0    cont = run.continuation;
+            run.continuation = Handler0();
+            cont.execute(*_handle);
+        }
     }
 
     //
@@ -313,6 +325,12 @@ bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg
         run.argument(arg);
 
         status = run.execute(*_handle, find_state_handler(on.id(), ev));
+
+        while (run.continuation) {
+            Handler0    cont = run.continuation;
+            run.continuation = Handler0();
+            cont.execute(*_handle);
+        }
     }
     else {
 #if 1
@@ -347,6 +365,12 @@ void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
         run.locked_argument(evmsg->arg());
 
         run.execute(*_handle, find_state_handler(session->_sid.id(), evmsg->name()));
+
+        while (run.continuation) {
+            Handler0    cont = run.continuation;
+            run.continuation = Handler0();
+            cont.execute(*_handle);
+        }
     }
 
     delete evmsg;
@@ -369,6 +393,12 @@ void r4Kernel::dispatch_alarm (EvAlarm* alarm)
         run.locked_argument(alarm->arg());
 
         run.execute(*_handle, find_state_handler(session->_sid.id(), alarm->name()));
+
+        while (run.continuation) {
+            Handler0    cont = run.continuation;
+            run.continuation = Handler0();
+            cont.execute(*_handle);
+        }
     }
 
     if (NULL != _thread->_dispatched_alarm) {   // not deleted in handler(s)
@@ -403,6 +433,12 @@ void r4Kernel::dispatch_evio (EvIO* evio)
         run.locked_argument(evio->arg());
 
         run.execute(*_handle, find_state_handler(session->_sid.id(), evio->name()));
+
+        while (run.continuation) {
+            Handler0    cont = run.continuation;
+            run.continuation = Handler0();
+            cont.execute(*_handle);
+        }
     }
 }
 
