@@ -118,7 +118,7 @@ ExecuteContext::ExecuteContext (r4Session* session,
     arg_locked(NULL)
 {
     assert(&session->_kernel->_kernel_session_context
-        == session->_kernel->       _current_context);
+         == session->_kernel->       _current_context);
 
     session->_kernel->_current_context = this;
 

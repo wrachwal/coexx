@@ -75,7 +75,7 @@ struct ExecuteContext {
     EventArg*           arg;
     ValParam*           arg_locked;
 
-    void*               argptr[5 + 5];  // pfx + arg
+    void*               argptr[9 + 9];  // pfx + arg
 
 private:
     void _print_stack (std::ostream& os);
