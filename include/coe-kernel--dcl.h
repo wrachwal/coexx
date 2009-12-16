@@ -389,9 +389,13 @@ const _TypeDN _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
 
 class HandlerX {
 public:
-    HandlerX () : _obj(0), _tdn(0) { _fun.ptr = 0; }
+    HandlerX () : _obj(0), _tdn(0) { _fun.g0 = 0; }
 
-    operator const void* () const { return _fun.ptr; }
+    operator const void* () const
+        {
+            return _obj ? (_fun.m0 ? ((const void*)-1) : 0)
+                        : (_fun.g0 ? ((const void*)-1) : 0);
+        }
 
     const _TypeDN* par_type () const { return _tdn; }
 
@@ -534,7 +538,6 @@ public:
 
 private:
     union {
-        void* ptr;
         MFun0 m0; GFun0 g0;
         MFun1 m1; GFun1 g1;
         MFun2 m2; GFun2 g2;
@@ -555,9 +558,13 @@ private:
 
 class Handler0 {
 public:
-    Handler0 () : _obj(0) { _fun.ptr = 0; }
+    Handler0 () : _obj(0) { _fun.g0 = 0; }
 
-    operator const void* () const { return _fun.ptr; }
+    operator const void* () const
+        {
+            return _obj ? (_fun.m0 ? ((const void*)-1) : 0)
+                        : (_fun.g0 ? ((const void*)-1) : 0);
+        }
 
     operator HandlerX () const
         {
@@ -583,7 +590,6 @@ public:
 
 private:
     union {
-        void* ptr;
         MFun0 m0;
         GFun0 g0;
     }       _fun;
