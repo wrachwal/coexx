@@ -1,7 +1,7 @@
 // coe-thread--d4t.cpp
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 
 #include <cerrno>
+#include <cstdio>       // perror
 #include <iostream>
 
 #include <sys/select.h> // select() on Cygwin
