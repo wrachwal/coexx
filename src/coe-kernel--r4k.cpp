@@ -1,7 +1,7 @@
 // coe-kernel--r4k.cpp
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -270,7 +270,7 @@ bool r4Kernel::adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, Val
 
 // ---------------------------------------------------------------------------
 
-HandlerX r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
+HandlerX r4Kernel::find_state_handler (SiD::IntType sid1, const CoeStr& ev)
 {
     S1Ev_Cmd::iterator  i = _s1ev_cmd.find(make_pair(sid1, ev));
     return (i == _s1ev_cmd.end()) ? HandlerX() : (*i).second;
@@ -278,7 +278,7 @@ HandlerX r4Kernel::find_state_handler (SiD::IntType sid1, const string& ev)
 
 // ---------------------------------------------------------------------------
 
-void r4Kernel::state__cmd (const string& ev, const HandlerX& cmd)
+void r4Kernel::state__cmd (const CoeStr& ev, const HandlerX& cmd)
 {
     //TODO: check if _current_session is allowable to accept Kernel::state()
 
@@ -296,7 +296,7 @@ void r4Kernel::state__cmd (const string& ev, const HandlerX& cmd)
 
 // ---------------------------------------------------------------------------
 
-bool r4Kernel::call__arg (SiD on, const string& ev, ValParam* pfx, EventArg* arg)
+bool r4Kernel::call__arg (SiD on, const CoeStr& ev, ValParam* pfx, EventArg* arg)
 {
     // assertions confirm what have been validated by a caller
     assert(NULL != _thread);

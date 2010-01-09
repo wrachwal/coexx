@@ -1,7 +1,7 @@
 // coe-kernel--cb.cpp
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ using namespace coe;
 // ===========================================================================
 // Callback
 
-Callback::Callback (SiD target, const string& evname, ValParam* prefix)
+Callback::Callback (SiD target, const CoeStr& evname, ValParam* prefix)
   : _target(target),
     _evname(evname),
     _prefix(prefix)

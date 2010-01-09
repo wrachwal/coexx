@@ -1,7 +1,7 @@
 // coe-kernel.cpp
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -172,7 +172,7 @@ bool Kernel::move_to_thread (TiD tid)
 
 // ---------------------------------------------------------------------------
 
-Callback* Kernel::callback (const std::string& ev, ValParam* pfx)
+Callback* Kernel::callback (const CoeStr& ev, ValParam* pfx)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! current_session_active(_r4kernel)
@@ -186,7 +186,7 @@ Callback* Kernel::callback (const std::string& ev, ValParam* pfx)
 
 // ---------------------------------------------------------------------------
 
-bool Kernel::anon_post (SiD to, const string& ev, ValParam* vp)
+bool Kernel::anon_post (SiD to, const CoeStr& ev, ValParam* vp)
 {
     if (   ! target_valid(to)
         || ! user_evname(ev))
@@ -199,7 +199,7 @@ bool Kernel::anon_post (SiD to, const string& ev, ValParam* vp)
 
 // ------------------------------------
 
-bool Kernel::post (SiD to, const string& ev, ValParam* vp)
+bool Kernel::post (SiD to, const CoeStr& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(to)
@@ -220,7 +220,7 @@ bool Kernel::post (SiD to, const string& ev, ValParam* vp)
 
 // ------------------------------------
 
-bool Kernel::yield (const string& ev, ValParam* vp)
+bool Kernel::yield (const CoeStr& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! user_evname(ev))
@@ -240,7 +240,7 @@ bool Kernel::yield (const string& ev, ValParam* vp)
 
 // ---------------------------------------------------------------------------
 
-bool Kernel::call (SiD on, const string& ev)
+bool Kernel::call (SiD on, const CoeStr& ev)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
@@ -254,7 +254,7 @@ bool Kernel::call (SiD on, const string& ev)
 
 // ------------------------------------
 
-bool Kernel::call (SiD on, const string& ev, RefParam* rp)
+bool Kernel::call (SiD on, const CoeStr& ev, RefParam* rp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
@@ -269,7 +269,7 @@ bool Kernel::call (SiD on, const string& ev, RefParam* rp)
 
 // ------------------------------------
 
-bool Kernel::call (SiD on, const string& ev, ValParam* vp)
+bool Kernel::call (SiD on, const CoeStr& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
@@ -296,7 +296,7 @@ AiD Kernel::alarm_remove (AiD aid)
 
 // ------------------------------------
 
-AiD Kernel::delay_set (const string ev, TimeSpec duration, ValParam* vp)
+AiD Kernel::delay_set (const CoeStr& ev, TimeSpec duration, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! current_session_active(_r4kernel)
@@ -369,7 +369,7 @@ bool Kernel::select (int fd, IO_Mode mode)
 
 // ------------------------------------
 
-bool Kernel::select (int fd, IO_Mode mode, const string& ev, ValParam* vp)
+bool Kernel::select (int fd, IO_Mode mode, const CoeStr& ev, ValParam* vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! current_session_active(_r4kernel)
@@ -422,14 +422,14 @@ bool Kernel::select_resume (int fd, IO_Mode mode)
 
 // ---------------------------------------------------------------------------
 
-void Kernel::state (const string& ev)
+void Kernel::state (const CoeStr& ev)
 {
     _r4kernel->state__cmd(ev, ::NullHandler);
 }
 
 // ------------------------------------
 
-void Kernel::state (const string& ev, const HandlerX& handler)
+void Kernel::state (const CoeStr& ev, const HandlerX& handler)
 {
     _r4kernel->state__cmd(ev, handler);
 }
@@ -462,7 +462,7 @@ const Session& EventContext::session () const
     return *ctx->session->_handle;
 }
 
-string EventContext::state () const
+CoeStr EventContext::state () const
 {
     const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
     assert(this == ctx->magic);
@@ -476,7 +476,7 @@ SiD EventContext::sender () const
     return ctx->sender;
 }
 
-string EventContext::sender_state () const
+CoeStr EventContext::sender_state () const
 {
     const ExecuteContext*   ctx = reinterpret_cast<const ExecuteContext*>(this);
     assert(this == ctx->magic);

@@ -1,7 +1,7 @@
 // coe--event.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -162,8 +162,8 @@ public:
 
     virtual EventContext::Type event_type () const = 0;
 
-    const std::string& name () const { return _name; }
-    void               name_change (const std::string& new_name);
+    const CoeStr& name () const { return _name; }
+    void          name_change (const CoeStr& new_name);
 
     ValParam* arg () const { return _arg; }
     ValParam* arg_change (ValParam* new_arg);
@@ -171,15 +171,15 @@ public:
     r4Session* target () const { return _target; }
     void       target (r4Session* session);
 
-    const std::string& sender_state () const { return _sender_state; }
-    void               sender_state (const std::string& new_sender_state);
+    const CoeStr& sender_state () const { return _sender_state; }
+    void          sender_state (const CoeStr& new_sender_state);
 
 protected:
-    EvUser (const std::string& name, ValParam* arg);
+    EvUser (const CoeStr& name, ValParam* arg);
 
     r4Session*  _target;
-    std::string _sender_state;
-    std::string _name;
+    CoeStr      _sender_state;
+    CoeStr      _name;
     ValParam*   _arg;
 };
 
@@ -188,8 +188,8 @@ protected:
 
 class EvMsg : public EvUser {
 public:
-    EvMsg (const std::string& name, ValParam* arg, ExecuteContext& cc);  // post
-    EvMsg (const std::string& name, ValParam* arg);                 // anon_post
+    EvMsg (const CoeStr& name, ValParam* arg, ExecuteContext& cc);  // post
+    EvMsg (const CoeStr& name, ValParam* arg);                 // anon_post
     ~EvMsg ();
 
     /*final*/ void dispatch ();
@@ -215,7 +215,7 @@ private:
 class EvAlarm : public EvUser {
 public:
     EvAlarm (const TimeSpec& abs_time,
-             const std::string& name, ValParam* arg,
+             const CoeStr& name, ValParam* arg,
              ExecuteContext& cc);
     ~EvAlarm ();
 
@@ -256,7 +256,7 @@ struct _EvAlarm {
 class EvIO : public EvUser {
 public:
     EvIO (int fd, IO_Mode mode,
-          const std::string& name, ValParam* arg,
+          const CoeStr& name, ValParam* arg,
           ExecuteContext& cc);
     ~EvIO ();
 

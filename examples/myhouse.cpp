@@ -69,8 +69,8 @@ private:
 
             stop_handler(handler(*this, &MyHouse::_stop));
 
-            kernel         .kls<string>() = "** string set in " + kernel.context().state() + " **";
-            kernel.thread().tls<string>() = "** string set in " + kernel.context().state() + " **";
+            kernel         .kls<string>() = string("** string set in ") + kernel.context().state().c_str() + " **";
+            kernel.thread().tls<string>() = string("** string set in ") + kernel.context().state().c_str() + " **";
 
             kernel.state("on_expiry", handler(*this, &MyHouse::on_expiry));
             AiD alarm = kernel.delay_set("on_expiry", TimeSpec(10.0));
@@ -232,7 +232,10 @@ void test_my_house ()
 
     kernel1.post(tar, "coridor", vparam(string("and to the coridor... :)")));
 
-    kernel1.post(tar, "coridor");   // :( mismatch number of params
+    char    coridor[] = "coridor";
+    cout << "before posting on-stack c-string (COEXX_COESTR=" << COEXX_COESTR << ") ..." << endl;
+    kernel1.post(tar, coridor);     // :( mismatch number of params
+    cout << "after posted on-stack c-string :)" << endl;
 
     kernel1.post(tar, "knock");
     kernel1.post(tar, "knock", vparam((char*)"excessive argument!"));

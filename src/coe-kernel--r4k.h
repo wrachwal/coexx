@@ -1,7 +1,7 @@
 // coe-kernel--r4k.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,8 +96,8 @@ struct r4Kernel {
      * handlers ("commands")
      */
     // _s1ev_cmd : sid/1 x ev-name --> HandlerX
-    typedef std::pair<SiD::IntType, std::string> S1Ev;
-    typedef std::map<S1Ev, HandlerX>             S1Ev_Cmd;
+    typedef std::pair<SiD::IntType, CoeStr> S1Ev;
+    typedef std::map<S1Ev, HandlerX>        S1Ev_Cmd;
     S1Ev_Cmd            _s1ev_cmd;
 
     // -----------------------------------------------------------------------
@@ -115,10 +115,10 @@ struct r4Kernel {
     bool delete_alarm (AiD aid);
     bool adjust_alarm (AiD aid, const TimeSpec& abs_time, bool update, ValParam* new_arg);
 
-    HandlerX find_state_handler (SiD::IntType sid1, const std::string& ev);
-    void state__cmd (const std::string& ev, const HandlerX& cmd);
+    HandlerX find_state_handler (SiD::IntType sid1, const CoeStr& ev);
+    void state__cmd (const CoeStr& ev, const HandlerX& cmd);
 
-    bool call__arg (SiD on, const std::string& ev, ValParam* pfx, EventArg* arg);
+    bool call__arg (SiD on, const CoeStr& ev, ValParam* pfx, EventArg* arg);
 
     void dispatch_evmsg (EvMsg* evmsg);
     void dispatch_alarm (EvAlarm* alarm);

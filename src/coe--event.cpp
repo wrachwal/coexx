@@ -1,7 +1,7 @@
 // coe--event.cpp
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ void EvCommon::prio_order (int po)
 // ===========================================================================
 // EvUser
 
-EvUser::EvUser (const string& name, ValParam* arg)
+EvUser::EvUser (const CoeStr& name, ValParam* arg)
 :   _target(NULL),
     _name(name),
     _arg(arg)
@@ -63,7 +63,7 @@ EvUser::~EvUser ()
     }
 }
 
-void EvUser::name_change (const string& new_name)
+void EvUser::name_change (const CoeStr& new_name)
 {
     _name = new_name;
 }
@@ -81,7 +81,7 @@ void EvUser::target (r4Session* session)
     _target = session;
 }
 
-void EvUser::sender_state (const string& new_sender_state)
+void EvUser::sender_state (const CoeStr& new_sender_state)
 {
     _sender_state = new_sender_state;
 }
@@ -96,7 +96,7 @@ bool EvUser::is_event_of (KiD kernel) const
 // ===========================================================================
 // EvMsg
 
-EvMsg::EvMsg (const string& name, ValParam* arg, ExecuteContext& cc)
+EvMsg::EvMsg (const CoeStr& name, ValParam* arg, ExecuteContext& cc)
 :   EvUser(name, arg),
     _prefix(NULL)
 {
@@ -105,7 +105,7 @@ EvMsg::EvMsg (const string& name, ValParam* arg, ExecuteContext& cc)
     _sender_state = cc.state;
 }
 
-EvMsg::EvMsg (const string& name, ValParam* arg)
+EvMsg::EvMsg (const CoeStr& name, ValParam* arg)
 :   EvUser(name, arg),
     _source(NULL),
     _prefix(NULL)
@@ -149,7 +149,7 @@ EventContext::Type EvMsg::event_type () const
 // ===========================================================================
 // EvAlarm
 
-EvAlarm::EvAlarm (const TimeSpec& abs_time, const string& name, ValParam* arg,
+EvAlarm::EvAlarm (const TimeSpec& abs_time, const CoeStr& name, ValParam* arg,
                   ExecuteContext& cc)
 :   EvUser(name, arg),
     _time_due(abs_time)
@@ -203,7 +203,7 @@ EventContext::Type EvAlarm::event_type () const
 // ===========================================================================
 // EvIO
 
-EvIO::EvIO (int fd, IO_Mode mode, const string& name, ValParam* arg,
+EvIO::EvIO (int fd, IO_Mode mode, const CoeStr& name, ValParam* arg,
             ExecuteContext& cc)
 :   EvUser(name, arg),
     _fd(fd),

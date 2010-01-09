@@ -2,6 +2,7 @@
 
 cond
 list
+literal
 timespec
 typeinfo
 

@@ -20,7 +20,7 @@ endif
 endif
 
 CXX 	 += -MMD
-CXXFLAGS += -g -O2 -Wall -pedantic -ansi -Iinclude
+CXXFLAGS += -g -O2 -Wall -ansi -Iinclude
 
 # Satisfy rules from (*.d) whose dependencies have been moved/renamed.
 %.h: ;
@@ -31,7 +31,7 @@ library := lib/libcoe.a
 objects := $(patsubst src/%.cpp,lib/%.o,$(wildcard src/*.cpp))
 
 examples := $(addprefix examples/,myhouse tick safe-cb)
-tests    := $(addprefix test/,typeinfo list cond timespec)
+tests    := $(addprefix test/,typeinfo list cond timespec literal)
 
 objects_all := $(objects) $(patsubst %.cpp,%.o,$(wildcard examples/*.cpp test/*.cpp))
 

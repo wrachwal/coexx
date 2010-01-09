@@ -1,7 +1,7 @@
 // coe--context.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ struct ExecuteContext {
 
     ExecuteContext (r4Session* session,
                     EventContext::Type type,
-                    const std::string& state,
+                    const CoeStr& state,
                     r4Session* stopper = 0);
 
     ExecuteContext (r4Session* session,
@@ -64,9 +64,9 @@ struct ExecuteContext {
     EventContext::Type  type;
 
     r4Session*          session;
-    std::string         state;
+    CoeStr              state;
     SiD                 sender;
-    std::string         sender_state;
+    CoeStr              sender_state;
     AiD                 alarm_id;
 
     Handler0            continuation;

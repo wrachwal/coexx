@@ -1,7 +1,7 @@
 // coe-kernel.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __COE_KERNEL_H
 
 #include "coe-ident.h"          // TiD, KiD, SiD, AiD
+#include "coe-coestr.h"         // CoeStr
 #include "coe-sys-time.h"       // TimeSpec
 #include "coe-global.h"         // Factory<T>
 #include "coe--local.h"
@@ -88,38 +89,38 @@ public:
     /*
      * Asynchronous Messages
      */
-           bool      post (SiD to, const std::string& ev, ValParam* vp=0);
-    static bool anon_post (SiD to, const std::string& ev, ValParam* vp=0);
-           bool     yield (        const std::string& ev, ValParam* vp=0);
+           bool      post (SiD to, const CoeStr& ev, ValParam* vp=0);
+    static bool anon_post (SiD to, const CoeStr& ev, ValParam* vp=0);
+           bool     yield (        const CoeStr& ev, ValParam* vp=0);
 
     /*
      * Synchronous Messages
      */
-           bool      call (SiD on, const std::string& ev);
-           bool      call (SiD on, const std::string& ev, RefParam* rp);
-           bool      call (SiD on, const std::string& ev, ValParam* vp);
+           bool      call (SiD on, const CoeStr& ev);
+           bool      call (SiD on, const CoeStr& ev, RefParam* rp);
+           bool      call (SiD on, const CoeStr& ev, ValParam* vp);
 
     /*
      * Encapsulated `Callback'
      */
-    Callback* callback (const std::string& ev, ValParam* pfx=0);
+    Callback* callback (const CoeStr& ev, ValParam* pfx=0);
 
     /*
      * Timer Events (Delayed Messages)
      */
     // TODO: Name-Based Timers
-    bool alarm     (const std::string ev);      // reset
-    bool alarm     (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
-    bool alarm_add (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
-    bool delay     (const std::string ev, TimeSpec duration, ValParam* vp=0);
-    bool delay_add (const std::string ev, TimeSpec duration, ValParam* vp=0);
+    bool alarm     (const CoeStr& ev);          // reset
+    bool alarm     (const CoeStr& ev, TimeSpec abs_time, ValParam* vp=0);
+    bool alarm_add (const CoeStr& ev, TimeSpec abs_time, ValParam* vp=0);
+    bool delay     (const CoeStr& ev, TimeSpec duration, ValParam* vp=0);
+    bool delay_add (const CoeStr& ev, TimeSpec duration, ValParam* vp=0);
     //
     // Identifier-Based Timers
     AiD  alarm_remove (AiD aid);                // reset
-    AiD  alarm_set    (const std::string ev, TimeSpec abs_time, ValParam* vp=0);
+    AiD  alarm_set    (const CoeStr& ev, TimeSpec abs_time, ValParam* vp=0);
     bool alarm_adjust (AiD aid, TimeSpec delta_secs);
     bool alarm_adjust (AiD aid, TimeSpec delta_secs, ValParam* vp);
-    AiD  delay_set    (const std::string ev, TimeSpec duration, ValParam* vp=0);
+    AiD  delay_set    (const CoeStr& ev, TimeSpec duration, ValParam* vp=0);
     bool delay_adjust (AiD aid, TimeSpec secs_from_now);
     bool delay_adjust (AiD aid, TimeSpec secs_from_now, ValParam* vp);
     //
@@ -133,7 +134,7 @@ public:
      * I/O Watchers (Selects)
      */
     bool select (int fd, IO_Mode mode);         // reset
-    bool select (int fd, IO_Mode mode, const std::string& ev, ValParam* vp=0);
+    bool select (int fd, IO_Mode mode, const CoeStr& ev, ValParam* vp=0);
     bool select_pause  (int fd, IO_Mode mode);
     bool select_resume (int fd, IO_Mode mode);
 
@@ -148,8 +149,8 @@ public:
     /*
      * Event Handler Management
      */
-    void state (const std::string& ev);         // reset
-    void state (const std::string& ev, const HandlerX& handler);
+    void state (const CoeStr& ev);              // reset
+    void state (const CoeStr& ev, const HandlerX& handler);
 
     /*
      * A way to continue after a normal handler returns
@@ -184,10 +185,10 @@ public:
 
 private:
     friend class Kernel;
-    Callback (SiD, const std::string&, ValParam*);
+    Callback (SiD, const CoeStr&, ValParam*);
 
     SiD         _target;
-    std::string _evname;
+    CoeStr      _evname;
     ValParam*   _prefix;
 };
 
@@ -200,9 +201,9 @@ public:
 
     Type           type         () const;
     const Session& session      () const;   //XXX: or safer, but less flexible SiD
-    std::string    state        () const;
+    CoeStr         state        () const;
     SiD            sender       () const;
-    std::string    sender_state () const;
+    CoeStr         sender_state () const;
 
     AiD            alarm_id     () const;   // type() == ALARM
 
