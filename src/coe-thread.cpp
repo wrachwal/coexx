@@ -1,7 +1,7 @@
 // coe-thread.cpp
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "coe-thread.h"
 #include "coe-thread--d4t.h"
 #include "coe-config--d4c.h"
+#include "coe-stats.h"
 
 #include <cerrno>
 
@@ -125,6 +126,16 @@ TiD Thread::ID () const
 void Thread::run_event_loop (bool (*quit)(Thread&))
 {
     _d4thread->run_event_loop(quit);
+}
+
+void Thread::get_stats (Thread::Stats& stats)
+{
+    stats.curr.kernels          = _d4thread->_list_kernel.size();
+    stats.curr.alarms           = _d4thread->_dsa_map.size();
+    stats.curr.watchers_all     = _d4thread->_fms_map.size();
+    stats.curr.watchers_active  = _d4thread->sched.io_requests;
+    stats.curr.lqueue_size      = _d4thread->_lqueue.size();
+    stats.curr.pqueue_size      = _d4thread->_pqueue.size();
 }
 
 void* Thread::_get_user_tls (const _TlsD* data)

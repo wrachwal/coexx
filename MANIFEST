@@ -35,6 +35,8 @@ include/coe-ident.h
     src/coe-ident.cpp
 include/coe-coestr.h
     src/coe-coestr.cpp
+include/coe-stats.h
+    src/coe-stats.cpp
 
 include/coe-thread.h
     src/coe-thread.cpp
@@ -63,6 +65,7 @@ examples/myhouse.cpp
 examples/tick.cpp
 examples/tick.pl
 examples/safe-cb.cpp
+examples/stats.cpp
 
 test/typeinfo.cpp
 test/list.cpp

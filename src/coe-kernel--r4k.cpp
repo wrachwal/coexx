@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "coe-kernel--s4k.h"
 #include "coe-session.h"
 #include "coe-session--r4s.h"
+#include "coe-stats.h"
 
 #include <memory>       // auto_ptr
 #include <cassert>
@@ -36,7 +37,7 @@ using namespace std;
 using namespace coe;
 
 // ---------------------------------------------------------------------------
-// d4Thread::Local
+// r4Kernel::Local
 
 r4Session* r4Kernel::Local::find_session (SiD sid) const
 {
@@ -45,6 +46,7 @@ r4Session* r4Kernel::Local::find_session (SiD sid) const
 }
 
 // ===========================================================================
+// r4Kernel
 
 r4Kernel::r4Kernel ()
 :   _thread(NULL),
@@ -212,6 +214,15 @@ void r4Kernel::call_stop (r4Session& root, r4Session& node)
         void (*funptr)(SiD) = node._unregistrar.back();
         node._unregistrar.pop_back();   // pop before funptr call
         (*funptr)(node._sid);
+    }
+
+    //
+    // remove all handlers of `node'
+    //
+    const SiD::IntType  s1 = node._sid.id();
+    map<S1Ev, HandlerX>::iterator   h = _s1ev_cmd.lower_bound(S1Ev(s1, CoeStr()));
+    while (h != _s1ev_cmd.end() && (*h).first.first == s1) {
+        _s1ev_cmd.erase(h++);
     }
 }
 
@@ -440,5 +451,15 @@ void r4Kernel::dispatch_evio (EvIO* evio)
             cont.execute(*_handle);
         }
     }
+}
+
+// ===========================================================================
+// Kernel
+
+void Kernel::get_stats (Kernel::Stats& stats)
+{
+    stats.curr.sessions = _r4kernel->local.sid_map.size();
+    stats.curr.handlers = _r4kernel->_s1ev_cmd.size();
+    stats.curr.alarms   = _r4kernel->_s1a_map.size();
 }
 

@@ -30,7 +30,7 @@ vpath %.o lib test examples
 library := lib/libcoe.a
 objects := $(patsubst src/%.cpp,lib/%.o,$(wildcard src/*.cpp))
 
-examples := $(addprefix examples/,myhouse tick safe-cb)
+examples := $(addprefix examples/,myhouse tick safe-cb stats)
 tests    := $(addprefix test/,typeinfo list cond timespec literal)
 
 objects_all := $(objects) $(patsubst %.cpp,%.o,$(wildcard examples/*.cpp test/*.cpp))

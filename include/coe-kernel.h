@@ -40,9 +40,10 @@ namespace coe { /////
 
 class Thread;
 class Kernel;
-class Session;      // coe-session.h
+class Session;          // coe-session.h
 class Callback;
 class EventContext;
+struct Stats_Kernel;    // coe-stats.h
 
 // handler context(s)
 class IO_Ctx;
@@ -73,6 +74,9 @@ public:
 
     Thread& thread () const;
     bool move_to_thread (TiD tid);
+
+    typedef Stats_Kernel Stats;
+    void get_stats (Stats& stats);
 
     template<class T>
     T& kls ();
