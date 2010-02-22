@@ -48,6 +48,8 @@ public:
     static TiD spawn_new (bool (*quit)(Thread&) = 0);
 
     TiD ID () const;
+    void           set_tlabel (const std::string& label);
+    const std::string& tlabel () const;
 
     void run_event_loop (bool (*quit)(Thread&) = 0);
 

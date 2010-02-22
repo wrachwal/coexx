@@ -1,7 +1,7 @@
 // coe-session.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,8 @@ public:
     SiD  start_session (Kernel& kernel, EventArg* arg=0);
 
     SiD ID () const;
+    void           set_slabel (const std::string& label);
+    const std::string& slabel () const;
 
     bool unregistrar_set    (void (*)(SiD));
     bool unregistrar_remove (void (*)(SiD));

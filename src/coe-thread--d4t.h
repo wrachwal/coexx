@@ -1,7 +1,7 @@
 // coe-thread--d4t.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -133,6 +133,7 @@ struct d4Thread {
 
     Thread*             _handle;
     TiD                 _tid;
+    std::string         _tlabel;
     pthread_t           _os_thread;
     TimeSpec            _timestamp;
 

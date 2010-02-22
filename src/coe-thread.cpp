@@ -123,6 +123,16 @@ TiD Thread::ID () const
     return _d4thread->_tid;
 }
 
+void Thread::set_tlabel (const string& label)
+{
+    _d4thread->_tlabel = label;
+}
+
+const string& Thread::tlabel () const
+{
+    return _d4thread->_tlabel;
+}
+
 void Thread::run_event_loop (bool (*quit)(Thread&))
 {
     _d4thread->run_event_loop(quit);

@@ -81,6 +81,16 @@ KiD Kernel::ID () const
     return _r4kernel->_kid;
 }
 
+void Kernel::set_klabel (const string& label)
+{
+    _r4kernel->_klabel = label;
+}
+
+const string& Kernel::klabel () const
+{
+    return _r4kernel->_klabel;
+}
+
 Thread& Kernel::thread () const
 {
     return *_r4kernel->_thread->_handle;

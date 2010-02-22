@@ -75,6 +75,7 @@ struct r4Kernel {
     Kernel*             _handle;
 
     KiD                 _kid;
+    std::string         _klabel;
 
     std::vector<void*>  _user_kls;
 

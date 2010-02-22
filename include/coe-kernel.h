@@ -71,6 +71,8 @@ public:
     static Kernel& create_new ();
 
     KiD ID () const;
+    void           set_klabel (const std::string& label);
+    const std::string& klabel () const;
 
     Thread& thread () const;
     bool move_to_thread (TiD tid);
