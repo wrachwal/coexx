@@ -140,6 +140,13 @@ SiD Kernel::current_session ()
     return SiD::NONE();
 }
 
+Session* Kernel::find_session (SiD sid)
+{
+    // no lock needed for local thread's read access
+    r4Session*  session = _r4kernel->local.find_session(sid);
+    return session ? session->_handle : NULL;
+}
+
 const EventContext& Kernel::context () const
 {
     return *reinterpret_cast<EventContext*>(_r4kernel->_current_context);
