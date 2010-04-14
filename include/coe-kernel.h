@@ -86,9 +86,9 @@ public:
 
     TimeSpec timestamp () const;
 
-    Session&           session ();
-    static SiD current_session ();
-    Session*      find_session (SiD sid);
+    static Kernel* current_kernel ();
+    Session&       session ();
+    Session*  find_session (SiD sid);
 
     const EventContext& context ()         const;   // same as *context(0)
     const EventContext* context (int back) const;   // 0, 1, ... -1, -2, ...

@@ -125,8 +125,8 @@ private:
         Coridor (MyHouse& house) : _house(house) {}
         void on_coridor_msg (Kernel& kernel, string& msg)
             {
-                cout << __FUNCTION__ << ": Kernel::current_session() -> "
-                     << Kernel::current_session()
+                cout << __FUNCTION__ << ": Session::current_session() -> "
+                     << SiD(Session::current_session())
                      << endl;
                 msg += string(" (called from ") + __FUNCTION__ + ")";
                 // NOTE: nested class has access to outer's private!

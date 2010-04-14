@@ -146,6 +146,28 @@ void Thread::run_event_loop (bool (*quit)(Thread&))
     _d4thread->run_event_loop(quit);
 }
 
+// ---------------------------------------------------------------------------
+
+Thread* Thread::current_thread ()
+{
+    d4Thread*   thread = d4Thread::get_d4t_tls();
+    if (NULL != thread) {
+        return thread->_handle;
+    }
+    return NULL;
+}
+
+Kernel* Thread::kernel ()
+{
+    r4Kernel*   kernel = _d4thread->_current_kernel;
+    if (NULL != kernel) {
+        return kernel->_handle;
+    }
+    return NULL;
+}
+
+// ---------------------------------------------------------------------------
+
 void Thread::get_stats (Thread::Stats& stats)
 {
     stats.curr.kernels          = _d4thread->_list_kernel.size();

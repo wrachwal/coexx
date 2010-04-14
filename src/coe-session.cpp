@@ -143,3 +143,19 @@ bool Session::unregistrar_remove (void (*unreg)(SiD))
     return true;
 }
 
+// ---------------------------------------------------------------------------
+
+Session* Session::current_session ()
+{
+    d4Thread*   thread = d4Thread::get_d4t_tls();
+    if (NULL != thread) {
+        r4Kernel*   kernel = thread->_current_kernel;
+        if (NULL != kernel) {
+            assert(NULL != kernel->_current_context);
+            assert(NULL != kernel->_current_context->session);
+            return kernel->_current_context->session->_handle;
+        }
+    }
+    return NULL;
+}
+

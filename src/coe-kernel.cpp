@@ -99,11 +99,6 @@ const string& Kernel::klabel () const
     return _r4kernel->_klabel;
 }
 
-Thread& Kernel::thread () const
-{
-    return *_r4kernel->_thread->_handle;
-}
-
 void* Kernel::_get_user_kls (const _KlsD* data)
 {
     return _r4kernel->get_user_kls(data);
@@ -125,6 +120,25 @@ TimeSpec Kernel::timestamp () const
     return _r4kernel->_thread->_timestamp;
 }
 
+// ---------------------------------------------------------------------------
+
+Thread& Kernel::thread () const
+{
+    return *_r4kernel->_thread->_handle;
+}
+
+Kernel* Kernel::current_kernel ()
+{
+    d4Thread*   thread = d4Thread::get_d4t_tls();
+    if (NULL != thread) {
+        r4Kernel*   kernel = thread->_current_kernel;
+        if (NULL != kernel) {
+            return kernel->_handle;
+        }
+    }
+    return NULL;
+}
+
 Session& Kernel::session ()
 {
     assert(NULL != _r4kernel->_current_context);
@@ -134,26 +148,14 @@ Session& Kernel::session ()
     return *_r4kernel->_current_context->session->_handle;
 }
 
-SiD Kernel::current_session ()
-{
-    d4Thread*   thread = d4Thread::get_d4t_tls();
-    if (NULL != thread) {
-        r4Kernel*   kernel = thread->_current_kernel;
-        if (NULL != kernel) {
-            assert(NULL != kernel->_current_context);
-            assert(NULL != kernel->_current_context->session);
-            return kernel->_current_context->session->_sid;
-        }
-    }
-    return SiD::NONE();
-}
-
 Session* Kernel::find_session (SiD sid)
 {
     // no lock needed for local thread's read access
     r4Session*  session = _r4kernel->local.find_session(sid);
     return session ? session->_handle : NULL;
 }
+
+// ---------------------------------------------------------------------------
 
 const EventContext& Kernel::context () const
 {

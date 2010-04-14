@@ -49,6 +49,8 @@ public:
     void stop_handler (const Handler0& handler);
     bool stop_session ();
 
+    static Session* current_session ();
+
 protected:
     Session (const HandlerX& start_handler);
     virtual ~Session ();

@@ -53,6 +53,9 @@ public:
 
     void run_event_loop (bool (*quit)(Thread&) = 0);
 
+    static Thread* current_thread ();
+    Kernel* kernel ();
+
     typedef Stats_Thread Stats;
     void get_stats (Stats& stats);
 
