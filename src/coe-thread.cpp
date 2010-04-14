@@ -79,6 +79,14 @@ static void* coe_thread_entry (void* arg)
 }
 
 // ===========================================================================
+// TiD
+
+TiD::TiD (const Thread* t)
+:   _t(t ? t->ID().id() : 0)
+{
+}
+
+// ===========================================================================
 // Thread
 
 TiD Thread::spawn_new (bool (*quit)(Thread&))

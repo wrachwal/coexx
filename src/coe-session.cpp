@@ -33,6 +33,17 @@ using namespace std;
 using namespace coe;
 
 // ===========================================================================
+// SiD
+
+SiD::SiD (const Session* s)
+:   _s(0)
+{
+    if (s) {
+        *this = s->ID();
+    }
+}
+
+// ===========================================================================
 // Session
 
 Session::Session (const HandlerX& start_handler)

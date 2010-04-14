@@ -29,6 +29,10 @@ THE SOFTWARE.
 
 namespace coe { /////
 
+class Thread;
+class Kernel;
+class Session;
+
 // ===========================================================================
 // TiD -- thread identity
 
@@ -37,6 +41,7 @@ public:
     typedef int IntType;
              TiD ()          : _t(0) {}
     explicit TiD (IntType t) : _t(t) {}
+    explicit TiD (const Thread* t);
 
     operator void* () const { return reinterpret_cast<void*>(isset()); }
 
@@ -65,6 +70,7 @@ public:
     typedef int IntType;
              KiD ()          : _k(0) {}
     explicit KiD (IntType k) : _k(k) {}
+    explicit KiD (const Kernel* k);
 
     operator void* () const { return reinterpret_cast<void*>(isset()); }
 
@@ -93,6 +99,7 @@ public:
     typedef int IntType;
     SiD ()                 : _s(0), _k(0) {}
     SiD (KiD k, IntType s) : _s(s), _k(k) {}
+    explicit SiD (const Session* s);
 
     operator void* () const { return reinterpret_cast<void*>(isset()); }
 
