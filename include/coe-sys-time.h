@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define __COE_SYS_TIME_H
 
 #include <time.h>           // timespec
-#include <ostream>
+#include <iosfwd>           // ostream
 
 namespace coe { /////
 

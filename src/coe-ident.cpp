@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "coe-ident.h"
 
+#include <ostream>
 #include <cassert>
 
 using namespace std;

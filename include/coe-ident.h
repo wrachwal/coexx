@@ -25,7 +25,7 @@ THE SOFTWARE.
 #ifndef __COE_IDENT_H
 #define __COE_IDENT_H
 
-#include <ostream>
+#include <iosfwd>   // ostream
 
 namespace coe { /////
 

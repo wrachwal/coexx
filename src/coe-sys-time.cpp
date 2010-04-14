@@ -24,6 +24,8 @@ THE SOFTWARE.
 
 #include "coe-sys-time.h"
 
+#include <ostream>
+
 using namespace std;
 using namespace coe;
 
