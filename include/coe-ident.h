@@ -38,6 +38,8 @@ public:
              TiD ()          : _t(0) {}
     explicit TiD (IntType t) : _t(t) {}
 
+    operator void* () const { return reinterpret_cast<void*>(isset()); }
+
     bool isset () const { return 0 != _t; }
     IntType id () const { return _t; }
 
@@ -63,6 +65,8 @@ public:
     typedef int IntType;
              KiD ()          : _k(0) {}
     explicit KiD (IntType k) : _k(k) {}
+
+    operator void* () const { return reinterpret_cast<void*>(isset()); }
 
     bool isset () const { return 0 != _k; }
     IntType id () const { return _k; }
@@ -90,7 +94,9 @@ public:
     SiD ()                 : _s(0), _k(0) {}
     SiD (KiD k, IntType s) : _s(s), _k(k) {}
 
-    bool isset () const { return 0 != _s; }     //FIXME: test _k as well?!
+    operator void* () const { return reinterpret_cast<void*>(isset()); }
+
+    bool isset () const { return 0 != _s; }
     KiD    kid () const { return _k; }
     IntType id () const { return _s; }
 
@@ -122,6 +128,8 @@ public:
     typedef int IntType;
              AiD ()          : _a(0) {}
     explicit AiD (IntType a) : _a(a) {}
+
+    operator void* () const { return reinterpret_cast<void*>(isset()); }
 
     bool isset () const { return 0 != _a; }
     IntType id () const { return _a; }
