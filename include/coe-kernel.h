@@ -84,7 +84,8 @@ public:
     T& kls ();
     static void* next_kls_info (void* iter, LocalStorageInfo& info);
 
-    TimeSpec timestamp () const;
+           TimeSpec timestamp () const;
+    static TimeSpec timeclock ();
 
     static Kernel* current_kernel ();
     Session&       session ();

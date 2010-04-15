@@ -120,6 +120,11 @@ TimeSpec Kernel::timestamp () const
     return _r4kernel->_thread->_timestamp;
 }
 
+TimeSpec Kernel::timeclock ()
+{
+    return d4Thread::get_current_time();
+}
+
 // ---------------------------------------------------------------------------
 
 Thread& Kernel::thread () const
