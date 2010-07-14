@@ -50,6 +50,8 @@ public:
     bool isset () const { return 0 != _t; }
     IntType id () const { return _t; }
 
+    TiD clear () { TiD old = *this; _t = 0; return old; }
+
     bool operator== (const TiD& rhs) const { return _t == rhs._t; }
     bool operator!= (const TiD& rhs) const { return _t != rhs._t; }
     bool operator<  (const TiD& rhs) const { return _t <  rhs._t; }
@@ -78,6 +80,8 @@ public:
 
     bool isset () const { return 0 != _k; }
     IntType id () const { return _k; }
+
+    KiD clear () { KiD old = *this; _k = 0; return old; }
 
     bool operator== (const KiD& rhs) const { return _k == rhs._k; }
     bool operator!= (const KiD& rhs) const { return _k != rhs._k; }
@@ -108,6 +112,8 @@ public:
     bool isset () const { return 0 != _s; }
     KiD    kid () const { return _k; }
     IntType id () const { return _s; }
+
+    SiD clear () { SiD old = *this; _k.clear(); _s = 0; return old; }
 
     bool is_kernel () const { return 1 == _s; }
 
@@ -142,6 +148,8 @@ public:
 
     bool isset () const { return 0 != _a; }
     IntType id () const { return _a; }
+
+    AiD clear () { AiD old = *this; _a = 0; return old; }
 
     bool operator== (const AiD& rhs) const { return _a == rhs._a; }
     bool operator!= (const AiD& rhs) const { return _a != rhs._a; }
