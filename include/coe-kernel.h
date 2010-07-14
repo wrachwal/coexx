@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include "coe-coestr.h"         // CoeStr
 #include "coe-sys-time.h"       // TimeSpec
 #include "coe-global.h"         // Factory<T>
-#include "coe--local.h"
 
 #include <typeinfo>
 #include "coe-kernel--dcl.h"

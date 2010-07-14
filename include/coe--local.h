@@ -1,7 +1,7 @@
 // coe--local.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,33 @@ private:
     _Noncopyable            (const _Noncopyable&);
     _Noncopyable& operator= (const _Noncopyable&);
 };
+
+// ===========================================================================
+// _SafeBool<T, D>
+
+template<class T, class D>
+struct _SafeBool {
+    typedef D T::*Type;
+};
+
+// ---------------------------------------------------------------------------
+// _SafeBoolBase<T>
+//  (to be derived by classes that don't define own == and != operators)
+
+template<class T>
+class _SafeBoolBase {
+    bool this_class_does_not_support_comparisons () const;
+};
+
+// ------------------------------------
+
+template<class T1, class T2>
+bool operator== (const _SafeBoolBase<T1>& lhs, const _SafeBoolBase<T2>&)
+    { return /*compile-time error*/lhs.this_class_does_not_support_comparisons(); }
+
+template<class T1, class T2>
+bool operator!= (const _SafeBoolBase<T1>& lhs, const _SafeBoolBase<T2>&)
+    { return /*compile-time error*/lhs.this_class_does_not_support_comparisons(); }
 
 // ===========================================================================
 

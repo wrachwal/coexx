@@ -1,7 +1,7 @@
 // coe-ident.h
 
 /*****************************************************************************
-Copyright (c) 2008, 2009 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,9 @@ THE SOFTWARE.
 #ifndef __COE_IDENT_H
 #define __COE_IDENT_H
 
-#include <iosfwd>   // ostream
+#include "coe--local.h"     // _SafeBool<T, D>
+
+#include <iosfwd>           // ostream
 
 namespace coe { /////
 
@@ -43,7 +45,7 @@ public:
     explicit TiD (IntType t) : _t(t) {}
     explicit TiD (const Thread* t);
 
-    operator void* () const { return reinterpret_cast<void*>(isset()); }
+    operator _SafeBool<TiD, IntType>::Type () const { return isset() ? &TiD::_t : 0; }
 
     bool isset () const { return 0 != _t; }
     IntType id () const { return _t; }
@@ -72,7 +74,7 @@ public:
     explicit KiD (IntType k) : _k(k) {}
     explicit KiD (const Kernel* k);
 
-    operator void* () const { return reinterpret_cast<void*>(isset()); }
+    operator _SafeBool<KiD, IntType>::Type () const { return isset() ? &KiD::_k : 0; }
 
     bool isset () const { return 0 != _k; }
     IntType id () const { return _k; }
@@ -101,7 +103,7 @@ public:
     SiD (KiD k, IntType s) : _s(s), _k(k) {}
     explicit SiD (const Session* s);
 
-    operator void* () const { return reinterpret_cast<void*>(isset()); }
+    operator _SafeBool<SiD, IntType>::Type () const { return isset() ? &SiD::_s : 0; }
 
     bool isset () const { return 0 != _s; }
     KiD    kid () const { return _k; }
@@ -136,7 +138,7 @@ public:
              AiD ()          : _a(0) {}
     explicit AiD (IntType a) : _a(a) {}
 
-    operator void* () const { return reinterpret_cast<void*>(isset()); }
+    operator _SafeBool<AiD, IntType>::Type () const { return isset() ? &AiD::_a : 0; }
 
     bool isset () const { return 0 != _a; }
     IntType id () const { return _a; }

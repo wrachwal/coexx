@@ -27,7 +27,6 @@ THE SOFTWARE.
 
 #include "coe-ident.h"
 #include "coe-global.h"     // Factory<T>
-#include "coe--local.h"
 
 #include <typeinfo>
 
