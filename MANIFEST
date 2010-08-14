@@ -1,12 +1,10 @@
 
-
 MANIFEST
-
 
 LICENSE
 
+.gitignore
 Makefile
-
 
 
 include/coe-sys-sync.h
@@ -59,23 +57,33 @@ include/coe-session.h
     src/coe-session--r4s.h
     src/coe-session--r4s.cpp
 
+include/coe-hsm.h
+include/coe-hsm-misc.h
+    src/coe-hsm.cpp
+    src/coe-hsm--exec.cpp
+    src/coe-hsm-misc.cpp
 
 
+contrib/hsm-play/.gitignore
+contrib/hsm-play/Makefile
+contrib/hsm-play/hsm-play.h
+contrib/hsm-play/hsm-play.cpp
+contrib/hsm-play/sm1.cpp
+contrib/hsm-play/sm2.cpp
+contrib/hsm-play/sm2.hsm
+
+
+examples/.gitignore
 examples/myhouse.cpp
 examples/tick.cpp
 examples/tick.pl
 examples/safe-cb.cpp
 examples/stats.cpp
 
+test/.gitignore
 test/typeinfo.cpp
 test/list.cpp
 test/cond.cpp
 test/timespec.cpp
 test/literal.cpp
-
-
-
-         .gitignore
-examples/.gitignore
-    test/.gitignore
 

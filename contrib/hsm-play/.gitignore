@@ -1,0 +1,14 @@
+# .gitignore
+core
+Session.vim
+.*.swp
+tags
+*~
+*.o
+*.d
+*.exe
+*.exe.stackdump
+
+# executables
+hsm-play
+
