@@ -66,6 +66,20 @@ bool operator!= (const _SafeBoolBase<T1>& lhs, const _SafeBoolBase<T2>&)
     { return /*compile-time error*/lhs.this_class_does_not_support_comparisons(); }
 
 // ===========================================================================
+// tiny metaprogramming pieces
+
+namespace meta {
+
+template<class X, class Y> struct IsSame_       { enum { value = false }; };
+template<class X>          struct IsSame_<X, X> { enum { value = true  }; };
+
+template<bool C, class T, class E> struct If_;
+template        <class T, class E> struct If_<true,  T, E> { typedef T type; };
+template        <class T, class E> struct If_<false, T, E> { typedef E type; };
+
+} // namespace meta
+
+// ===========================================================================
 
 } ///// namespace coe
 

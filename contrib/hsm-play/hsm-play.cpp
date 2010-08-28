@@ -338,7 +338,6 @@ static void print_action (Kernel& kernel,
 static void print_machine (Kernel& kernel, Machine& machine)
 {
     string  prefix;
-    assert(0 == machine.action_level());
     prefix += machine.is_in_stable_state() ? "|= " : "|? ";
     print_state_machine(cout << "\n", machine, prefix) << endl;
 }

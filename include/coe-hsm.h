@@ -3,6 +3,8 @@
 #ifndef __COE_HSM_H
 #define __COE_HSM_H
 
+#include "coe--local.h"
+
 #include <string>
 #include <iosfwd>   // ostream
 
@@ -260,12 +262,34 @@ std::ostream& print_state_machine (std::ostream& os, Machine& machine,
 
 template<class _Self, class _Parent = _Self>
 class aComposition_Policy {
+
+    // local metafunctions
+    struct this_context_imp {
+        template<class Context, class State>
+        static Context& apply (State& state) { return state; }
+    };
+    struct that_context_imp {
+        template<class Context, class State>
+        static Context& apply (State& state)
+            { return static_cast<typename State::PARENT*>(state.parent_())->template context<Context>(); }
+    };
+
 public:
     typedef          _Self         SELF;
     typedef          _Parent       PARENT;
     typedef typename _Parent::ROOT ROOT;
-    ROOT&     root () { return static_cast<ROOT&>(static_cast<_Self&>(*this)._machine.root()); }
-    PARENT& parent () { return static_cast<PARENT&>(*static_cast<_Self&>(*this).parent_()); }
+
+    ROOT& root () { return static_cast<ROOT&>(static_cast<_Self&>(*this)._machine.root()); }
+
+    template<class Context>
+    Context& context ()
+        {
+            typedef typename meta::If_<meta::IsSame_<Context, SELF>::value,
+                                       this_context_imp,
+                                       that_context_imp>::type imp;
+            return imp::template apply<Context>(static_cast<SELF&>(*this));
+        }
+
 protected:
     ~aComposition_Policy () {}
 };
@@ -275,6 +299,14 @@ class aComposition_Policy<_Self, _Self> {
 public:
     typedef _Self SELF;
     typedef _Self ROOT;
+
+    template<class Context>
+    Context& context ()
+        {
+            // Context can only be SELF; checked by double casts
+            return static_cast<Context&>((static_cast<SELF&>(*this)));
+        }
+
 protected:
     ~aComposition_Policy () {}
 };

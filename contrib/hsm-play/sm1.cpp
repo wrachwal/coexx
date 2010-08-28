@@ -72,17 +72,7 @@ DEF__OR_STATE_(SM1::L2::L3::L4::L5::L6::, L7)
 
 void SM1::L2::L3::L4::L5::L6::L7::on_ex (Kernel& kernel)
 {
-    // XXX: When compiling the following line
-    // ROOT::L2::L3::L4&   jumpto = parent().parent().parent();
-    // ...we get the compile error:
-    // error: type ‘SM1::L2::L3’ is not a base type for type ‘SM1::L2::L3::L4::L5::L6::L7’
-    // That's probably because in L3 type L4 is both nested type and member data.
-    // Fortunately, suffixing by ::SELF helps :)
-    // ROOT::L2::L3::L4::SELF& jumpto = parent().parent().parent();
-    // On the other hand, looking from the nested class L7, L4 is viewed only as the type,
-    // so in this particular case it's best to write like shortly:
-
-    L4& jumpto = parent().parent().parent();
+    L4& jumpto = context<L4>();
 
     cout << "(* inside " << state_name() << "::" << __FUNCTION__ << "()"
          << " transition to " << jumpto.state_name() << " *)" << endl;
