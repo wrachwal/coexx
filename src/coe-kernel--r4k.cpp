@@ -364,6 +364,35 @@ bool r4Kernel::call__arg (SiD on, const CoeStr& ev, ValParam* pfx, EventArg* arg
 
 // ---------------------------------------------------------------------------
 
+bool r4Kernel::call_event_handler (r4Session* session, const CoeStr& ev, EventArg* arg)
+{
+    assert(this == session->_kernel);
+
+    HandlerX    handler = find_state_handler(session->_sid.id(), ev);
+
+    if (! handler) {
+        // silent return (handler not found)
+        return false;
+    }
+
+    ExecuteContext  run(session, EventContext::CALL, ev);
+
+    run.argument(arg);
+
+    // will print diagnostics (argument mismatch case)
+    bool    status = run.execute(*_handle, handler);
+
+    while (run.continuation) {
+        Handler0    cont = run.continuation;
+        run.continuation = Handler0();
+        cont.execute(*_handle);
+    }
+
+    return status;
+}
+
+// ---------------------------------------------------------------------------
+
 void r4Kernel::dispatch_evmsg (EvMsg* evmsg)
 {
     r4Session*  session = evmsg->target();

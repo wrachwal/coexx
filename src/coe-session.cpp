@@ -189,3 +189,19 @@ Session* Session::get_session_next_sibling (Session* prev)
     }
 }
 
+// ---------------------------------------------------------------------------
+
+bool Session::call_event_handler (Kernel& kernel, const CoeStr& ev)
+{
+    r4Kernel*   r4k = kernel._r4kernel;
+    assert(NULL != r4k);
+    return r4k->call_event_handler(_r4session, ev, NULL);
+}
+
+bool Session::call_event_handler (Kernel& kernel, const CoeStr& ev, EventArg& arg)
+{
+    r4Kernel*   r4k = kernel._r4kernel;
+    assert(NULL != r4k);
+    return r4k->call_event_handler(_r4session, ev, &arg);
+}
+

@@ -54,6 +54,9 @@ public:
     Session* get_session_parent ();
     Session* get_session_next_sibling (Session* prev);
 
+    bool call_event_handler (Kernel& kernel, const CoeStr& ev);
+    bool call_event_handler (Kernel& kernel, const CoeStr& ev, EventArg& arg);
+
 protected:
     Session (const HandlerX& start_handler);
     virtual ~Session ();
