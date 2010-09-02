@@ -44,6 +44,7 @@ include/coe-thread--imp.h
 
 include/coe-kernel.h
     src/coe-kernel.cpp
+include/coe-kernel--dcl.h
 include/coe-kernel--imp.h
     src/coe-kernel--imp.cpp
     src/coe-kernel--r4k.h
