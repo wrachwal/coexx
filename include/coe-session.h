@@ -51,6 +51,9 @@ public:
 
     static Session* current_session ();
 
+    Session* get_session_parent ();
+    Session* get_session_next_sibling (Session* prev);
+
 protected:
     Session (const HandlerX& start_handler);
     virtual ~Session ();

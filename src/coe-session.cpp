@@ -159,3 +159,33 @@ Session* Session::current_session ()
     return NULL;
 }
 
+// ---------------------------------------------------------------------------
+
+Session* Session::get_session_parent ()
+{
+    r4Session*  parent = _r4session->_parent;
+    return parent ? parent->_handle : NULL;
+}
+
+Session* Session::get_session_next_sibling (Session* prev)
+{
+    if (NULL == prev) {
+        r4Session*  head = _r4Session::list_children(*_r4session).peek_head();
+        return head ? head->_handle : NULL;
+    }
+    else {
+        if (prev->_r4session->_parent != _r4session) {  // is `prev' really my child?
+            return NULL;    // error case: `prev' is not mine!
+        }
+
+        r4Session*  next = prev->_r4session->_link_children.next;
+
+        if (_r4Session::list_children(*_r4session).peek_head() == next) {
+            return NULL;    // stop iteration
+        }
+        else {
+            return next->_handle;
+        }
+    }
+}
+

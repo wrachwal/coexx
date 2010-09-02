@@ -79,8 +79,6 @@ struct r4Session {
 
     EvIO* find_io_watcher (int fd, IO_Mode mode);
 
-private:
-    friend struct _r4Session;
     dLink<r4Session>    _link_children;
 };
 
