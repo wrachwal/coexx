@@ -51,11 +51,12 @@ public:
 
     static Session* current_session ();
 
-    Session* get_session_parent ();
-    Session* get_session_next_sibling (Session* prev);
+    Session* parent_session ();
+    Session*  child_session (Session* prev);
 
-    bool call_event_handler (Kernel& kernel, const CoeStr& ev);
-    bool call_event_handler (Kernel& kernel, const CoeStr& ev, EventArg& arg);
+    bool call          (Kernel& kernel, const CoeStr& ev);
+    bool call          (Kernel& kernel, const CoeStr& ev, EventArg* arg);
+    bool call_keep_arg (Kernel& kernel, const CoeStr& ev, EventArg& arg);
 
 protected:
     Session (const HandlerX& start_handler);

@@ -161,13 +161,13 @@ Session* Session::current_session ()
 
 // ---------------------------------------------------------------------------
 
-Session* Session::get_session_parent ()
+Session* Session::parent_session ()
 {
     r4Session*  parent = _r4session->_parent;
     return parent ? parent->_handle : NULL;
 }
 
-Session* Session::get_session_next_sibling (Session* prev)
+Session* Session::child_session (Session* prev)
 {
     if (NULL == prev) {
         r4Session*  head = _r4Session::list_children(*_r4session).peek_head();
@@ -191,14 +191,23 @@ Session* Session::get_session_next_sibling (Session* prev)
 
 // ---------------------------------------------------------------------------
 
-bool Session::call_event_handler (Kernel& kernel, const CoeStr& ev)
+bool Session::call (Kernel& kernel, const CoeStr& ev)
 {
     r4Kernel*   r4k = kernel._r4kernel;
     assert(NULL != r4k);
     return r4k->call_event_handler(_r4session, ev, NULL);
 }
 
-bool Session::call_event_handler (Kernel& kernel, const CoeStr& ev, EventArg& arg)
+bool Session::call (Kernel& kernel, const CoeStr& ev, EventArg* arg)
+{
+    r4Kernel*   r4k = kernel._r4kernel;
+    assert(NULL != r4k);
+    bool    status = r4k->call_event_handler(_r4session, ev, arg);
+    delete arg;
+    return status;
+}
+
+bool Session::call_keep_arg (Kernel& kernel, const CoeStr& ev, EventArg& arg)
 {
     r4Kernel*   r4k = kernel._r4kernel;
     assert(NULL != r4k);
