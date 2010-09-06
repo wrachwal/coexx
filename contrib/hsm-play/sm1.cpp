@@ -70,14 +70,14 @@ DEF__OR_STATE_(SM1::L2::L3::L4::L5::L6::, L7)
 {
 }
 
-void SM1::L2::L3::L4::L5::L6::L7::on_ex (Kernel& kernel)
+void SM1::L2::L3::L4::L5::L6::L7::on__exit (Kernel& kernel)
 {
     L4& jumpto = context<L4>();
 
     cout << "(* inside " << state_name() << "::" << __FUNCTION__ << "()"
          << " transition to " << jumpto.state_name() << " *)" << endl;
 
-    jumpto.transition_to(kernel);
+    jumpto.transit(kernel);
 }
 
 DEF__OR_STATE_(SM1::L2::L3::L4::L5::L6::L7::, L8)

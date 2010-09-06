@@ -488,8 +488,8 @@ void SMSession::command_transitions_set (Kernel& kernel,
         cout << "\n||| " << (to ? "$" : "") << *i << "\n" << endl;
 
         // execute transition (exiting phase)
-        if      (ex)    to->transition_to_ex(kernel, *ex);
-        else if (to)    to->transition_to(kernel);
+        if      (ex)    to->transit_ex(kernel, *ex);
+        else if (to)    to->transit(kernel);
         else            sm.terminate(kernel);
     }
 }

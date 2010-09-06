@@ -56,19 +56,19 @@ aComposition& aState::root_ () const
     return _machine.root();
 }
 
-void aState::on_startup (Kernel& kernel)
+void aState::on__startup (Kernel& kernel)
 {
 }
 
-void aState::on_cleanup (Kernel& kernel)
+void aState::on__cleanup (Kernel& kernel)
 {
 }
 
-void aState::on_en (Kernel& kernel)
+void aState::on__entry (Kernel& kernel)
 {
 }
 
-void aState::on_ex (Kernel& kernel)
+void aState::on__exit (Kernel& kernel)
 {
 }
 
@@ -224,7 +224,7 @@ void Machine::do_startup (Kernel& kernel)
         void startup_state (aState& state)
             {
                 assert(_machine._started);
-                state.on_startup(_kernel);
+                state.on__startup(_kernel);
             }
         Machine&    _machine;
         Kernel&     _kernel;
@@ -248,7 +248,7 @@ void Machine::do_cleanup (Kernel& kernel)
         void cleanup_state (aState& state)
             {
                 assert(! _machine._started);
-                state.on_cleanup(_kernel);
+                state.on__cleanup(_kernel);
             }
         Machine&    _machine;
         Kernel&     _kernel;

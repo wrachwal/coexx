@@ -51,19 +51,19 @@ public:
     virtual const char* state_name () const = 0;
 
     // startup/cleanup phase
-    virtual void on_startup (Kernel& kernel);
-    virtual void on_cleanup (Kernel& kernel);
+    virtual void on__startup (Kernel& kernel);
+    virtual void on__cleanup (Kernel& kernel);
 
     // on entry/exit actions
-    virtual void on_en (Kernel& kernel);
-    virtual void on_ex (Kernel& kernel);
+    virtual void on__entry (Kernel& kernel);
+    virtual void on__exit  (Kernel& kernel);
 
     // predicate
     bool is_in () const { return 0 != _active; }
 
     // transitions
-    void transition_to    (Kernel& kernel);
-    void transition_to_ex (Kernel& kernel, aState& ex);
+    void transit    (Kernel& kernel);
+    void transit_ex (Kernel& kernel, aState& ex);
 
     // (internals)
     StateType       type_ () const { return static_cast<StateType>(_type); }
@@ -199,7 +199,7 @@ public:
     ~Machine ();
 
     void initialize ();                 // to be called in root state constructor
-    void do_startup (Kernel& kernel);   // implicitly on first aState::transition_to...()
+    void do_startup (Kernel& kernel);   // implicitly on first aState::transit...()
     void do_cleanup (Kernel& kernel);   // implicitly after terminate()
 
     // transition to termination state
@@ -459,8 +459,8 @@ protected:
 
 // ---------------------------------------------------------------------------
 
-#define ON_EN       void on_en (coe::Kernel& kernel);
-#define ON_EX       void on_ex (coe::Kernel& kernel);
+#define ON_EN       void on__entry (coe::Kernel& kernel);
+#define ON_EX       void on__exit  (coe::Kernel& kernel);
 #define ON_ENEX     ON_EN ON_EX
 
 // ===========================================================================

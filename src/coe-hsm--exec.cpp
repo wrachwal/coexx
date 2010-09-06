@@ -347,7 +347,7 @@ void _MachineExecutor::exit_state (aState& state)
                 debug_trace_action(sm, StateTrace::OnEx, &state, NULL);
 
                 assert(NULL != sm._kernel);
-                state.on_ex(*sm._kernel);               //**
+                state.on__exit(*sm._kernel);            //**
             }
 
             if (state._active == -2) {
@@ -412,7 +412,7 @@ void _MachineExecutor::enter_target_state (aState& state)
         debug_trace_action(sm, StateTrace::OnEn, &state, NULL);
 
         assert(NULL != sm._kernel);
-        state.on_en(*sm._kernel);                   //**
+        state.on__entry(*sm._kernel);               //**
 
         sm._action_level = level;
 
@@ -569,7 +569,7 @@ void Machine::_complete_transition (Kernel& kernel)
 // ===========================================================================
 // aState
 
-void aState::transition_to (Kernel& kernel)
+void aState::transit (Kernel& kernel)
 {
     if (_machine.is_in_stable_state()) {
         _MachineExecutor::debug_trace_setup(_machine);
@@ -588,7 +588,7 @@ void aState::transition_to (Kernel& kernel)
     _MachineExecutor::set_kernel_context(_machine, tmp);
 }
 
-void aState::transition_to_ex (Kernel& kernel, aState& ex)
+void aState::transit_ex (Kernel& kernel, aState& ex)
 {
     if (_machine.is_in_stable_state()) {
         _MachineExecutor::debug_trace_setup(_machine);
