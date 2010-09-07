@@ -311,6 +311,13 @@ static bool register_machine_session (string name, SMSession& smses)    // self-
 
 // ---------------------------------------------------------------------------
 
+static void get_trace_ctrl (Kernel& kernel,
+                            Machine& machine,
+                            StateTrace::Ctrl& /*output*/ctrl)
+{
+    ctrl.flag = StateTrace::ALL;    // full trace
+}
+
 static void print_action (Kernel& kernel,
                           Machine& machine,
                           StateTrace::Action action,
@@ -526,12 +533,9 @@ int main ()
     if (::isatty(STDIN_FILENO))
         cout << "enter :h to get help." << endl;
 
-    StateTrace          trace_funs(&::print_action, &::print_machine);
+    StateTrace          trace_funs =
+        { &::get_trace_ctrl, &::print_action, &::print_machine };
     StateTrace::set_trace(trace_funs);
-
-    StateTrace::Ctrl    trace_ctrl;
-    trace_ctrl.flag = StateTrace::ALL;      // full trace
-    StateTrace::set_trace_ctrl(trace_ctrl);
 
     Kernel& kernel = Kernel::create_new();
 

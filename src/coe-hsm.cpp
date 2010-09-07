@@ -180,21 +180,6 @@ AND_State::~AND_State ()
 }
 
 // ===========================================================================
-// StateTrace
-
-StateTrace::StateTrace ()
-:   action(NULL)
-,   status(NULL)
-{
-}
-
-StateTrace::StateTrace (Fun_Action action, Fun_Status status)
-:   action(action)
-,   status(status)
-{
-}
-
-// ===========================================================================
 // Machine
 
 Machine::Machine (aComposition& root)

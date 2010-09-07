@@ -170,22 +170,21 @@ struct StateTrace {
     };
 
     static void set_trace (const StateTrace& cbs);
-    static Ctrl get_trace_ctrl ();
-    static void set_trace_ctrl (const Ctrl& ctrl);
 
     // ---
 
     enum Action { OnTr, OnEx, OnEn };
-    typedef void (*Fun_Action) (Kernel& kernel,
-                                Machine& machine,
-                                Action action,
-                                aState* st,
-                                aState* ex);
-    typedef void (*Fun_Status) (Kernel& kernel,
-                                Machine& machine);
-    StateTrace ();
-    StateTrace (Fun_Action, Fun_Status);
-
+    typedef void (*Fun_Control) (Kernel& kernel,
+                                 Machine& machine,
+                                 Ctrl& /*output*/ctrl);
+    typedef void (*Fun_Action)  (Kernel& kernel,
+                                 Machine& machine,
+                                 Action action,
+                                 aState* st,
+                                 aState* ex);
+    typedef void (*Fun_Status)  (Kernel& kernel,
+                                 Machine& machine);
+    Fun_Control control;
     Fun_Action  action;
     Fun_Status  status;
 };

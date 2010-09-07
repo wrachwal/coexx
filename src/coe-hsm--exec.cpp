@@ -54,28 +54,12 @@ static aState* common_ancestor (aState* s1, aState* s2)
 
 static Mutex            s_Trace_Mutex;
 static StateTrace       s_Trace;
-static StateTrace::Ctrl s_Trace_Ctrl;
 
 void StateTrace::set_trace (const StateTrace& cbs)
 {
     // --@@--
     Mutex::Guard    lock(s_Trace_Mutex);
     s_Trace = cbs;
-}
-
-StateTrace::Ctrl StateTrace::get_trace_ctrl ()
-{
-    // --@@--
-    Mutex::Guard    lock(s_Trace_Mutex);
-    Ctrl    ctrl = s_Trace_Ctrl;
-    return ctrl;
-}
-
-void StateTrace::set_trace_ctrl (const Ctrl& ctrl)
-{
-    // --@@--
-    Mutex::Guard    lock(s_Trace_Mutex);
-    s_Trace_Ctrl = ctrl;
 }
 
 // ===========================================================================
@@ -87,7 +71,7 @@ struct _MachineExecutor {
 
     static Kernel* set_kernel_context (Machine& sm, Kernel* kernel);
 
-    static void debug_trace_setup (Machine& sm);
+    static void debug_trace_setup (Kernel& kernel, Machine& sm);
     static void debug_trace_action (Machine& sm, StateTrace::Action action,
                                     aState* to, aState* ex);
     static void debug_trace_status (Machine& sm);
@@ -139,7 +123,7 @@ inline Kernel* _MachineExecutor::set_kernel_context (Machine& sm, Kernel* kernel
     return tmp;
 }
 
-void _MachineExecutor::debug_trace_setup (Machine& sm)
+void _MachineExecutor::debug_trace_setup (Kernel& kernel, Machine& sm)
 {
     StateTrace::Ctrl    global;
 
@@ -147,7 +131,10 @@ void _MachineExecutor::debug_trace_setup (Machine& sm)
     {
         Mutex::Guard    lock(s_Trace_Mutex);
         sm._trace = s_Trace;
-        global    = s_Trace_Ctrl;
+    }
+
+    if (sm._trace.control) {
+        sm._trace.control(kernel, sm, global);
     }
 
     // determine what to trace taking global & machine settings
@@ -508,7 +495,7 @@ void Machine::initialize ()
 void Machine::terminate (Kernel& kernel)
 {
     if (is_in_stable_state()) {
-        _MachineExecutor::debug_trace_setup(*this);
+        _MachineExecutor::debug_trace_setup(kernel, *this);
     }
 
     Kernel* tmp = _MachineExecutor::set_kernel_context(*this, &kernel);
@@ -572,7 +559,7 @@ void Machine::_complete_transition (Kernel& kernel)
 void aState::transit (Kernel& kernel)
 {
     if (_machine.is_in_stable_state()) {
-        _MachineExecutor::debug_trace_setup(_machine);
+        _MachineExecutor::debug_trace_setup(kernel, _machine);
     }
 
     _machine.do_startup(kernel);
@@ -591,7 +578,7 @@ void aState::transit (Kernel& kernel)
 void aState::transit_ex (Kernel& kernel, aState& ex)
 {
     if (_machine.is_in_stable_state()) {
-        _MachineExecutor::debug_trace_setup(_machine);
+        _MachineExecutor::debug_trace_setup(kernel, _machine);
     }
 
     _machine.do_startup(kernel);
