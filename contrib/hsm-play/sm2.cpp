@@ -13,11 +13,17 @@ BEG__MACHINE_OR_STATE_(SM2, ())
             BEG__STATE_(C2)
             END__STATE_(C2)
         END__OR_STATE_(C)
-        BEG__OR_STATE_(D)
+        BEG__OR_STATE_H_(D, DEEP_HISTORY)
             BEG__STATE_(D1)
             END__STATE_(D1)
             BEG__STATE_(D2)
             END__STATE_(D2)
+            BEG__OR_STATE_(D3)
+                BEG__STATE_(D3_1)
+                END__STATE_(D3_1)
+                BEG__STATE_(D3_2)
+                END__STATE_(D3_2)
+            END__OR_STATE_(D3)
         END__OR_STATE_(D)
     END__OR_STATE_(A)
     BEG__AND_STATE_(B)
@@ -64,11 +70,21 @@ DEF__STATE_(SM2::A::C::, C2) {}
 DEF__OR_STATE_(SM2::A::, D)
 ,   D1(*this)
 ,   D2(*this)
+,   D3(*this)
 {
 }
 
 DEF__STATE_(SM2::A::D::, D1) {}
 DEF__STATE_(SM2::A::D::, D2) {}
+
+DEF__OR_STATE_(SM2::A::D::, D3)
+,   D3_1(*this)
+,   D3_2(*this)
+{
+}
+
+DEF__STATE_(SM2::A::D::D3::, D3_1) {}
+DEF__STATE_(SM2::A::D::D3::, D3_2) {}
 
 DEF__AND_STATE_(SM2::, B)
 ,   E(*this)

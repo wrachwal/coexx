@@ -107,11 +107,14 @@ protected:
 
 class aComposition : public aState {
 public:
+    // (internals)
     aState* child_list_ () const { return _child_list; }
+
 protected:
     aComposition (StateType type,  Machine& machine);
     aComposition (StateType type,  OR_State& parent);
     aComposition (StateType type, AND_State& parent);
+
 private:
     friend struct _MachineExecutor;
     friend class aState;
@@ -125,18 +128,22 @@ template<class, HistoryType> class OR_State_Policy;
 
 class OR_State : public aComposition {
 public:
+    // (internals)
     HistoryType histype_ () const
         { return _histype <= 2 ? static_cast<HistoryType>(_histype) : NONE_HISTORY; }
+    aState* history_child_ () const { return _active ? 0 : _active_child; }
+    bool    history_child_ (aState* child);
+
 protected:
     OR_State ( Machine& machine, HistoryType histype);
     OR_State ( OR_State& parent, HistoryType histype);
     OR_State (AND_State& parent, HistoryType histype);
     ~OR_State ();
+
 private:
     friend class aState;
     friend struct _MachineExecutor;
     template<class, HistoryType> friend class OR_State_Policy;
-    bool    _clear_history ();
     aState* _active_child;  // active or history state
     aState* _target_child;
 };
@@ -316,7 +323,7 @@ protected:
 template<class _Self, HistoryType histype>
 class OR_State_Policy {
 public:
-    bool clear_history () { return static_cast<_Self&>(*this)._clear_history(); }
+    bool clear_history () { return static_cast<_Self&>(*this).history_child_(0); }
 protected:
     ~OR_State_Policy () {}
 };

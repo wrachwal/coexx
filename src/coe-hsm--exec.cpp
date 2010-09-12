@@ -597,28 +597,44 @@ void aState::transit_ex (Kernel& kernel, aState& ex)
 // ===========================================================================
 // OR_State
 
-bool OR_State::_clear_history ()
+bool OR_State::history_child_ (aState *child)
 {
-    if (0 == _active) {
-
-        switch (_histype) {
-
-            case SHALLOW_HISTORY:
-                _active_child = NULL;
-                return true;
-
-            case DEEP_HISTORY:
-                _MachineExecutor::clear_children_deep_history(*this);
-                _active_child = NULL;
-                return true;
-
-            case (SHALLOW_HISTORY | DEEP_HISTORY):
-                _MachineExecutor::clear_children_deep_history(*this);
-                return true;
+    // preconditions
+    if (_active) {
+        return false;
+    }
+    if (0 == (_histype & (SHALLOW_HISTORY | DEEP_HISTORY))) {
+        return false;
+    }
+    if (NULL != child) {
+        if (child->_parent != this) {
+            return false;
+        }
+        // deep history chain must be continuous
+        if (_histype == (SHALLOW_HISTORY | DEEP_HISTORY)) {
+            // find first ancestor xor-state
+            for (aComposition* p = _parent; NULL != p; p = p->_parent) {
+                if (p->_type == OR_STATE) {
+                    // and it must be either active or has the history
+                    if (NULL == static_cast<OR_State*>(p)->_active_child) {
+                        return false;
+                    }
+                    break;
+                }
+            }
         }
     }
 
-    return false;
+    // change
+    if (_active_child != child) {
+        if (NULL != _active_child) {
+            if (_histype & DEEP_HISTORY) {
+                _MachineExecutor::clear_children_deep_history(*this);
+            }
+        }
+        _active_child = child;
+    }
+    return true;
 }
 
 // ===========================================================================
