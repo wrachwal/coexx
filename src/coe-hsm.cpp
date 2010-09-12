@@ -418,6 +418,53 @@ ostream& print_state_machine (ostream& os, Machine& machine, const string& prefi
     return os;
 }
 
+// ---------------------------------------------------------------------------
+
+void save_machine_state (Machine& machine,
+                         vector<aState*>& state_transit,
+                         vector<aState*>& child_history)
+{
+    class Recorder : public StateVisitor {
+    public:
+        Recorder (vector<aState*>& transit,
+                  vector<aState*>& history)
+            :   _transit(transit)
+            ,   _history(history)
+            {
+                _transit.clear();
+                _history.clear();
+            }
+    private:
+        void visit (BasicState& state)
+            {
+                record_transit(&state);
+            }
+        void visit (OR_State& state)
+            {
+                record_transit(&state);
+                if (state.history_child_())
+                    _history.push_back(state.history_child_());
+            }
+        void visit (AND_State& state)
+            {
+                record_transit(&state);
+            }
+        void record_transit (aState* state)
+            {
+                if (state->target_()) {
+                    if (! _transit.empty() && _transit.back() == state->parent_())
+                        _transit.pop_back();
+                    _transit.push_back(state);
+                }
+            }
+        vector<aState*>&    _transit;
+        vector<aState*>&    _history;
+    };
+
+    Recorder    recorder(state_transit, child_history);
+    walk_top_down(machine.root(), recorder);
+}
+
 // ===========================================================================
 
 } ///// namespace hsm

@@ -425,6 +425,182 @@ en >> SM2.B.F.F2
 |=   - SM2.B.F.F1
 |= @ - SM2.B.F.F2
 
+$ A
+
+|
+|#
+|# SM2.A
+|#
+|
+
+||| $SM2.A
+
+tr @@ SM2.A
+ex << SM2.B.E.E2
+ex << SM2.B.E
+ex << SM2.B.F.F2
+ex << SM2.B.F
+ex << SM2.B
+
+|? @*| SM2
+|?  *| SM2.A
+|?   | SM2.A.C
+|?   - SM2.A.C.C1
+|?   - SM2.A.C.C2
+|?   H SM2.A.D
+|?   - SM2.A.D.D1
+|?   - SM2.A.D.D2
+|?   | SM2.A.D.D3
+|?   - SM2.A.D.D3.D3_1
+|?   - SM2.A.D.D3.D3_2
+|? @ & SM2.B
+|?   | SM2.B.E
+|?   - SM2.B.E.E1
+|?   - SM2.B.E.E2
+|?   h SM2.B.F
+|?   - SM2.B.F.F1
+|?   - SM2.B.F.F2
+
+en >> SM2.A
+en >> SM2.A.C
+en >> SM2.A.C.C1
+
+|= @ | SM2
+|= @ | SM2.A
+|= @ | SM2.A.C
+|= @ - SM2.A.C.C1
+|=   - SM2.A.C.C2
+|=   H SM2.A.D
+|=   - SM2.A.D.D1
+|=   - SM2.A.D.D2
+|=   | SM2.A.D.D3
+|=   - SM2.A.D.D3.D3_1
+|=   - SM2.A.D.D3.D3_2
+|=   & SM2.B
+|=   | SM2.B.E
+|=   - SM2.B.E.E1
+|=   - SM2.B.E.E2
+|=   h SM2.B.F
+|=   - SM2.B.F.F1
+|=   - SM2.B.F.F2
+
+@
+
+
+|-- (SM2): saved machine state for a new session:
+
+|transit SM2.A.C.C1
+|history SM2.A.D.D3
+|history SM2.A.D.D3.D3_2
+|history SM2.B.E.E2
+|history SM2.B.F.F2
+
+|-- {SM2}: session stopped. spawning the new one...
+
+tr @@ SM2.A.C.C1
+
+|?  *| SM2
+|?  *| SM2.A
+|?  *| SM2.A.C
+|?  *- SM2.A.C.C1
+|?   - SM2.A.C.C2
+|?   H SM2.A.D
+|?   - SM2.A.D.D1
+|?   - SM2.A.D.D2
+|?   | SM2.A.D.D3
+|?   - SM2.A.D.D3.D3_1
+|?   - SM2.A.D.D3.D3_2
+|?   & SM2.B
+|?   | SM2.B.E
+|?   - SM2.B.E.E1
+|?   - SM2.B.E.E2
+|?   h SM2.B.F
+|?   - SM2.B.F.F1
+|?   - SM2.B.F.F2
+
+en >> SM2
+en >> SM2.A
+en >> SM2.A.C
+en >> SM2.A.C.C1
+
+|= @ | SM2
+|= @ | SM2.A
+|= @ | SM2.A.C
+|= @ - SM2.A.C.C1
+|=   - SM2.A.C.C2
+|=   H SM2.A.D
+|=   - SM2.A.D.D1
+|=   - SM2.A.D.D2
+|=   | SM2.A.D.D3
+|=   - SM2.A.D.D3.D3_1
+|=   - SM2.A.D.D3.D3_2
+|=   & SM2.B
+|=   | SM2.B.E
+|=   - SM2.B.E.E1
+|=   - SM2.B.E.E2
+|=   h SM2.B.F
+|=   - SM2.B.F.F1
+|=   - SM2.B.F.F2
+
+$ B
+
+|
+|#
+|# SM2.B
+|#
+|
+
+||| $SM2.B
+
+tr @@ SM2.B
+ex << SM2.A.C.C1
+ex << SM2.A.C
+ex << SM2.A
+
+|? @*| SM2
+|? @ | SM2.A
+|?   | SM2.A.C
+|?   - SM2.A.C.C1
+|?   - SM2.A.C.C2
+|?   H SM2.A.D
+|?   - SM2.A.D.D1
+|?   - SM2.A.D.D2
+|?   | SM2.A.D.D3
+|?   - SM2.A.D.D3.D3_1
+|?   - SM2.A.D.D3.D3_2
+|?  *& SM2.B
+|?   | SM2.B.E
+|?   - SM2.B.E.E1
+|?   - SM2.B.E.E2
+|?   h SM2.B.F
+|?   - SM2.B.F.F1
+|?   - SM2.B.F.F2
+
+en >> SM2.B
+en >> SM2.B.E
+en >> SM2.B.E.E1
+en >> SM2.B.F
+en >> SM2.B.F.F2
+
+|= @ | SM2
+|=   | SM2.A
+|=   | SM2.A.C
+|=   - SM2.A.C.C1
+|=   - SM2.A.C.C2
+|=   H SM2.A.D
+|=   - SM2.A.D.D1
+|=   - SM2.A.D.D2
+|=   | SM2.A.D.D3
+|=   - SM2.A.D.D3.D3_1
+|=   - SM2.A.D.D3.D3_2
+|= @ & SM2.B
+|= @ | SM2.B.E
+|= @ - SM2.B.E.E1
+|=   - SM2.B.E.E2
+|= @ h SM2.B.F
+|=   - SM2.B.F.F1
+|= @ - SM2.B.F.F2
+
 $$
 
 |
@@ -436,15 +612,15 @@ $$
 ||| $$
 
 tr @@ [terminate]
-ex << SM2.B.E.E2
+ex << SM2.B.E.E1
 ex << SM2.B.E
 ex << SM2.B.F.F2
 ex << SM2.B.F
 ex << SM2.B
 ex << SM2
-@
+@@
 
 
-|-- Session hosting `SM2' state-machine has stopped.
+|-- {SM2}: session stopped.
 
 bye!

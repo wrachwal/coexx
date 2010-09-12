@@ -7,6 +7,7 @@
 
 #include <string>
 #include <iosfwd>   // ostream
+#include <vector>
 
 namespace coe {
 
@@ -262,6 +263,15 @@ std::string   full_state_name (                  aState& state, const char* sep 
 
 std::ostream& print_state_machine (std::ostream& os, Machine& machine,
                                    const std::string& prefix = std::string());
+
+// ------------------------------------
+// serialization
+
+void save_machine_state (Machine& machine,
+                         // to restore, transit to states first,
+                         std::vector<aState*>& state_transit,
+                         // then restore retained child_history_
+                         std::vector<aState*>& child_history);
 
 // ---------------------------------------------------------------------------
 // aComposition_Policy<_Self, _Parent>

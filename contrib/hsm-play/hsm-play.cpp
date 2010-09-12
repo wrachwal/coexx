@@ -52,19 +52,27 @@ class SMSession : public Session {
 public:
     static SiD machine_session (string name);   // query registered by name
     static void spawn (Kernel& kernel, string name, SMCreator creator);
+    static void spawn (Kernel& kernel, string name, SMCreator creator,
+                       const vector<string>& transit,
+                       const vector<string>& history);
 
 private:
-    SMSession (aComposition* root);
+    SMSession (string name, SMCreator creator, bool copy);
     ~SMSession ();
 
     typedef SMSession Self;
-    void _start (Kernel& kernel, string& name);
+    bool _start (Kernel& kernel);
+    void _start_init (Kernel& kernel);
+    void _start_copy (Kernel& kernel, vector<string>& transit, vector<string>& history);
     void command_select_machine (Kernel& kernel);
     void command_transitions_set (Kernel& kernel, vector<pair<string, string> >& trans);
+    void command_respawn_session (Kernel& kernel);
     void command_stop_session (Kernel& kernel);
     aState* find_state (string state) const;
 
 private:    // data
+    const string            _name;
+    const SMCreator         _creator;
     aComposition*           _root;
     map<string, aState*>    _abbr;
 };
@@ -101,7 +109,8 @@ $ <to1> <to2> ...   ## compound transition\n\
 $ <to1\\ex1> ...     ## transition via (ex)iting state\n\
 $$                  ## transition to terminate state\n\
 ~<ev> [<arg1> ...]  ## post <ev>ent with args (integers)\n\
-@                   ## stop current machine session\n\
+@                   ## spawn new session with old machine state\n\
+@@                  ## stop current machine session\n\
 " << endl;
             return false;
         }
@@ -206,6 +215,12 @@ $$                  ## transition to terminate state\n\
     }
     else
     if (cmd == "@") {
+        echo_line(echo, line) << endl;
+        kernel.post(SMSession::machine_session(selsm), "command_respawn_session");
+        return true;
+    }
+    else
+    if (cmd == "@@") {
         echo_line(echo, line) << endl;
         kernel.post(SMSession::machine_session(selsm), "command_stop_session");
         return true;
@@ -390,13 +405,24 @@ SiD SMSession::machine_session (string name)
 
 void SMSession::spawn (Kernel& kernel, string name, SMCreator creator)
 {
-    (new Self(creator()))->start_session(kernel, vparam(name));
+    (new Self(name, creator, false))->start_session(kernel);
 }
 
-SMSession::SMSession (aComposition* root)
-:   Session(handler(*this, &Self::_start))
-,   _root(root)
+void SMSession::spawn (Kernel& kernel, string name, SMCreator creator,
+                       const vector<string>& transit,
+                       const vector<string>& history)
 {
+    (new Self(name, creator, true))->start_session(kernel, vparam(transit, history));
+}
+
+SMSession::SMSession (string name, SMCreator creator, bool copy)
+:   Session(copy ? handler(*this, &Self::_start_copy)
+                 : handler(*this, &Self::_start_init))
+,   _name(name)
+,   _creator(creator)
+{
+    assert(NULL != _creator);
+    _root = _creator();
     assert(NULL != _root);
     ::build_abbrev_to_state_map(_abbr, *_root);
 }
@@ -413,19 +439,51 @@ aState* SMSession::find_state (string state) const
     return i != _abbr.end() ? (*i).second : NULL;
 }
 
-void SMSession::_start (Kernel& kernel, string& name)
+bool SMSession::_start (Kernel& kernel)
 {
-    if (register_machine_session(name, *this)) {
+    if (register_machine_session(_name, *this)) {
 
         kernel.state("command_select_machine",
                      handler(*this, &Self::command_select_machine));
         kernel.state("command_transitions_set",
                      handler(*this, &Self::command_transitions_set));
+        kernel.state("command_respawn_session",
+                     handler(*this, &Self::command_respawn_session));
         kernel.state("command_stop_session",
                      handler(*this, &Self::command_stop_session));
+        return true;
     }
     else {
         stop_session();
+        return false;
+    }
+}
+
+void SMSession::_start_init (Kernel& kernel)
+{
+    _start(kernel);
+}
+
+void SMSession::_start_copy (Kernel& kernel,
+                             vector<string>& transit, vector<string>& history)
+{
+    if (_start(kernel)) {
+
+        for (vector<string>::iterator i = transit.begin(); i != transit.end(); ++i) {
+            aState* state = find_state(*i);
+            if (state)
+                state->transit(kernel);
+            else
+                cout << "! error: transit " << *i << endl;
+        }
+
+        for (vector<string>::iterator i = history.begin(); i != history.end(); ++i) {
+            aState* child = find_state(*i);
+            if (child && child->parent_() && child->parent_()->type_() == OR_STATE)
+                static_cast<OR_State*>(child->parent_())->history_child_(child);
+            else
+                cout << "! error: history " << *i << endl;
+        }
     }
 }
 
@@ -501,10 +559,40 @@ void SMSession::command_transitions_set (Kernel& kernel,
     }
 }
 
+void SMSession::command_respawn_session (Kernel& kernel)
+{
+    cout << "\n|-- (" << _name << "): saved machine state for a new session:\n" << endl;
+
+    vector<aState*> transit_p;
+    vector<aState*> history_p;
+
+    save_machine_state(_root->machine_(), transit_p, history_p);
+
+    vector<string>  transit_s;
+    vector<string>  history_s;
+
+    for (vector<aState*>::iterator i = transit_p.begin(); i != transit_p.end(); ++i) {
+        string  name = full_state_name(**i);
+        cout << "|transit " << name << endl;
+        transit_s.push_back(name);
+    }
+    for (vector<aState*>::iterator i = history_p.begin(); i != history_p.end(); ++i) {
+        string  name = full_state_name(**i);
+        cout << "|history " << name << endl;
+        history_s.push_back(name);
+    }
+
+    cout << "\n|-- {" << _name << "}: session stopped. spawning the new one...\n" << endl;
+
+    stop_session();
+
+    (new Self(_name, _creator, true))->start_session(kernel, *parent_session(),
+                                                     vparam(transit_s, history_s));
+}
+
 void SMSession::command_stop_session (Kernel& kernel)
 {
-    cout << "\n|-- Session hosting `" << _root->state_name()
-         << "' state-machine has stopped." << endl;
+    cout << "\n|-- {" << _name << "}: session stopped." << endl;
     stop_session();
 }
 
