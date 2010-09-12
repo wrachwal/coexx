@@ -78,6 +78,16 @@ SiD Session::start_session (Kernel& kernel, EventArg* arg)
     return sid;
 }
 
+SiD Session::start_session (Kernel& kernel, Session& parent, EventArg* arg)
+{
+    r4Kernel*   r4k = kernel._r4kernel;
+    assert(NULL != r4k);
+
+    SiD sid = r4k->start_session(this, parent._r4session, arg);
+    delete arg;
+    return sid;
+}
+
 // ---------------------------------------------------------------------------
 
 void Session::stop_handler (const Handler0& handler)

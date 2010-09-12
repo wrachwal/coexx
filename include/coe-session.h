@@ -37,7 +37,8 @@ struct r4Session;   // private data
 class Session : private _Noncopyable {
 public:
     void start_handler (const HandlerX& handler);
-    SiD  start_session (Kernel& kernel, EventArg* arg=0);
+    SiD  start_session (Kernel& kernel,                  EventArg* arg=0);
+    SiD  start_session (Kernel& kernel, Session& parent, EventArg* arg=0);
 
     SiD ID () const;
     void           set_slabel (const std::string& label);
