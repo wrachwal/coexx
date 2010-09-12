@@ -82,7 +82,7 @@ r4Kernel::r4Kernel ()
 
     _s4kernel = new s4Kernel;
 
-    start_session(_s4kernel, NULL);         // --@@--
+    start_session(_s4kernel, NULL, NULL);   // --@@--
 
     assert(_s4kernel->ID().is_kernel());
     assert(NULL == _s4kernel->_r4session->_parent);
@@ -132,7 +132,7 @@ void r4Kernel::_allocate_sid (r4Session* r4s)
 
 // ---------------------------------------------------------------------------
 
-SiD r4Kernel::start_session (Session* s, EventArg* arg)
+SiD r4Kernel::start_session (Session* s, r4Session* parent, EventArg* arg)
 {
     if (NULL == s || NULL == s->_r4session) // resource has been detached
         return SiD::NONE();
@@ -144,6 +144,21 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
     if (! r4s->_start_handler) {            // _start_handler not set
         delete s;
         return SiD::NONE();
+    }
+
+    if (NULL == parent) {
+        parent = _current_context->session;
+    }
+
+    if (NULL != parent) {
+        if (parent->_kernel != this) {          // non-local parent
+            delete s;
+            return SiD::NONE();
+        }
+        if (parent->local.stopper.isset()) {    // could not continue
+            delete s;
+            return SiD::NONE();
+        }
     }
 
     const _TypeDN*  hT = r4s->_start_handler.par_type();
@@ -160,7 +175,7 @@ SiD r4Kernel::start_session (Session* s, EventArg* arg)
 
     r4s->_handle = s;   // attach resource now
     r4s->_kernel = this;
-    r4s->_parent = _current_context->session;
+    r4s->_parent = parent;
 
     // add to parent's list of children
     if (NULL != r4s->_parent) {

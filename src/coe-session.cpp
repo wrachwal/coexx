@@ -73,7 +73,7 @@ SiD Session::start_session (Kernel& kernel, EventArg* arg)
     r4Kernel*   r4k = kernel._r4kernel;
     assert(NULL != r4k);
 
-    SiD sid = r4k->start_session(this, arg);
+    SiD sid = r4k->start_session(this, NULL, arg);
     delete arg;
     return sid;
 }

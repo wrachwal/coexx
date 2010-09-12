@@ -110,7 +110,7 @@ struct r4Kernel {
 
     void _allocate_sid (r4Session* r4s);
 
-    SiD start_session (Session* s, EventArg* arg);
+    SiD start_session (Session* s, r4Session* parent, EventArg* arg);
     void call_stop  (r4Session& root, r4Session& node);
 
     bool delete_alarm (AiD aid);
