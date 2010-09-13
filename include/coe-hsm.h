@@ -132,7 +132,7 @@ public:
     // (internals)
     HistoryType histype_ () const
         { return _histype <= 2 ? static_cast<HistoryType>(_histype) : NONE_HISTORY; }
-    aState* history_child_ () const { return _active ? 0 : _active_child; }
+    aState* history_child_ () const { return _active == 1 ? 0 : _active_child; }
     bool    history_child_ (aState* child);
 
 protected:
