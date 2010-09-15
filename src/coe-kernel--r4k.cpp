@@ -379,13 +379,13 @@ bool r4Kernel::call__arg (SiD on, const CoeStr& ev, ValParam* pfx, EventArg* arg
 
 // ---------------------------------------------------------------------------
 
-bool r4Kernel::call_event_handler (r4Session* session, const CoeStr& ev, EventArg* arg)
+bool r4Kernel::call_event_handler (bool warn, r4Session* session, const CoeStr& ev, EventArg* arg)
 {
     assert(this == session->_kernel);
 
     HandlerX    handler = find_state_handler(session->_sid.id(), ev);
 
-    if (! handler) {
+    if (! handler && ! warn) {
         // silent return (handler not found)
         return false;
     }

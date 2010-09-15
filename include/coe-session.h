@@ -55,9 +55,9 @@ public:
     Session* parent_session ();
     Session*  child_session (Session* prev);
 
-    bool call          (Kernel& kernel, const CoeStr& ev);
-    bool call          (Kernel& kernel, const CoeStr& ev, EventArg* arg);
-    bool call_keep_arg (Kernel& kernel, const CoeStr& ev, EventArg& arg);
+    bool call          (bool warn, Kernel& kernel, const CoeStr& ev);
+    bool call          (bool warn, Kernel& kernel, const CoeStr& ev, EventArg* arg);
+    bool call_keep_arg (bool warn, Kernel& kernel, const CoeStr& ev, EventArg& arg);
 
 protected:
     Session (const HandlerX& start_handler);

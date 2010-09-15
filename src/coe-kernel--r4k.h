@@ -120,7 +120,7 @@ struct r4Kernel {
     void state__cmd (const CoeStr& ev, const HandlerX& cmd);
 
     bool call__arg (SiD on, const CoeStr& ev, ValParam* pfx, EventArg* arg);
-    bool call_event_handler (r4Session* session, const CoeStr& ev, EventArg* arg);
+    bool call_event_handler (bool warn, r4Session* session, const CoeStr& ev, EventArg* arg);
 
     void dispatch_evmsg (EvMsg* evmsg);
     void dispatch_alarm (EvAlarm* alarm);
