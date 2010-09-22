@@ -28,6 +28,8 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 #include "coe--errno.h"
 
+#include <memory>       // auto_ptr
+
 using namespace std;
 using namespace coe;
 
@@ -272,8 +274,9 @@ bool Kernel::yield (const CoeStr& ev, ValParam* vp)
 
 // ---------------------------------------------------------------------------
 
-bool Kernel::call (SiD on, const CoeStr& ev)
+bool Kernel::call (SiD on, const CoeStr& ev, EventArg* arg)
 {
+    auto_ptr<EventArg>  __arg(arg);
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
         || ! kernel_equal(_r4kernel, on)
@@ -281,37 +284,19 @@ bool Kernel::call (SiD on, const CoeStr& ev)
     {
         return false;
     }
-    return _r4kernel->call__arg(on, ev, NULL, NULL);
+    return _r4kernel->call__arg(on, ev, NULL, arg);
 }
 
-// ------------------------------------
-
-bool Kernel::call (SiD on, const CoeStr& ev, RefParam* rp)
+bool Kernel::call_keep_arg (SiD on, const CoeStr& ev, EventArg& arg)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
         || ! kernel_equal(_r4kernel, on)
         || ! user_evname(ev))
     {
-        delete rp;
         return false;
     }
-    return _r4kernel->call__arg(on, ev, NULL, rp);
-}
-
-// ------------------------------------
-
-bool Kernel::call (SiD on, const CoeStr& ev, ValParam* vp)
-{
-    if (   ! kernel_attached(_r4kernel)
-        || ! target_valid(on)
-        || ! kernel_equal(_r4kernel, on)
-        || ! user_evname(ev))
-    {
-        delete vp;
-        return false;
-    }
-    return _r4kernel->call__arg(on, ev, NULL, vp);
+    return _r4kernel->call__arg(on, ev, NULL, &arg);
 }
 
 // ---------------------------------------------------------------------------

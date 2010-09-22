@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "coe--errno.h"
 
 #include <algorithm>    // find
+#include <memory>       // auto_ptr
 
 using namespace std;
 using namespace coe;
@@ -201,20 +202,12 @@ Session* Session::child_session (Session* prev)
 
 // ---------------------------------------------------------------------------
 
-bool Session::call (bool warn, Kernel& kernel, const CoeStr& ev)
-{
-    r4Kernel*   r4k = kernel._r4kernel;
-    assert(NULL != r4k);
-    return r4k->call_event_handler(warn, _r4session, ev, NULL);
-}
-
 bool Session::call (bool warn, Kernel& kernel, const CoeStr& ev, EventArg* arg)
 {
+    auto_ptr<EventArg>  __arg(arg);
     r4Kernel*   r4k = kernel._r4kernel;
     assert(NULL != r4k);
-    bool    status = r4k->call_event_handler(warn, _r4session, ev, arg);
-    delete arg;
-    return status;
+    return r4k->call_event_handler(warn, _r4session, ev, arg);
 }
 
 bool Session::call_keep_arg (bool warn, Kernel& kernel, const CoeStr& ev, EventArg& arg)

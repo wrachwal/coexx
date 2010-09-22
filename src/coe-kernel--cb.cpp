@@ -28,6 +28,8 @@ THE SOFTWARE.
 #include "coe-thread--d4t.h"
 #include "coe--errno.h"
 
+#include <memory>       // auto_ptr
+
 using namespace std;
 using namespace coe;
 
@@ -51,26 +53,13 @@ Callback::~Callback ()
 
 // ---------------------------------------------------------------------------
 
-bool Callback::call (Kernel& kernel)
+bool Callback::call (Kernel& kernel, EventArg* arg)
 {
+    auto_ptr<EventArg>  __arg(arg);
     r4Kernel*  r4k = kernel._r4kernel;
     if (   ! kernel_attached(r4k)
         || ! kernel_equal(r4k, _target))
     {
-        return false;
-    }
-    return r4k->call__arg(_target, _evname, _prefix, NULL);
-}
-
-// ------------------------------------
-
-bool Callback::call (Kernel& kernel, RefParam* arg)
-{
-    r4Kernel*  r4k = kernel._r4kernel;
-    if (   ! kernel_attached(r4k)
-        || ! kernel_equal(r4k, _target))
-    {
-        delete arg;
         return false;
     }
     return r4k->call__arg(_target, _evname, _prefix, arg);
@@ -78,16 +67,15 @@ bool Callback::call (Kernel& kernel, RefParam* arg)
 
 // ------------------------------------
 
-bool Callback::call (Kernel& kernel, ValParam* arg)
+bool Callback::call_keep_arg (Kernel& kernel, EventArg& arg)
 {
     r4Kernel*  r4k = kernel._r4kernel;
     if (   ! kernel_attached(r4k)
         || ! kernel_equal(r4k, _target))
     {
-        delete arg;
         return false;
     }
-    return r4k->call__arg(_target, _evname, _prefix, arg);
+    return r4k->call__arg(_target, _evname, _prefix, &arg);
 }
 
 // ---------------------------------------------------------------------------

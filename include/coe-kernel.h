@@ -47,8 +47,9 @@ struct Stats_Kernel;    // coe-stats.h
 // handler context(s)
 class IO_Ctx;
 
-class RefParam;
-class ValParam;
+class EventArg;
+    class RefParam;
+    class ValParam;
 
 // private data
 struct r4Kernel;
@@ -96,16 +97,15 @@ public:
     /*
      * Asynchronous Messages
      */
-           bool      post (SiD to, const CoeStr& ev, ValParam* vp=0);
-    static bool anon_post (SiD to, const CoeStr& ev, ValParam* vp=0);
-           bool     yield (        const CoeStr& ev, ValParam* vp=0);
+           bool      post          (SiD to, const CoeStr& ev, ValParam* vp=0);
+    static bool anon_post          (SiD to, const CoeStr& ev, ValParam* vp=0);
+           bool     yield          (        const CoeStr& ev, ValParam* vp=0);
 
     /*
      * Synchronous Messages
      */
-           bool      call (SiD on, const CoeStr& ev);
-           bool      call (SiD on, const CoeStr& ev, RefParam* rp);
-           bool      call (SiD on, const CoeStr& ev, ValParam* vp);
+           bool      call          (SiD on, const CoeStr& ev, EventArg* arg=0);
+           bool      call_keep_arg (SiD on, const CoeStr& ev, EventArg& arg);
 
     /*
      * Encapsulated `Callback'
@@ -183,12 +183,11 @@ public:
 
     SiD session () const { return _target; }
 
-    bool      call (Kernel& kernel);
-    bool      call (Kernel& kernel, RefParam* arg);
-    bool      call (Kernel& kernel, ValParam* arg);
+    bool      call          (Kernel& kernel, EventArg* arg=0);
+    bool      call_keep_arg (Kernel& kernel, EventArg& arg);
 
-    bool      post (Kernel& kernel, ValParam* arg=0);
-    bool anon_post (                ValParam* arg=0);
+    bool      post          (Kernel& kernel, ValParam* arg=0);
+    bool anon_post          (                ValParam* arg=0);
 
 private:
     friend class Kernel;

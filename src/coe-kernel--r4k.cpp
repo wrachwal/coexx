@@ -373,7 +373,6 @@ bool r4Kernel::call__arg (SiD on, const CoeStr& ev, ValParam* pfx, EventArg* arg
 #endif
     }
 
-    delete arg;
     return status;
 }
 
