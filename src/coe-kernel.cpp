@@ -228,7 +228,42 @@ bool Kernel::anon_post (SiD to, const CoeStr& ev, ValParam* vp)
         delete vp;
         return false;
     }
-    return d4Thread::post_event(NULL/*source-kernel*/, to, new EvMsg(ev, vp));
+
+    EvMsg*  evmsg = new EvMsg(ev, vp);
+
+    evmsg = d4Thread::post_event(NULL/*source-kernel*/, to, evmsg);
+
+    if (NULL != evmsg) {
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+// ------------------------------------
+
+bool Kernel::anon_post (SiD to, const CoeStr& ev, auto_ptr<ValParam>& vp)
+{
+    if (   ! target_valid(to)
+        || ! user_evname(ev))
+    {
+        return false;
+    }
+
+    EvMsg*  evmsg = new EvMsg(ev, vp.release());
+
+    evmsg = d4Thread::post_event(NULL/*source-kernel*/, to, evmsg);
+
+    if (NULL != evmsg) {
+        vp.reset(evmsg->arg_change(NULL));
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 // ------------------------------------
@@ -245,11 +280,44 @@ bool Kernel::post (SiD to, const CoeStr& ev, ValParam* vp)
     assert(NULL != _r4kernel->_current_context);
     assert(NULL != _r4kernel->_current_context->session);
 
-    return d4Thread::post_event(
-                            _r4kernel,
-                            to,                                     // SiD
-                            new EvMsg(ev, vp, *_r4kernel->_current_context)
-                        );
+    EvMsg*  evmsg = new EvMsg(ev, vp, *_r4kernel->_current_context);
+
+    evmsg = d4Thread::post_event(_r4kernel, to, evmsg);
+
+    if (NULL != evmsg) {
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+// ------------------------------------
+
+bool Kernel::post (SiD to, const CoeStr& ev, auto_ptr<ValParam>& vp)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(to)
+        || ! user_evname(ev))
+    {
+        return false;
+    }
+    assert(NULL != _r4kernel->_current_context);
+    assert(NULL != _r4kernel->_current_context->session);
+
+    EvMsg*  evmsg = new EvMsg(ev, vp.release(), *_r4kernel->_current_context);
+
+    evmsg = d4Thread::post_event(_r4kernel, to, evmsg);
+
+    if (NULL != evmsg) {
+        vp.reset(evmsg->arg_change(NULL));
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 // ------------------------------------
@@ -265,11 +333,12 @@ bool Kernel::yield (const CoeStr& ev, ValParam* vp)
     assert(NULL != _r4kernel->_current_context);
     assert(NULL != _r4kernel->_current_context->session);
 
-    return d4Thread::post_event(
-                            _r4kernel,
-                            _r4kernel->_current_context->session,   // r4Session*
-                            new EvMsg(ev, vp, *_r4kernel->_current_context)
-                        );
+    d4Thread::enqueue_event(
+                    _r4kernel,
+                    _r4kernel->_current_context->session,   // r4Session*
+                    new EvMsg(ev, vp, *_r4kernel->_current_context)
+                );
+    return true;
 }
 
 // ---------------------------------------------------------------------------

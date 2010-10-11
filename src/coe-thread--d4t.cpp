@@ -697,7 +697,7 @@ void d4Thread::_select_io (const TimeSpec* due)
 
 // ---------------------------------------------------------------------------
 
-bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
+EvMsg* d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
 {
     if (NULL != source && to.kid() == source->_kid) {   // intra-kernel post
 
@@ -708,7 +708,8 @@ bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
 
         if (NULL != session) {
             if (! session->local.stopper.isset()) {
-                return post_event(source, session, evmsg);  // --@@--
+                enqueue_event(source, session, evmsg);      // --@@--
+                return NULL;
             }
         }
     }
@@ -737,7 +738,8 @@ bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
                         evmsg->prio_order(0);   //TODO: get from config
                     }
 
-                    return post_event(target, session, evmsg);  // --@@--
+                    enqueue_event(target, session, evmsg);      // --@@--
+                    return NULL;
                 }
             }
         }
@@ -755,13 +757,12 @@ bool d4Thread::post_event (r4Kernel* source, SiD to, EvMsg* evmsg)
     }
 #endif
 
-    delete evmsg;
-    return false;
+    return evmsg;
 }
 
 // ------------------------------------
 
-bool d4Thread::post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg)
+void d4Thread::enqueue_event (r4Kernel* target, r4Session* session, EvMsg* evmsg)
 {
     // quite a bunch of paranoic checks
     assert(NULL != target);
@@ -772,8 +773,6 @@ bool d4Thread::post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg)
     evmsg->target(session);     // target session must be always known
 
     target->_thread->enqueue_msg_event(evmsg);          // --@@--
-
-    return true;
 }
 
 // ---------------------------------------------------------------------------

@@ -80,36 +80,104 @@ bool Callback::call_keep_arg (Kernel& kernel, EventArg& arg)
 
 // ---------------------------------------------------------------------------
 
-bool Callback::post (Kernel& kernel, ValParam* arg)
+bool Callback::post (Kernel& kernel, ValParam* vp)
 {
     r4Kernel*             r4k = kernel._r4kernel;
 
     if (! kernel_attached(r4k)) {
-        delete arg;
+        delete vp;
         return false;
     }
     assert(NULL != r4k->_current_context);
     assert(NULL != r4k->_current_context->session);
 
-    EvMsg*  evmsg = new EvMsg(_evname, arg, *r4k->_current_context);
+    EvMsg*  evmsg = new EvMsg(_evname, vp, *r4k->_current_context);
 
     if (NULL != _prefix) {
         evmsg->pfx(_prefix->clone());
     }
 
-    return d4Thread::post_event(r4k, _target, evmsg);
+    evmsg = d4Thread::post_event(r4k, _target, evmsg);
+
+    if (NULL != evmsg) {
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 // ------------------------------------
 
-bool Callback::anon_post (ValParam* arg)
+bool Callback::post (Kernel& kernel, auto_ptr<ValParam>& vp)
 {
-    EvMsg*  evmsg = new EvMsg(_evname, arg);
+    r4Kernel*             r4k = kernel._r4kernel;
+
+    if (! kernel_attached(r4k)) {
+        return false;
+    }
+    assert(NULL != r4k->_current_context);
+    assert(NULL != r4k->_current_context->session);
+
+    EvMsg*  evmsg = new EvMsg(_evname, vp.release(), *r4k->_current_context);
 
     if (NULL != _prefix) {
         evmsg->pfx(_prefix->clone());
     }
 
-    return d4Thread::post_event(NULL/*source-kernel*/, _target, evmsg);
+    evmsg = d4Thread::post_event(r4k, _target, evmsg);
+
+    if (NULL != evmsg) {
+        vp.reset(evmsg->arg_change(NULL));
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+// ------------------------------------
+
+bool Callback::anon_post (ValParam* vp)
+{
+    EvMsg*  evmsg = new EvMsg(_evname, vp);
+
+    if (NULL != _prefix) {
+        evmsg->pfx(_prefix->clone());
+    }
+
+    evmsg = d4Thread::post_event(NULL/*source-kernel*/, _target, evmsg);
+
+    if (NULL != evmsg) {
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+// ------------------------------------
+
+bool Callback::anon_post (auto_ptr<ValParam>& vp)
+{
+    EvMsg*  evmsg = new EvMsg(_evname, vp.release());
+
+    if (NULL != _prefix) {
+        evmsg->pfx(_prefix->clone());
+    }
+
+    evmsg = d4Thread::post_event(NULL/*source-kernel*/, _target, evmsg);
+
+    if (NULL != evmsg) {
+        vp.reset(evmsg->arg_change(NULL));
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 

@@ -32,6 +32,7 @@ THE SOFTWARE.
 
 #include <typeinfo>
 #include "coe-kernel--dcl.h"
+#include <memory>               // auto_ptr<>
 
 namespace coe { /////
 
@@ -98,7 +99,9 @@ public:
      * Asynchronous Messages
      */
            bool      post          (SiD to, const CoeStr& ev, ValParam* vp=0);
+           bool      post          (SiD to, const CoeStr& ev, std::auto_ptr<ValParam>& vp);
     static bool anon_post          (SiD to, const CoeStr& ev, ValParam* vp=0);
+    static bool anon_post          (SiD to, const CoeStr& ev, std::auto_ptr<ValParam>& vp);
            bool     yield          (        const CoeStr& ev, ValParam* vp=0);
 
     /*
@@ -186,8 +189,10 @@ public:
     bool      call          (Kernel& kernel, EventArg* arg=0);
     bool      call_keep_arg (Kernel& kernel, EventArg& arg);
 
-    bool      post          (Kernel& kernel, ValParam* arg=0);
-    bool anon_post          (                ValParam* arg=0);
+    bool      post          (Kernel& kernel, ValParam* vp=0);
+    bool      post          (Kernel& kernel, std::auto_ptr<ValParam>& vp);
+    bool anon_post          (                ValParam* vp=0);
+    bool anon_post          (                std::auto_ptr<ValParam>& vp);
 
 private:
     friend class Kernel;

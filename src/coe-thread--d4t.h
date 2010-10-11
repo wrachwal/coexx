@@ -71,8 +71,8 @@ struct d4Thread {
     EvCommon* dequeue_event ();
     void _select_io (const TimeSpec* due);
 
-    static bool post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
-    static bool post_event (r4Kernel* target, r4Session* session, EvMsg* evmsg);
+    static EvMsg*  post_event (r4Kernel* source,             SiD to, EvMsg* evmsg);
+    static void enqueue_event (r4Kernel* target, r4Session* session, EvMsg* evmsg);
 
     AiD  create_alarm (EvAlarm* evalm);
     void delete_alarm (EvAlarm* evalm);
