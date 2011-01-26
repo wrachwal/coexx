@@ -1,7 +1,7 @@
-// coe-session.h
+// coe-memory.h
 
 /*****************************************************************************
-Copyright (c) 2008-2010 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,54 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#ifndef __COE_SESSION_H
-#define __COE_SESSION_H
+#ifndef __COE_MEMORY_H
+#define __COE_MEMORY_H
 
-#include "coe-kernel.h"
+#include <cstddef>
+#include <inttypes.h>
 
 namespace coe { /////
 
-struct r4Session;   // private data
-
 // ===========================================================================
-// Session
 
-class Session : private _Noncopyable {
-public:
-    void start_handler (const HandlerX& handler);
-    SiD  start_session (Kernel& kernel,                  EventArg* arg=0);
-    SiD  start_session (Kernel& kernel, Session& parent, EventArg* arg=0);
-
-    SiD ID () const;
-    void           set_slabel (const std::string& label);
-    const std::string& slabel () const;
-
-    bool unregistrar_set    (void (*)(SiD));
-    bool unregistrar_remove (void (*)(SiD));
-
-    void stop_handler (const Handler0& handler);
-    bool stop_session ();
-
-    static Session* current_session ();
-
-    Session* parent_session ();
-    Session*  child_session (Session* prev);
-
-    bool call          (bool warn, Kernel& kernel, const CoeStr& ev, EventArg* arg=0);
-    bool call_keep_arg (bool warn, Kernel& kernel, const CoeStr& ev, EventArg& arg);
-
-    static void* operator new               (std::size_t size);
-    static void  operator delete (void* mem, std::size_t size);
-
-protected:
-    Session (const HandlerX& start_handler);
-    virtual ~Session ();
-
-private:
-    friend struct r4Kernel;
-    friend struct r4Session;
-    r4Session*   _r4session;
+struct Stats_Memory {
+    struct Now { Now ();   size_t objects; } now;
+    struct Sum { Sum (); uint64_t objects; } sum;
 };
+
+// ---------------------------------------------------------------------------
+
+void get_stats_memory__session  (Stats_Memory& stats);
+void get_stats_memory__callback (Stats_Memory& stats);
 
 // ===========================================================================
 

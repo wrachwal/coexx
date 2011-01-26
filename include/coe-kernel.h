@@ -194,6 +194,9 @@ public:
     bool anon_post          (                ValParam* vp=0);
     bool anon_post          (                std::auto_ptr<ValParam>& vp);
 
+    static void* operator new               (std::size_t size);
+    static void  operator delete (void* mem, std::size_t size);
+
 private:
     friend class Kernel;
     Callback (SiD, const CoeStr&, ValParam*);

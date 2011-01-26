@@ -64,6 +64,10 @@ include/coe-hsm-misc.h
     src/coe-hsm--exec.cpp
     src/coe-hsm-misc.cpp
 
+include/coe-memory.h
+    src/coe-memory.cpp
+    src/mem-session.cpp
+    src/mem-callback.cpp
 
 contrib/hsm-play/.gitignore
 contrib/hsm-play/Makefile
