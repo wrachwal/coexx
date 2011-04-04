@@ -30,6 +30,14 @@ THE SOFTWARE.
 
 #include <vector>               // _user_tls
 
+#ifndef COEXX_SELECT_USE_FD_SET
+#   ifdef NFDBITS
+#       define COEXX_SELECT_USE_FD_SET 0
+#   else
+#       define COEXX_SELECT_USE_FD_SET 1
+#   endif
+#endif
+
 namespace coe { /////
 
 // ---------------------------------------------------------------------------
@@ -166,13 +174,20 @@ struct d4Thread {
     FdModeSid_Map       _fms_map;
 
     struct FdSet {
-        fd_set  lval;
-        int     max_fd;
+        FdSet ();
+        ~FdSet ();
+        int         max_fd;
+#if COEXX_SELECT_USE_FD_SET
+        fd_set      lval;
+#else
+        fd_mask*    lvec;
+        int         lvec_max;
+#endif
         // --------
-        void    zero     ();
-        void    add_fd   (int fd);
-        fd_set* sel_set  ();
-        bool    fd_isset (int fd) const;
+        void        zero     ();
+        void        add_fd   (int fd);
+        fd_set*     sel_set  ();
+        bool        fd_isset (int fd) const;
 
     }                   _fdset[3];
 

@@ -70,26 +70,78 @@ d4Thread::Sched::Sched ()
 // ---------------------------------------------------------------------------
 // d4Thread::FdSet
 
+d4Thread::FdSet::FdSet ()
+:   max_fd(-1)
+#if ! COEXX_SELECT_USE_FD_SET
+,   lvec(NULL)
+,   lvec_max(0)
+#endif
+{
+}
+
+d4Thread::FdSet::~FdSet ()
+{
+#if ! COEXX_SELECT_USE_FD_SET
+    if (NULL != lvec) {
+        free(lvec);
+        lvec = NULL;
+    }
+    lvec_max = 0;
+#endif
+}
+
 void d4Thread::FdSet::zero ()
 {
-    FD_ZERO(&lval);
     max_fd = -1;
+#if COEXX_SELECT_USE_FD_SET
+    FD_ZERO(&lval);
+#else
+    if (NULL != lvec) {
+        memset(lvec, 0, lvec_max * sizeof(lvec[0]));
+    }
+#endif
 }
 
 void d4Thread::FdSet::add_fd (int fd)
 {
+#if COEXX_SELECT_USE_FD_SET
+    assert(("coexx: fd >= FD_SETSIZE passed to FD_SET-based select backend",
+            fd < FD_SETSIZE));
     FD_SET(fd, &lval);
+#else
+    int word = fd / NFDBITS;
+    if (word >= lvec_max) {
+        int new_max = word + 1;
+        lvec = (fd_mask*)realloc(lvec, new_max * (NFDBITS / 8));
+        for (; lvec_max < new_max; ++lvec_max) {
+            lvec[lvec_max] = 0;
+        }
+    }
+    fd_mask mask = 1UL << (fd % NFDBITS);
+    lvec[word] |= mask;
+#endif
     max_fd = max(fd, max_fd);
 }
 
 fd_set* d4Thread::FdSet::sel_set ()
 {
+#if COEXX_SELECT_USE_FD_SET
     return max_fd >= 0 ? &lval : NULL;
+#else
+    return max_fd >= 0 ? (fd_set*)lvec : NULL;
+#endif
 }
 
 bool d4Thread::FdSet::fd_isset (int fd) const
 {
+#if COEXX_SELECT_USE_FD_SET
     return 0 != FD_ISSET(fd, &lval);
+#else
+    int     word = fd / NFDBITS;
+    fd_mask mask = 1UL << (fd % NFDBITS);
+    assert(word < lvec_max);
+    return 0 != (lvec[word] & mask);
+#endif
 }
 
 // ===========================================================================
@@ -535,8 +587,25 @@ void d4Thread::_select_io (const TimeSpec* due)
             }
         }
 
+#if COEXX_SELECT_USE_FD_SET
         assert(0 == FD_ISSET(     _msgpipe_rfd, &_fdset[IO_read ].lval));
         assert(0 == FD_ISSET(sched.msgpipe_wfd, &_fdset[IO_write].lval));
+#else
+        {
+            int     word =         _msgpipe_rfd / NFDBITS;
+            fd_mask mask = 1UL << (_msgpipe_rfd % NFDBITS);
+            assert(0 ==         _fdset[IO_read].lvec_max
+                   || (word <   _fdset[IO_read].lvec_max
+                       && 0 == (_fdset[IO_read].lvec[word] & mask)));
+        }
+        {
+            int     word =         sched.msgpipe_wfd / NFDBITS;
+            fd_mask mask = 1UL << (sched.msgpipe_wfd % NFDBITS);
+            assert(0 ==         _fdset[IO_write].lvec_max
+                   || (word <   _fdset[IO_write].lvec_max
+                       && 0 == (_fdset[IO_write].lvec[word] & mask)));
+        }
+#endif
 
         _fdset[IO_read].add_fd(_msgpipe_rfd);
 
