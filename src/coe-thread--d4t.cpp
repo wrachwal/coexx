@@ -102,23 +102,31 @@ void d4Thread::FdSet::zero ()
 #endif
 }
 
+#if ! COEXX_SELECT_USE_FD_SET
+void d4Thread::FdSet::fit_fd (int fd)
+{
+    int word = fd / NFDBITS;
+    if (word >= lvec_max) {
+        assert(NFDBITS == 8 * sizeof(lvec[0]));
+        int new_max = word + 1;
+        lvec = (fd_mask*)realloc(lvec, new_max * sizeof(lvec[0]));
+        while (lvec_max < new_max) {
+            lvec[lvec_max ++] = 0;
+        }
+    }
+}
+#endif
+
 void d4Thread::FdSet::add_fd (int fd)
 {
+    assert(fd >= 0);
 #if COEXX_SELECT_USE_FD_SET
     assert(("coexx: fd >= FD_SETSIZE passed to FD_SET-based select backend",
             fd < FD_SETSIZE));
     FD_SET(fd, &lval);
 #else
-    int word = fd / NFDBITS;
-    if (word >= lvec_max) {
-        int new_max = word + 1;
-        lvec = (fd_mask*)realloc(lvec, new_max * (NFDBITS / 8));
-        for (; lvec_max < new_max; ++lvec_max) {
-            lvec[lvec_max] = 0;
-        }
-    }
-    fd_mask mask = 1UL << (fd % NFDBITS);
-    lvec[word] |= mask;
+    fit_fd(fd);
+    lvec[fd / NFDBITS] |= (1UL << (fd % NFDBITS));
 #endif
     max_fd = max(fd, max_fd);
 }
@@ -610,8 +618,19 @@ void d4Thread::_select_io (const TimeSpec* due)
         _fdset[IO_read].add_fd(_msgpipe_rfd);
 
         int max_fd = -1;
-        for (int i = 0; i < TABLEN(_fdset); ++i)
+        for (size_t i = 0; i < TABLEN(_fdset); ++i) {
             max_fd = max(max_fd, _fdset[i].max_fd);
+        }
+
+#if ! COEXX_SELECT_USE_FD_SET
+        if (max_fd >= 0) {
+            for (size_t i = 0; i < TABLEN(_fdset); ++i) {
+                if (_fdset[i].max_fd >= 0) {
+                    _fdset[i].fit_fd(max_fd);
+                }
+            }
+        }
+#endif
 
         /******************************
                     timeout

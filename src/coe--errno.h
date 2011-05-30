@@ -108,7 +108,7 @@ inline bool delay_gt0 (const TimeSpec& ts)
 
 inline bool fd_valid (int fd)
     {
-        if (fd < 0 || fd >= FD_SETSIZE) {
+        if (fd < 0) {
             //errno = ???   //TODO
             return false;
         }

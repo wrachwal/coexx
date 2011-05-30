@@ -182,6 +182,7 @@ struct d4Thread {
 #else
         fd_mask*    lvec;
         int         lvec_max;
+        void fit_fd (int fd);
 #endif
         // --------
         void        zero     ();
