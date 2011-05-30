@@ -84,6 +84,7 @@ examples/tick.cpp
 examples/tick.pl
 examples/safe-cb.cpp
 examples/stats.cpp
+examples/unlimit-select.cpp
 
 test/.gitignore
 test/typeinfo.cpp
