@@ -167,7 +167,8 @@ private:
             _register(this);
         }
 
-    template<class T1, class T2, class T3, class T4, class T5, class T6>
+    template<class T1, class T2, class T3, class T4, class T5,
+             class T6>
     _TypeDN (T1*, T2*, T3*, T4*, T5*, T6*) : len(6), next(0), pos(0)
         {
             static const _TypeD* _tab[] = {
@@ -183,7 +184,8 @@ private:
             _register(this);
         }
 
-    template<class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+    template<class T1, class T2, class T3, class T4, class T5,
+             class T6, class T7>
     _TypeDN (T1*, T2*, T3*, T4*, T5*, T6*, T7*) : len(7), next(0), pos(0)
         {
             static const _TypeD* _tab[] = {
@@ -200,8 +202,8 @@ private:
             _register(this);
         }
 
-    template<class T1, class T2, class T3, class T4, class T5, class T6, class T7,
-             class T8>
+    template<class T1, class T2, class T3, class T4, class T5,
+             class T6, class T7, class T8>
     _TypeDN (T1*, T2*, T3*, T4*, T5*, T6*, T7*, T8*) : len(8), next(0), pos(0)
         {
             static const _TypeD* _tab[] = {
@@ -219,8 +221,8 @@ private:
             _register(this);
         }
 
-    template<class T1, class T2, class T3, class T4, class T5, class T6, class T7,
-             class T8, class T9>
+    template<class T1, class T2, class T3, class T4, class T5,
+             class T6, class T7, class T8, class T9>
     _TypeDN (T1*, T2*, T3*, T4*, T5*, T6*, T7*, T8*, T9*) : len(9), next(0), pos(0)
         {
             static const _TypeD* _tab[] = {
@@ -258,8 +260,7 @@ private:
 };
 
 template<class T1>
-const _TypeDN _TypeI1<T1>
-            ::_data((T1*)0);
+const _TypeDN _TypeI1<T1>::_data((T1*)0);
 
 // ------------------------------------
 // _TypeI2<T1, T2>
@@ -273,8 +274,7 @@ private:
 };
 
 template<class T1, class T2>
-const _TypeDN _TypeI2<T1, T2>
-            ::_data((T1*)0, (T2*)0);
+const _TypeDN _TypeI2<T1, T2>::_data((T1*)0, (T2*)0);
 
 // ------------------------------------
 // _TypeI3<T1, T2, T3>
@@ -288,8 +288,7 @@ private:
 };
 
 template<class T1, class T2, class T3>
-const _TypeDN _TypeI3<T1, T2, T3>
-            ::_data((T1*)0, (T2*)0, (T3*)0);
+const _TypeDN _TypeI3<T1, T2, T3>::_data((T1*)0, (T2*)0, (T3*)0);
 
 // ------------------------------------
 // _TypeI4<T1, T2, T3, T4>
@@ -303,8 +302,7 @@ private:
 };
 
 template<class T1, class T2, class T3, class T4>
-const _TypeDN _TypeI4<T1, T2, T3, T4>
-            ::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0);
+const _TypeDN _TypeI4<T1, T2, T3, T4>::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0);
 
 // ------------------------------------
 // _TypeI5<T1, T2, T3, T4, T5>
@@ -318,13 +316,13 @@ private:
 };
 
 template<class T1, class T2, class T3, class T4, class T5>
-const _TypeDN _TypeI5<T1, T2, T3, T4, T5>
-            ::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0);
+const _TypeDN _TypeI5<T1, T2, T3, T4, T5>::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0);
 
 // ------------------------------------
 // _TypeI6<T1, T2, T3, T4, T5, T6>
 
-template<class T1, class T2, class T3, class T4, class T5, class T6>
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6>
 class _TypeI6 {
 public:
     const _TypeDN* data () const { return &_data; }
@@ -332,14 +330,16 @@ private:
     static const _TypeDN    _data;
 };
 
-template<class T1, class T2, class T3, class T4, class T5, class T6>
-const _TypeDN _TypeI6<T1, T2, T3, T4, T5, T6>
-            ::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0);
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6>
+const _TypeDN _TypeI6<T1, T2, T3, T4, T5, T6>::_data
+        ((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0);
 
 // ------------------------------------
 // _TypeI7<T1, T2, T3, T4, T5, T6, T7>
 
-template<class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6, class T7>
 class _TypeI7 {
 public:
     const _TypeDN* data () const { return &_data; }
@@ -347,14 +347,16 @@ private:
     static const _TypeDN    _data;
 };
 
-template<class T1, class T2, class T3, class T4, class T5, class T6, class T7>
-const _TypeDN _TypeI7<T1, T2, T3, T4, T5, T6, T7>
-            ::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0, (T7*)0);
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6, class T7>
+const _TypeDN _TypeI7<T1, T2, T3, T4, T5, T6, T7>::_data
+        ((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0, (T7*)0);
 
 // ------------------------------------
 // _TypeI8<T1, T2, T3, T4, T5, T6, T7, T8>
 
-template<class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6, class T7, class T8>
 class _TypeI8 {
 public:
     const _TypeDN* data () const { return &_data; }
@@ -362,15 +364,16 @@ private:
     static const _TypeDN    _data;
 };
 
-template<class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
-const _TypeDN _TypeI8<T1, T2, T3, T4, T5, T6, T7, T8>
-            ::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0, (T7*)0, (T8*)0);
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6, class T7, class T8>
+const _TypeDN _TypeI8<T1, T2, T3, T4, T5, T6, T7, T8>::_data
+        ((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0, (T7*)0, (T8*)0);
 
 // ------------------------------------
 // _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
 
-template<class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8,
-         class T9>
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6, class T7, class T8, class T9>
 class _TypeI9 {
 public:
     const _TypeDN* data () const { return &_data; }
@@ -378,11 +381,10 @@ private:
     static const _TypeDN    _data;
 };
 
-template<class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8,
-         class T9>
-const _TypeDN _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
-            ::_data((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0, (T7*)0, (T8*)0,
-                    (T9*)0);
+template<class T1, class T2, class T3, class T4, class T5,
+         class T6, class T7, class T8, class T9>
+const _TypeDN _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>::_data
+        ((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0, (T7*)0, (T8*)0, (T9*)0);
 
 // ===========================================================================
 // HandlerX
@@ -457,29 +459,31 @@ public:
         : _obj((_Obj*)&obj), _tdn(_TypeI5<A1, A2, A3, A4, A5>().data())
         { _fun.m5 = MFun5(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5, class A6>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&))
+    template<class Obj, class A1, class A2, class A3, class A4, class A5,
+                        class A6>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
+                                                  A6&))
         : _obj((_Obj*)&obj), _tdn(_TypeI6<A1, A2, A3, A4, A5, A6>().data())
         { _fun.m6 = MFun6(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5, class A6,
-                        class A7>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&,
-                                                  A7&))
+    template<class Obj, class A1, class A2, class A3, class A4, class A5,
+                        class A6, class A7>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
+                                                  A6&, A7&))
         : _obj((_Obj*)&obj), _tdn(_TypeI7<A1, A2, A3, A4, A5, A6, A7>().data())
         { _fun.m7 = MFun7(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5, class A6,
-                        class A7, class A8>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&,
-                                                  A7&, A8&))
+    template<class Obj, class A1, class A2, class A3, class A4, class A5,
+                        class A6, class A7, class A8>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
+                                                  A6&, A7&, A8&))
         : _obj((_Obj*)&obj), _tdn(_TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data())
         { _fun.m8 = MFun8(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5, class A6,
-                        class A7, class A8, class A9>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&,
-                                                  A7&, A8&, A9&))
+    template<class Obj, class A1, class A2, class A3, class A4, class A5,
+                        class A6, class A7, class A8, class A9>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
+                                                  A6&, A7&, A8&, A9&))
         : _obj((_Obj*)&obj), _tdn(_TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data())
         { _fun.m9 = MFun9(fun); }
 
@@ -514,24 +518,26 @@ public:
         : _obj(0), _tdn(_TypeI5<A1, A2, A3, A4, A5>().data())
         { _fun.g5 = GFun5(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5, class A6>
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6>
     HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&))
         : _obj(0), _tdn(_TypeI6<A1, A2, A3, A4, A5, A6>().data())
         { _fun.g6 = GFun6(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5, class A6, class A7>
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6, class A7>
     HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&, A7&))
         : _obj(0), _tdn(_TypeI7<A1, A2, A3, A4, A5, A6, A7>().data())
         { _fun.g7 = GFun7(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5, class A6, class A7,
-             class A8>
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6, class A7, class A8>
     HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&, A7&, A8&))
         : _obj(0), _tdn(_TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data())
         { _fun.g8 = GFun8(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5, class A6, class A7,
-             class A8, class A9>
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6, class A7, class A8, class A9>
     HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&, A7&, A8&, A9&))
         : _obj(0), _tdn(_TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data())
         { _fun.g9 = GFun9(fun); }

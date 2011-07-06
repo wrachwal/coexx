@@ -240,7 +240,7 @@ private:
 };
 
 // ===========================================================================
-// vparam (p1[, ...])
+// vparam (p1[, ...p9])
 
 #ifdef  COEXX_DOC_ONLY
 struct ValParam {
@@ -259,9 +259,17 @@ template<class P1, class P2, class P3, class P4>
 ValParam* vparam (const P1&, const P2&, const P3&, const P4&);
 template<class P1, class P2, class P3, class P4, class P5>
 ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&);
+template<class P1, class P2, class P3, class P4, class P5, class P6>
+ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
+ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
+ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&, const P9&);
 
 // ---------------------------------------------------------------------------
-// rparam (p1[, ...])
+// rparam (p1[, ...p9])
 
 template<class P1>
 RefParam* rparam (P1&);
@@ -273,6 +281,14 @@ template<class P1, class P2, class P3, class P4>
 RefParam* rparam (P1&, P2&, P3&, P4&);
 template<class P1, class P2, class P3, class P4, class P5>
 RefParam* rparam (P1&, P2&, P3&, P4&, P5&);
+template<class P1, class P2, class P3, class P4, class P5, class P6>
+RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
+RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
+RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&);
 
 // ---------------------------------------------------------------------------
 // handler (obj, memfun)

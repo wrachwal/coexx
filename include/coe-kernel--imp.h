@@ -93,7 +93,7 @@ T& Kernel::kls ()
 
 class EventArg;
     class ValParam;
-    //  class ValParam1<A1> ... ValParam5<A1 .. A5>
+    //  class ValParam1<A1> ... ValParam5<A1 .. A9>
     class RefParam;
     //  class RefParam1     ... RefParam5
 
@@ -190,7 +190,7 @@ const _TypeDN* RefParam_N<N>::arg_type () const
     }
 
 // ===========================================================================
-// ValParam1<A1> ... ValParam5<A1 .. A5>
+// ValParam1<A1> ... ValParam5<A1 .. A9>
 // ===========================================================================
 
 template<class A1>
@@ -301,8 +301,140 @@ private:
     A5  _a5;
 };
 
+// ------------------------------------
+
+template<class A1, class A2, class A3, class A4, class A5,
+         class A6>
+class ValParam6 : public ValParam_N<6> {
+public:
+    ValParam6 (const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5,
+               const A6& a6)
+        : _a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6)
+        {
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
+            _arg[2] = &_a3;
+            _arg[3] = &_a4;
+            _arg[4] = &_a5;
+            _arg[5] = &_a6;
+        }
+    const _TypeDN* arg_type () const
+        { return _TypeI6<A1, A2, A3, A4, A5, A6>().data(); }
+    ValParam* clone () const
+        { return new ValParam6(_a1, _a2, _a3, _a4, _a5, _a6); }
+private:
+    A1  _a1;
+    A2  _a2;
+    A3  _a3;
+    A4  _a4;
+    A5  _a5;
+    A6  _a6;
+};
+
+// ------------------------------------
+
+template<class A1, class A2, class A3, class A4, class A5,
+         class A6, class A7>
+class ValParam7 : public ValParam_N<7> {
+public:
+    ValParam7 (const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5,
+               const A6& a6, const A7& a7)
+        : _a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7)
+        {
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
+            _arg[2] = &_a3;
+            _arg[3] = &_a4;
+            _arg[4] = &_a5;
+            _arg[5] = &_a6;
+            _arg[6] = &_a7;
+        }
+    const _TypeDN* arg_type () const
+        { return _TypeI7<A1, A2, A3, A4, A5, A6, A7>().data(); }
+    ValParam* clone () const
+        { return new ValParam7(_a1, _a2, _a3, _a4, _a5, _a6, _a7); }
+private:
+    A1  _a1;
+    A2  _a2;
+    A3  _a3;
+    A4  _a4;
+    A5  _a5;
+    A6  _a6;
+    A7  _a7;
+};
+
+// ------------------------------------
+
+template<class A1, class A2, class A3, class A4, class A5,
+         class A6, class A7, class A8>
+class ValParam8 : public ValParam_N<8> {
+public:
+    ValParam8 (const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5,
+               const A6& a6, const A7& a7, const A8& a8)
+        : _a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8)
+        {
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
+            _arg[2] = &_a3;
+            _arg[3] = &_a4;
+            _arg[4] = &_a5;
+            _arg[5] = &_a6;
+            _arg[6] = &_a7;
+            _arg[7] = &_a8;
+        }
+    const _TypeDN* arg_type () const
+        { return _TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data(); }
+    ValParam* clone () const
+        { return new ValParam8(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8); }
+private:
+    A1  _a1;
+    A2  _a2;
+    A3  _a3;
+    A4  _a4;
+    A5  _a5;
+    A6  _a6;
+    A7  _a7;
+    A8  _a8;
+};
+
+// ------------------------------------
+
+template<class A1, class A2, class A3, class A4, class A5,
+         class A6, class A7, class A8, class A9>
+class ValParam9 : public ValParam_N<9> {
+public:
+    ValParam9 (const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5,
+               const A6& a6, const A7& a7, const A8& a8, const A9& a9)
+        : _a1(a1), _a2(a2), _a3(a3), _a4(a4), _a5(a5), _a6(a6), _a7(a7), _a8(a8), _a9(a9)
+        {
+            _arg[0] = &_a1;
+            _arg[1] = &_a2;
+            _arg[2] = &_a3;
+            _arg[3] = &_a4;
+            _arg[4] = &_a5;
+            _arg[5] = &_a6;
+            _arg[6] = &_a7;
+            _arg[7] = &_a8;
+            _arg[8] = &_a9;
+        }
+    const _TypeDN* arg_type () const
+        { return _TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data(); }
+    ValParam* clone () const
+        { return new ValParam9(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9); }
+private:
+    A1  _a1;
+    A2  _a2;
+    A3  _a3;
+    A4  _a4;
+    A5  _a5;
+    A6  _a6;
+    A7  _a7;
+    A8  _a8;
+    A9  _a9;
+};
+
 // ===========================================================================
-// RefParam1 ... RefParam5
+// RefParam1 ... RefParam9
 // ===========================================================================
 
 class RefParam1 : public RefParam_N<1> {
@@ -373,8 +505,86 @@ public:
         }
 };
 
+// ------------------------------------
+
+class RefParam6 : public RefParam_N<6> {
+public:
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6>
+    RefParam6 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6)
+        :   RefParam_N<6>(_TypeI6<A1, A2, A3, A4, A5, A6>().data())
+        {
+            _arg[0] = &a1;
+            _arg[1] = &a2;
+            _arg[2] = &a3;
+            _arg[3] = &a4;
+            _arg[4] = &a5;
+            _arg[5] = &a6;
+        }
+};
+
+// ------------------------------------
+
+class RefParam7 : public RefParam_N<7> {
+public:
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6, class A7>
+    RefParam7 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6, A7& a7)
+        :   RefParam_N<7>(_TypeI7<A1, A2, A3, A4, A5, A6, A7>().data())
+        {
+            _arg[0] = &a1;
+            _arg[1] = &a2;
+            _arg[2] = &a3;
+            _arg[3] = &a4;
+            _arg[4] = &a5;
+            _arg[5] = &a6;
+            _arg[6] = &a7;
+        }
+};
+
+// ------------------------------------
+
+class RefParam8 : public RefParam_N<8> {
+public:
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6, class A7, class A8>
+    RefParam8 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6, A7& a7, A8& a8)
+        :   RefParam_N<8>(_TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data())
+        {
+            _arg[0] = &a1;
+            _arg[1] = &a2;
+            _arg[2] = &a3;
+            _arg[3] = &a4;
+            _arg[4] = &a5;
+            _arg[5] = &a6;
+            _arg[6] = &a7;
+            _arg[7] = &a8;
+        }
+};
+
+// ------------------------------------
+
+class RefParam9 : public RefParam_N<9> {
+public:
+    template<class A1, class A2, class A3, class A4, class A5,
+             class A6, class A7, class A8, class A9>
+    RefParam9 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6, A7& a7, A8& a8, A9& a9)
+        :   RefParam_N<9>(_TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data())
+        {
+            _arg[0] = &a1;
+            _arg[1] = &a2;
+            _arg[2] = &a3;
+            _arg[3] = &a4;
+            _arg[4] = &a5;
+            _arg[5] = &a6;
+            _arg[6] = &a7;
+            _arg[7] = &a8;
+            _arg[8] = &a9;
+        }
+};
+
 // ===========================================================================
-// vparam (p1[, ...])
+// vparam (p1[, ...p9])
 // ===========================================================================
 
 template<class P1>
@@ -397,8 +607,36 @@ template<class P1, class P2, class P3, class P4, class P5>
 ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
     { return new ValParam5<P1, P2, P3, P4, P5>(p1, p2, p3, p4, p5); }
 
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6>
+ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+                  const P6& p6)
+    { return new ValParam6<P1, P2, P3, P4, P5, P6>
+                          (p1, p2, p3, p4, p5, p6); }
+
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7>
+ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+                  const P6& p6, const P7& p7)
+    { return new ValParam7<P1, P2, P3, P4, P5, P6, P7>
+                          (p1, p2, p3, p4, p5, p6, p7); }
+
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7, class P8>
+ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+                  const P6& p6, const P7& p7, const P8& p8)
+    { return new ValParam8<P1, P2, P3, P4, P5, P6, P7, P8>
+                          (p1, p2, p3, p4, p5, p6, p7, p8); }
+
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7, class P8, class P9>
+ValParam* vparam (const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5,
+                  const P6& p6, const P7& p7, const P8& p8, const P9& p9)
+    { return new ValParam9<P1, P2, P3, P4, P5, P6, P7, P8, P9>
+                          (p1, p2, p3, p4, p5, p6, p7, p8, p9); }
+
 // ===========================================================================
-// rparam (p1[, ...])
+// rparam (p1[, ...p9])
 // ===========================================================================
 
 template<class P1>
@@ -420,6 +658,26 @@ RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4)
 template<class P1, class P2, class P3, class P4, class P5>
 RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
     { return new RefParam5(p1, p2, p3, p4, p5); }
+
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6>
+RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
+    { return new RefParam6(p1, p2, p3, p4, p5, p6); }
+
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7>
+RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
+    { return new RefParam7(p1, p2, p3, p4, p5, p6, p7); }
+
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7, class P8>
+RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7, P8& p8)
+    { return new RefParam8(p1, p2, p3, p4, p5, p6, p7, p8); }
+
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7, class P8, class P9>
+RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7, P8& p8, P9& p9)
+    { return new RefParam9(p1, p2, p3, p4, p5, p6, p7, p8, p9); }
 
 // ===========================================================================
 // handler (obj, memfun)
@@ -449,26 +707,28 @@ template<class Obj, class P1, class P2, class P3, class P4, class P5> inline
 HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
     { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6> inline
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&))
+template<class Obj, class P1, class P2, class P3, class P4, class P5,
+                    class P6> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&,
+                                                      P6&))
     { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6,
-                    class P7> inline
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&,
-                                                      P7&))
+template<class Obj, class P1, class P2, class P3, class P4, class P5,
+                    class P6, class P7> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&,
+                                                      P6&, P7&))
     { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6,
-                    class P7, class P8> inline
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&,
-                                                      P7&, P8&))
+template<class Obj, class P1, class P2, class P3, class P4, class P5,
+                    class P6, class P7, class P8> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&,
+                                                      P6&, P7&, P8&))
     { return HandlerX(obj, fun); }
 
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6,
-                    class P7, class P8, class P9> inline
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&,
-                                                      P7&, P8&, P9&))
+template<class Obj, class P1, class P2, class P3, class P4, class P5,
+                    class P6, class P7, class P8, class P9> inline
+HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&,
+                                                      P6&, P7&, P8&, P9&))
     { return HandlerX(obj, fun); }
 
 // ---------------------------------------------------------------------------
@@ -499,21 +759,23 @@ template<class P1, class P2, class P3, class P4, class P5> inline
 HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&))
     { return HandlerX(fun); }
 
-template<class P1, class P2, class P3, class P4, class P5, class P6> inline
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6> inline
 HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&))
     { return HandlerX(fun); }
 
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7> inline
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7> inline
 HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&))
     { return HandlerX(fun); }
 
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7,
-         class P8> inline
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7, class P8> inline
 HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&))
     { return HandlerX(fun); }
 
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7,
-         class P8, class P9> inline
+template<class P1, class P2, class P3, class P4, class P5,
+         class P6, class P7, class P8, class P9> inline
 HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&))
     { return HandlerX(fun); }
 
