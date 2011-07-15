@@ -20,6 +20,7 @@ using namespace coe;
 struct Ev_0 : public event<> {};
 struct Ev_1 : public event<int> {};
 struct Ev_2 : public event<string, int> {};
+struct Ev_2a : public Ev_2 {};  // events inheritance
 
 // ===========================================================================
 
@@ -262,6 +263,7 @@ void test_my_house ()
     kernel1.post<Ev_0>(tar);
     kernel1.post<Ev_1>(tar, vparam(0));
     kernel1.post<Ev_2>(tar, vparam(string("ala"), 0));
+    kernel1.post<Ev_2a>(tar, vparam(string(), 77));
 
     //GOOD: I had to add (char*) cast to prevent from below the error.
     // dynacall.cpp: In constructor 'PostArgs1<A1>::PostArgs1(const A1&) [with A1 = char [22]]':
