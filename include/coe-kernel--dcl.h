@@ -398,8 +398,8 @@ class ValParam;
 template<class ARGS>
 class ValParam_ {
 public:
-    operator const ValParam* () const { return _ptr; }
-    operator       ValParam* ()       { return _ptr; }
+    operator ValParam* () { return _ptr; }
+    ValParam*    clear () { ValParam* tmp = _ptr; _ptr = 0; return tmp; }
 
     ValParam_ () : _ptr(0) {}
     ValParam_ (ValParam1<typename Nth<0, ARGS>::type>* ptr) : _ptr(ptr) {}

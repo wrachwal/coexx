@@ -265,6 +265,18 @@ void test_my_house ()
     kernel1.post<Ev_2>(tar, vparam(string("ala"), 0));
     kernel1.post<Ev_2a>(tar, vparam(string(), 77));
 
+    delete vparam(666);
+
+    ValParam_<Ev_1::args_type>  vp1_a = vparam(44);
+    assert(vp1_a != NULL);
+    delete vp1_a;
+    assert(vp1_a != NULL);
+
+    ValParam_<Ev_1::args_type>  vp1_b = vparam(33);
+    assert(vp1_b != NULL);
+    delete vp1_b.clear();
+    assert(vp1_b == NULL);
+
     //GOOD: I had to add (char*) cast to prevent from below the error.
     // dynacall.cpp: In constructor 'PostArgs1<A1>::PostArgs1(const A1&) [with A1 = char [22]]':
     // dynacall.cpp:192:   instantiated from 'bool Kernel::post(SiD, const std::string&, const A1&) [with A1 = char [22]]'
