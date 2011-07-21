@@ -33,7 +33,7 @@ library := lib/libcoe.a
 objects := $(patsubst src/%.cpp,lib/%.o,$(wildcard src/*.cpp))
 
 examples := $(addprefix examples/,myhouse tick safe-cb stats unlimit-select)
-tests    := $(addprefix test/,typeinfo list cond timespec literal)
+tests    := $(addprefix test/,typeinfo list cond timespec literal meta)
 
 objects_all := $(objects) $(patsubst %.cpp,%.o,$(wildcard examples/*.cpp test/*.cpp))
 

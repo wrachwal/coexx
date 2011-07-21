@@ -42,6 +42,18 @@ struct Cons {
 
 // ------------------------------------
 
+template<class> struct Length;
+template<>
+struct Length<Nil> {
+    enum { value = 0 };
+};
+template<class Head, class Tail>
+struct Length<Cons<Head, Tail> > {
+    enum { value = 1 + Length<Tail>::value };
+};
+
+// ------------------------------------
+
 template<int N, class Lst> struct Nth;
 template<int N>
 struct Nth<N, Nil> {
