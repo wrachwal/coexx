@@ -96,3 +96,10 @@ test/cond.cpp
 test/timespec.cpp
 test/literal.cpp
 
+
+
+
+include/coe-oev.h
+include/coe-meta.h
+test/meta.cpp
+
