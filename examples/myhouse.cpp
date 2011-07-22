@@ -17,10 +17,10 @@ using namespace coe;
 
 // ---------------------------------------------------------------------------
 
-struct Ev_0 : public event<> {};
-struct Ev_1 : public event<int> {};
-struct Ev_2 : public event<string, int> {};
-struct Ev_2a : public Ev_2 {};  // events inheritance
+struct Ev_0 : event<> {};
+struct Ev_1 : event<int> {};
+struct Ev_2 : event<string, int> {};
+struct Ev_2a : Ev_2 {}; // events inheritance
 
 // ===========================================================================
 
