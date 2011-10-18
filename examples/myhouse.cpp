@@ -13,6 +13,8 @@
 using namespace std;
 using namespace coe;
 
+#define EVAL_(expr)     #expr << " --> " << (expr)
+
 // ===========================================================================
 
 class Flowers {
@@ -52,8 +54,38 @@ private:
     ~MyHouse ()
         {}
 
+    static void idle (Kernel&) {}
+
     void _start (Kernel& kernel)
         {
+
+            cout << "\n### Comparing objects of type Handler0, HandlerX..." << endl;
+            // To effectively compare Handler0 with HandlerX, first we have to
+            // convert specific type Handler0 to more general HandlerX:
+            cout << EVAL_(HandlerX(handler(*this, &MyHouse::_start))
+                                == handler(*this, &MyHouse::on_leaving_msg))    << endl;
+
+            cout << EVAL_(handler(*this, &MyHouse::_start)
+                       == handler(&MyHouse::idle))                              << endl;
+            cout << EVAL_(handler(*this, &MyHouse::_start)
+                       == handler(*this, &MyHouse::_start))                     << endl;
+            cout << EVAL_(handler(*this, &MyHouse::_start)
+                       == handler(*this, &MyHouse::_stop))                      << endl;
+            cout << EVAL_(handler(*this, &MyHouse::_stop)
+                       == handler(*this, &MyHouse::_stop))                      << endl;
+
+            cout << EVAL_(handler(*this, &MyHouse::_start)
+                       != handler(*this, &MyHouse::_stop))                      << endl;
+            cout << EVAL_(handler(*this, &MyHouse::_stop)
+                       != handler(*this, &MyHouse::_stop))                      << endl;
+
+            cout << "\n### Safe [to-bool] conversion operators..." << endl;
+            cout << EVAL_(Handler0() ? "YES" : "NO")                                << endl;
+            cout << EVAL_(HandlerX() ? "YES" : "NO")                                << endl;
+            cout << EVAL_(handler(*this, &MyHouse::_start) ? "YES" : "NO")          << endl;
+            cout << EVAL_(handler(*this, &MyHouse::on_leaving_msg) ? "YES" : "NO")  << endl;
+            cout << EVAL_(handler(&MyHouse::idle) ? "YES" : "NO")                   << endl;
+
             cout << __PRETTY_FUNCTION__ << " in thread " << kernel.thread().ID()
                  << ": sid=" << kernel.session().ID() << " state=" << kernel.context().state() << endl;
 

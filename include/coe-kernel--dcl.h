@@ -393,11 +393,21 @@ class HandlerX {
 public:
     HandlerX () : _obj(0), _tdn(0) { _fun.g0 = 0; }
 
-    operator const void* () const
+    class _Obj; class A;    // nowhere defined
+
+    operator _SafeBool<HandlerX, _Obj*>::Type () const
         {
-            return _obj ? (_fun.m0 ? ((const void*)-1) : 0)
-                        : (_fun.g0 ? ((const void*)-1) : 0);
+            return _obj ? (_fun.m0 ? &HandlerX::_obj : 0)
+                        : (_fun.g0 ? &HandlerX::_obj : 0);
         }
+
+    bool operator== (const HandlerX& rhs) const
+        {
+            return  _obj == rhs._obj
+                && (_obj ? _fun.m0 == rhs._fun.m0
+                         : _fun.g0 == rhs._fun.g0);
+        }
+    bool operator!= (const HandlerX& rhs) const { return ! operator==(rhs); }
 
     const _TypeDN* par_type () const { return _tdn; }
 
@@ -405,7 +415,6 @@ public:
 
     // --------------------------------
 
-    class _Obj; class A;
     typedef void (_Obj::*MFun0) (Kernel&);
     typedef void       (*GFun0) (Kernel&);
     typedef void (_Obj::*MFun1) (Kernel&, A&);
@@ -566,11 +575,21 @@ class Handler0 {
 public:
     Handler0 () : _obj(0) { _fun.g0 = 0; }
 
-    operator const void* () const
+    class _Obj;     // nowhere defined
+
+    operator _SafeBool<Handler0, _Obj*>::Type () const
         {
-            return _obj ? (_fun.m0 ? ((const void*)-1) : 0)
-                        : (_fun.g0 ? ((const void*)-1) : 0);
+            return _obj ? (_fun.m0 ? &Handler0::_obj : 0)
+                        : (_fun.g0 ? &Handler0::_obj : 0);
         }
+
+    bool operator== (const Handler0& rhs) const
+        {
+            return  _obj == rhs._obj
+                && (_obj ? _fun.m0 == rhs._fun.m0
+                         : _fun.g0 == rhs._fun.g0);
+        }
+    bool operator!= (const Handler0& rhs) const { return ! operator==(rhs); }
 
     operator HandlerX () const
         {
@@ -581,7 +600,6 @@ public:
 
     // --------------------------------
 
-    class _Obj;
     typedef void (_Obj::*MFun0) (Kernel&);
     typedef void       (*GFun0) (Kernel&);
 
