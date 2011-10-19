@@ -601,6 +601,20 @@ void Kernel::state (const CoeStr& ev, const HandlerX& handler)
 
 // ---------------------------------------------------------------------------
 
+void Kernel::_state_oev (const type_info* ev)
+{
+    cerr << "\n!!! " << __FUNCTION__ << " (ev=" << ev->name() << ") -- [RESET]\n" << endl;
+}
+
+// ------------------------------------
+
+void Kernel::_state_oev (const type_info* ev, HandlerX handler)
+{
+    cerr << "\n!!! " << __FUNCTION__ << " (ev=" << ev->name() << ", handler=" << handler << ")\n" << endl;
+}
+
+// ---------------------------------------------------------------------------
+
 void Kernel::continuation (Handler0 cont)
 {
     _r4kernel->_current_context->continuation = cont;

@@ -53,6 +53,7 @@ class EventArg;
     class ValParam;
 
 template<class> struct ValParam_;
+template<class> struct Handler_;
 
 // private data
 struct r4Kernel;
@@ -177,6 +178,17 @@ public:
     void state (const CoeStr& ev);              // reset
     void state (const CoeStr& ev, const HandlerX& handler);
 
+    template<class Ev>
+    void state ()                               // reset
+        {
+            this->_state_oev(&typeid(Ev));
+        }
+    template<class Ev>
+    void state (const Handler_<typename Ev::args_type>& handler)
+        {
+            this->_state_oev(&typeid(Ev), handler);
+        }
+
     /*
      * A way to continue after a normal handler returns
      */
@@ -188,6 +200,8 @@ private:
     void* _get_user_kls (const _KlsD* data);
     bool _post_oev_0 (SiD to, const std::type_info* ev, Nil);
     bool _post_oev_x (SiD to, const std::type_info* ev, ValParam* vp);
+    void _state_oev (const std::type_info* ev);
+    void _state_oev (const std::type_info* ev, HandlerX handler);
 
     friend class Session;
     friend class Callback;
@@ -356,10 +370,19 @@ RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&);
 
 template<class Obj>
 Handler0 handler (Obj& obj, void (Obj::*fun)(Kernel&));
+#if 0
 template<class Obj, class P1>
 HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&));
 template<class Obj, class P1, class P2>
 HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&));
+#else
+template<class Obj, class P1>
+Handler_<typename List1<P1>::type>
+handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&));
+template<class Obj, class P1, class P2>
+Handler_<typename List2<P1, P2>::type>
+handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&));
+#endif
 template<class Obj, class P1, class P2, class P3>
 HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&));
 template<class Obj, class P1, class P2, class P3, class P4>

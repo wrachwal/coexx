@@ -90,8 +90,16 @@ private:
             cout << EVAL_(Handler0() ? "YES" : "NO")                                << endl;
             cout << EVAL_(HandlerX() ? "YES" : "NO")                                << endl;
             cout << EVAL_(handler(*this, &MyHouse::_start) ? "YES" : "NO")          << endl;
-            cout << EVAL_(handler(*this, &MyHouse::on_leaving_msg) ? "YES" : "NO")  << endl;
+
+            //FIXME ??? Handler_<ARGS> doesn't have BOOL conversion operator, so
+            //I cast to HandlerX which does!
+            cout << EVAL_(HandlerX(handler(*this, &MyHouse::on_leaving_msg)) ? "YES" : "NO")  << endl;
+
             cout << EVAL_(handler(&MyHouse::idle) ? "YES" : "NO")                   << endl;
+
+            cout << "\n### <state> with type-based events:" << endl;
+            kernel.state<Ev_1>(handler(*this, &MyHouse::on_money));
+            kernel.state<Ev_2>(handler(*this, &MyHouse::on_keyval));
 
             cout << __PRETTY_FUNCTION__ << " in thread " << kernel.thread().ID()
                  << ": sid=" << kernel.session().ID() << " state=" << kernel.context().state() << endl;
@@ -209,6 +217,10 @@ private:
             int change = pln <= 1 ? +50 : -pln/2;
             cout << (change < 0 ? "took " : "added ") << abs(change) << endl;
             pln += change;
+        }
+
+    void on_keyval (Kernel& kernel, string& key, int& val)
+        {
         }
 
     void on_expiry (Kernel& kernel)

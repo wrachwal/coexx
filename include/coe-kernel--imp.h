@@ -699,6 +699,7 @@ template<class Obj> inline
 Handler0 handler (Obj& obj, void (Obj::*fun)(Kernel&))
     { return Handler0(obj, fun); }
 
+#if 0
 template<class Obj, class P1> inline
 HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&))
     { return HandlerX(obj, fun); }
@@ -706,6 +707,17 @@ HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&))
 template<class Obj, class P1, class P2> inline
 HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&))
     { return HandlerX(obj, fun); }
+#else
+template<class Obj, class P1> inline
+Handler_<typename List1<P1>::type>
+handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&))
+    { return Handler_<typename List1<P1>::type>(obj, fun); }
+
+template<class Obj, class P1, class P2> inline
+Handler_<typename List2<P1, P2>::type>
+handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&))
+    { return Handler_<typename List2<P1, P2>::type>(obj, fun); }
+#endif
 
 template<class Obj, class P1, class P2, class P3> inline
 HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&))

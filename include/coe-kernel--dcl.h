@@ -592,6 +592,27 @@ private:
     const _TypeDN*  _tdn;
 };
 
+// ------------------------------------
+
+template<class ARGS>
+class Handler_ {
+public:
+    operator HandlerX () const { return _handler; }
+
+    Handler_ () {}
+
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, typename Nth<0, ARGS>::type&))
+        : _handler(obj, fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, typename Nth<0, ARGS>::type&,
+                                                  typename Nth<1, ARGS>::type&))
+        : _handler(obj, fun) {}
+
+private:
+    HandlerX    _handler;
+};
+
 // ---------------------------------------------------------------------------
 // Handler0
 
