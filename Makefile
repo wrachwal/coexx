@@ -2,25 +2,26 @@
 
 OS := $(shell uname -o)
 
+CXX = g++
 ifeq (Cygwin,$(OS))
-CXX = g++-4
 EXEEXT = .exe
 LDFLAGS += -Wl,--enable-auto-import
 else
-CXX = g++
 EXEEXT =
 ifeq (Solaris,$(OS))
   CXXFLAGS += -D_POSIX_C_SOURCE
   LDLIBS   += -lpthread -lrt
 else
 ifeq (Linux,$(findstring Linux,$(OS)))
+  CXXFLAGS += -rdynamic
+  LDFLAGS  += -rdynamic
   LDLIBS   += -lpthread -lrt
 endif
 endif
 endif
 
 CXX 	 += -MMD
-CXXFLAGS += -g -rdynamic -O2 -Wall -ansi -Iinclude
+CXXFLAGS += -g -O2 -Wall -Iinclude
 
 # Satisfy rules from (*.d) whose dependencies have been moved/renamed.
 %.h: ;

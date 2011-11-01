@@ -2,10 +2,11 @@
 
 #include "coe-sys-sync.h"
 
+#include <iostream>
 #include <cstring>      // strerror
 #include <cstdlib>      // atoi, abort
+#include <ctime>        // time
 #include <unistd.h>     // sleep() on Linux
-#include <iostream>
 
 using namespace std;
 using namespace coe;
