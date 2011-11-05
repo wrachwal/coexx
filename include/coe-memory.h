@@ -33,6 +33,11 @@ namespace coe { /////
 // ===========================================================================
 // replaceable (de)allocation functions
 
+/// _Sev_Callback
+extern const size_t SIZEOF__sev_callback;
+void*             allocate__sev_callback ();
+void            deallocate__sev_callback (void*);
+
 /// _Sev_Postback
 extern const size_t SIZEOF__sev_postback;
 void*             allocate__sev_postback ();
@@ -48,8 +53,8 @@ struct Stats_Memory {
 
 // ------------------------------------
 
-void get_stats_memory__session  (Stats_Memory& stats);
-void get_stats_memory__callback (Stats_Memory& stats);
+void get_stats_memory__session      (Stats_Memory& stats);
+void get_stats_memory__sev_callback (Stats_Memory& stats);
 void get_stats_memory__sev_postback (Stats_Memory& stats);
 
 // ===========================================================================

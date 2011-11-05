@@ -1,4 +1,4 @@
-// coe-kernel--cb.cpp
+// mem-callback-sev.cpp
 
 /*****************************************************************************
 Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
@@ -22,59 +22,47 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#include "coe-kernel.h"
-#include "coe-kernel--r4k.h"
-#include "coe-session--r4s.h"
-#include "coe-thread--d4t.h"
-#include "coe--errno.h"
-
-#include <memory>       // auto_ptr
+#include "coe-memory.h"
+#include "coe-sys-sync.h"
 
 using namespace std;
 using namespace coe;
 
+// ---------------------------------------------------------------------------
+
+static Mutex        s_Mutex;
+static Stats_Memory s_Stats;
+
+// ===========================================================================
+// get_stats_memory__sev_callback()
+
+void coe::get_stats_memory__sev_callback (Stats_Memory& stats)
+{
+    Mutex::Guard    lock(::s_Mutex);
+    stats = ::s_Stats;
+}
+
 // ===========================================================================
 // Callback
 
-Callback::Callback (SiD target, const CoeStr& evname, ValParam* prefix)
-  : _target(target),
-    _evname(evname),
-    _prefix(prefix)
+void* coe::allocate__sev_callback ()
 {
-}
-
-Callback::~Callback ()
-{
-    if (NULL != _prefix) {
-        _prefix->destroy();
-        _prefix = NULL; // just in case
-    }
-}
-
-// ---------------------------------------------------------------------------
-
-bool Callback::call (Kernel& kernel, EventArg* arg)
-{
-    auto_ptr<EventArg>  __arg(arg);
-    r4Kernel*  r4k = kernel._r4kernel;
-    if (   ! kernel_attached(r4k)
-        || ! kernel_equal(r4k, _target))
+    // --@@--
     {
-        return false;
+        Mutex::Guard    lock(::s_Mutex);
+        s_Stats.now.objects += 1;
+        s_Stats.sum.objects += 1;
     }
-    return r4k->call__arg(_target, _evname, _prefix, arg);
+    return ::operator new(SIZEOF__sev_callback);
 }
 
-// ------------------------------------
-
-bool Callback::call_keep_arg (Kernel& kernel, EventArg& arg)
+void coe::deallocate__sev_callback (void* mem)
 {
-    r4Kernel*  r4k = kernel._r4kernel;
-    if (   ! kernel_attached(r4k)
-        || ! kernel_equal(r4k, _target))
+    // --@@--
     {
-        return false;
+        Mutex::Guard    lock(::s_Mutex);
+        s_Stats.now.objects -= 1;
     }
-    return r4k->call__arg(_target, _evname, _prefix, &arg);
+    ::operator delete(mem);
 }
 

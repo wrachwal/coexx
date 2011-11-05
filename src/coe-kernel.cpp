@@ -206,16 +206,16 @@ bool Kernel::move_to_thread (TiD tid)
 
 // ---------------------------------------------------------------------------
 
-Callback* Kernel::callback (const CoeStr& ev, ValParam* pfx)
+Callback Kernel::callback (const CoeStr& ev, ValParam* pfx)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! current_session_active(_r4kernel)
         || ! user_evname(ev))
     {
         delete pfx;
-        return NULL;
+        return Callback();
     }
-    return new Callback(_r4kernel->_current_context->session->_sid, ev, pfx);
+    return Callback(_r4kernel->_current_context->session->_sid, ev, pfx);
 }
 
 // ------------------------------------

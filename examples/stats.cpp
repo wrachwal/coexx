@@ -21,19 +21,17 @@ class MySession : public Session {
 public:
     typedef MySession Self;
 
-    static SiD spawn (Kernel& kernel, int rfd, Callback* reply)
+    static SiD spawn (Kernel& kernel, int rfd, Callback reply)
         {
             return (new Self(reply))->start_session(kernel, vparam(rfd));
         }
 private:
-    MySession (Callback* reply) : Session(handler(*this, &Self::_start))
+    MySession (Callback reply) : Session(handler(*this, &Self::_start))
         ,   _reply(reply)
         {
         }
     ~MySession ()
         {
-            delete _reply;
-            _reply = NULL;
         }
     void _start (Kernel& kernel, int& rfd)
         {
@@ -51,7 +49,7 @@ private:
         }
     void _stop (Kernel& kernel)
         {
-            _reply->call(kernel);
+            _reply.call(kernel);
         }
     void on_tick (Kernel& kernel, int& next, bool& stop)
         {
@@ -78,7 +76,7 @@ private:
             stop_session();
         }
 private:    // data
-    Callback*   _reply;
+    Callback    _reply;
 };
 
 // ===========================================================================

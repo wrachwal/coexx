@@ -114,7 +114,7 @@ public:
     /*
      * Encapsulated `Callback' and `Postback'
      */
-    Callback* callback (const CoeStr& ev, ValParam* pfx=0);
+    Callback callback (const CoeStr& ev, ValParam* pfx=0);
     Postback postback (const CoeStr& ev, ValParam* pfx=0);
 
     /*
@@ -183,25 +183,31 @@ private:
 // ===========================================================================
 // Callback
 
-class Callback : private _Noncopyable {
+struct _Sev_Callback;
+
+class Callback {
 public:
-    ~Callback ();
+    Callback () : _impl(0) {}
+    Callback (const Callback& rhs);
+    Callback& operator= (const Callback& rhs);
+    ~Callback () { reset(); }
 
-    SiD session () const { return _target; }
+    void reset ();
 
-    bool      call          (Kernel& kernel, EventArg* arg=0);
-    bool      call_keep_arg (Kernel& kernel, EventArg& arg);
+    operator _SafeBool<Callback, _Sev_Callback*>::Type () const
+        { return _impl ? &Callback::_impl : 0; }
+    bool operator== (const Callback& rhs) const { return _impl == rhs._impl; }
+    bool operator!= (const Callback& rhs) const { return _impl != rhs._impl; }
 
-    static void* operator new               (std::size_t size);
-    static void  operator delete (void* mem, std::size_t size);
+    SiD session () const;
+
+    bool call          (Kernel& kernel, EventArg* arg=0);
+    bool call_keep_arg (Kernel& kernel, EventArg& arg);
 
 private:
     friend class Kernel;
     Callback (SiD, const CoeStr&, ValParam*);
-
-    SiD         _target;
-    CoeStr      _evname;
-    ValParam*   _prefix;
+    _Sev_Callback*  _impl;
 };
 
 // ===========================================================================

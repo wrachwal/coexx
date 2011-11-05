@@ -52,7 +52,7 @@ include/coe-kernel--imp.h
     src/coe-kernel--s4k.h
     src/coe-kernel--s4k.cpp
 
-    src/coe-kernel--cb.cpp
+    src/coe-callback-sev.cpp
     src/coe-postback-sev.cpp
 
 include/coe-session.h
@@ -69,7 +69,7 @@ include/coe-hsm-misc.h
 include/coe-memory.h
     src/coe-memory.cpp
     src/mem-session.cpp
-    src/mem-callback.cpp
+    src/mem-callback-sev.cpp
     src/mem-postback-sev.cpp
 
 contrib/hsm-play/.gitignore

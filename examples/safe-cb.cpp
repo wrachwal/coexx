@@ -61,19 +61,13 @@ public:
         }
 private:
     MySession ()
-        :   Session(handler(*this, &MySession::_start)),
-            _cb(NULL)
+        :   Session(handler(*this, &MySession::_start))
         {
             cout << "@ " << __FUNCTION__ << endl;
         }
     ~MySession ()
         {
             cout << "@ " << __FUNCTION__ << endl;
-            // because callbacks are free objects, never owned by the framework,
-            // they must be explicitly deleted, and destructors are a good place
-            // of last resort cleanup.
-            delete _cb;
-            _cb = NULL;
         }
     void _start (Kernel& kernel)
         {
@@ -85,7 +79,7 @@ private:
             kernel.state("kick", handler(*this, &MySession::kick));
 
             cout << "# CALL'ing callback..." << endl;
-            _cb->call(kernel, vparam(10));
+            _cb.call(kernel, vparam(10));
         }
     void kick (Kernel& kernel, Sensitive& counter, int& limit)
         {
@@ -96,14 +90,11 @@ private:
                 counter.inc();
 
                 cout << "# CALL'ing callback..." << endl;
-                _cb->call(kernel, vparam(limit));   // recursion via callback
+                _cb.call(kernel, vparam(limit));    // recursion via callback
             }
             else {
 
                 cout << "# delete callback... (limit reached)" << endl;
-                delete _cb;
-                _cb = NULL; // needed because of cleanup in destructor
-
                 cout << "# stop_session()..." << endl;
                 stop_session();
             }
@@ -117,7 +108,7 @@ private:
             cout << "@ " << __FUNCTION__ << endl;
         }
 
-    Callback*   _cb;
+    Callback    _cb;
 };
 
 // ***************************************************************************
