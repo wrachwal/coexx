@@ -84,8 +84,8 @@ private:
             _cb = kernel.callback("kick", vparam(Sensitive()));
             kernel.state("kick", handler(*this, &MySession::kick));
 
-            cout << "# POST'ing callback..." << endl;
-            _cb->post(kernel, vparam(10));
+            cout << "# CALL'ing callback..." << endl;
+            _cb->call(kernel, vparam(10));
         }
     void kick (Kernel& kernel, Sensitive& counter, int& limit)
         {

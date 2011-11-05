@@ -1,4 +1,4 @@
-// coe-memory.h
+// mem-postback-sev.cpp
 
 /*****************************************************************************
 Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
@@ -22,39 +22,47 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *****************************************************************************/
 
-#ifndef __COE_MEMORY_H
-#define __COE_MEMORY_H
+#include "coe-memory.h"
+#include "coe-sys-sync.h"
 
-#include <cstddef>
-#include <inttypes.h>
+using namespace std;
+using namespace coe;
 
-namespace coe { /////
+// ---------------------------------------------------------------------------
 
-// ===========================================================================
-// replaceable (de)allocation functions
-
-/// _Sev_Postback
-extern const size_t SIZEOF__sev_postback;
-void*             allocate__sev_postback ();
-void            deallocate__sev_postback (void*);
+static Mutex        s_Mutex;
+static Stats_Memory s_Stats;
 
 // ===========================================================================
-// Stats_Memory
+// get_stats_memory__sev_postback()
 
-struct Stats_Memory {
-    struct Now { Now ();   size_t objects; } now;
-    struct Sum { Sum (); uint64_t objects; } sum;
-};
-
-// ------------------------------------
-
-void get_stats_memory__session  (Stats_Memory& stats);
-void get_stats_memory__callback (Stats_Memory& stats);
-void get_stats_memory__sev_postback (Stats_Memory& stats);
+void coe::get_stats_memory__sev_postback (Stats_Memory& stats)
+{
+    Mutex::Guard    lock(::s_Mutex);
+    stats = ::s_Stats;
+}
 
 // ===========================================================================
+// Postback
 
-} ///// namespace coe
+void* coe::allocate__sev_postback ()
+{
+    // --@@--
+    {
+        Mutex::Guard    lock(::s_Mutex);
+        s_Stats.now.objects += 1;
+        s_Stats.sum.objects += 1;
+    }
+    return ::operator new(SIZEOF__sev_postback);
+}
 
-#endif
+void coe::deallocate__sev_postback (void* mem)
+{
+    // --@@--
+    {
+        Mutex::Guard    lock(::s_Mutex);
+        s_Stats.now.objects -= 1;
+    }
+    ::operator delete(mem);
+}
 

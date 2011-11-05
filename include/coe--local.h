@@ -66,6 +66,33 @@ bool operator!= (const _SafeBoolBase<T1>& lhs, const _SafeBoolBase<T2>&)
     { return /*compile-time error*/lhs.this_class_does_not_support_comparisons(); }
 
 // ===========================================================================
+// _Atomic<T>
+
+template<class T>
+class _Atomic : private _Noncopyable {
+public:
+    _Atomic () : _value(0) {}
+    _Atomic (T init) : _value(init) {}
+
+    // intentionally there is no method to just "get" the _value.
+    // to mimic this, use e.g. (atomic += 0).
+
+    // pre-
+    T operator+= (T add) { return __sync_add_and_fetch(&_value, add); }
+    T operator-= (T sub) { return __sync_sub_and_fetch(&_value, sub); }
+
+    T operator++ () { return __sync_add_and_fetch(&_value, T(1)); }
+    T operator-- () { return __sync_sub_and_fetch(&_value, T(1)); }
+
+    // post-
+    T operator++ (int) { return __sync_fetch_and_add(&_value, T(1)); }
+    T operator-- (int) { return __sync_fetch_and_sub(&_value, T(1)); }
+
+private:
+    T   _value;
+};
+
+// ===========================================================================
 // tiny metaprogramming pieces
 
 namespace meta {

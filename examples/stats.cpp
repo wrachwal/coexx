@@ -51,7 +51,7 @@ private:
         }
     void _stop (Kernel& kernel)
         {
-            _reply->anon_post();
+            _reply->call(kernel);
         }
     void on_tick (Kernel& kernel, int& next, bool& stop)
         {

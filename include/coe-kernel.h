@@ -42,6 +42,7 @@ class Thread;
 class Kernel;
 class Session;          // coe-session.h
 class Callback;
+class Postback;
 class EventContext;
 struct Stats_Kernel;    // coe-stats.h
 
@@ -111,9 +112,10 @@ public:
            bool      call_keep_arg (SiD on, const CoeStr& ev, EventArg& arg);
 
     /*
-     * Encapsulated `Callback'
+     * Encapsulated `Callback' and `Postback'
      */
     Callback* callback (const CoeStr& ev, ValParam* pfx=0);
+    Postback postback (const CoeStr& ev, ValParam* pfx=0);
 
     /*
      * Timer Events (Delayed Messages)
@@ -174,6 +176,7 @@ private:
 
     friend class Session;
     friend class Callback;
+    friend class Postback;
     r4Kernel*   _r4kernel;
 };
 
@@ -189,11 +192,6 @@ public:
     bool      call          (Kernel& kernel, EventArg* arg=0);
     bool      call_keep_arg (Kernel& kernel, EventArg& arg);
 
-    bool      post          (Kernel& kernel, ValParam* vp=0);
-    bool      post          (Kernel& kernel, std::auto_ptr<ValParam>& vp);
-    bool anon_post          (                ValParam* vp=0);
-    bool anon_post          (                std::auto_ptr<ValParam>& vp);
-
     static void* operator new               (std::size_t size);
     static void  operator delete (void* mem, std::size_t size);
 
@@ -204,6 +202,38 @@ private:
     SiD         _target;
     CoeStr      _evname;
     ValParam*   _prefix;
+};
+
+// ===========================================================================
+// Postback
+
+struct _Sev_Postback;
+
+class Postback {
+public:
+    Postback () : _impl(0) {}
+    Postback (const Postback& rhs);
+    Postback& operator= (const Postback& rhs);
+    ~Postback () { reset(); }
+
+    void reset ();
+
+    operator _SafeBool<Postback, _Sev_Postback*>::Type () const
+        { return _impl ? &Postback::_impl : 0; }
+    bool operator== (const Postback& rhs) const { return _impl == rhs._impl; }
+    bool operator!= (const Postback& rhs) const { return _impl != rhs._impl; }
+
+    SiD session () const;
+
+    bool      post (Kernel& kernel, ValParam* vp=0);
+    bool      post (Kernel& kernel, std::auto_ptr<ValParam>& vp);
+    bool anon_post (                ValParam* vp=0);
+    bool anon_post (                std::auto_ptr<ValParam>& vp);
+
+private:
+    friend class Kernel;
+    Postback (SiD, const CoeStr&, ValParam*);
+    _Sev_Postback*  _impl;
 };
 
 // ===========================================================================

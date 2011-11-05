@@ -218,6 +218,20 @@ Callback* Kernel::callback (const CoeStr& ev, ValParam* pfx)
     return new Callback(_r4kernel->_current_context->session->_sid, ev, pfx);
 }
 
+// ------------------------------------
+
+Postback Kernel::postback (const CoeStr& ev, ValParam* pfx)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! current_session_active(_r4kernel)
+        || ! user_evname(ev))
+    {
+        delete pfx;
+        return Postback();
+    }
+    return Postback(_r4kernel->_current_context->session->_sid, ev, pfx);
+}
+
 // ---------------------------------------------------------------------------
 
 bool Kernel::anon_post (SiD to, const CoeStr& ev, ValParam* vp)
