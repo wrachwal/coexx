@@ -416,8 +416,8 @@ void SMSession::spawn (Kernel& kernel, string name, SMCreator creator,
 }
 
 SMSession::SMSession (string name, SMCreator creator, bool copy)
-:   Session(copy ? handler(*this, &Self::_start_copy)
-                 : handler(*this, &Self::_start_init))
+:   Session(copy ? (HandlerX)handler(*this, &Self::_start_copy)
+                 : (HandlerX)handler(*this, &Self::_start_init))
 ,   _name(name)
 ,   _creator(creator)
 {
