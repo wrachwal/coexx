@@ -47,8 +47,10 @@ namespace coe {
         {}
         ~_Sev_Postback ()
         {
-            delete prefix;
-            prefix = NULL;
+            if (NULL != prefix) {
+                prefix->destroy();
+                prefix = NULL;  // just in case
+            }
         }
         _Atomic<size_t> refcnt;
         SiD             target;
