@@ -319,14 +319,6 @@ template<class P1>
 ValParam* vparam (const P1&);
 template<class P1, class P2>
 ValParam* vparam (const P1&, const P2&);
-#else
-template<class P1>
-ValParam_<typename List1<P1>::type>
-vparam (const P1&);
-template<class P1, class P2>
-ValParam_<typename List2<P1, P2>::type>
-vparam (const P1&, const P2&);
-#endif
 template<class P1, class P2, class P3>
 ValParam* vparam (const P1&, const P2&, const P3&);
 template<class P1, class P2, class P3, class P4>
@@ -341,6 +333,35 @@ template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, c
 ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&);
 template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
 ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&, const P9&);
+#else
+template<class P1>
+ValParam_<typename List1<P1>::type>
+vparam (const P1&);
+template<class P1, class P2>
+ValParam_<typename List2<P1, P2>::type>
+vparam (const P1&, const P2&);
+template<class P1, class P2, class P3>
+ValParam_<typename List3<P1, P2, P3>::type>
+vparam (const P1&, const P2&, const P3&);
+template<class P1, class P2, class P3, class P4>
+ValParam_<typename List4<P1, P2, P3, P4>::type>
+vparam (const P1&, const P2&, const P3&, const P4&);
+template<class P1, class P2, class P3, class P4, class P5>
+ValParam_<typename List5<P1, P2, P3, P4, P5>::type>
+vparam (const P1&, const P2&, const P3&, const P4&, const P5&);
+template<class P1, class P2, class P3, class P4, class P5, class P6>
+ValParam_<typename List6<P1, P2, P3, P4, P5, P6>::type>
+vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
+ValParam_<typename List7<P1, P2, P3, P4, P5, P6, P7>::type>
+vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
+ValParam_<typename List8<P1, P2, P3, P4, P5, P6, P7, P8>::type>
+vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&);
+template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
+ValParam_<typename List9<P1, P2, P3, P4, P5, P6, P7, P8, P9>::type>
+vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&, const P9&);
+#endif
 
 // ---------------------------------------------------------------------------
 // rparam (p1[, ...p9])

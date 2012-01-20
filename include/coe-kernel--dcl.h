@@ -392,8 +392,13 @@ const _TypeDN _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>::_data
 // ValParam_<ARGS>
 
 class ValParam;
+#if 0
+    ///XXX -- it was the first attempt
     template<class>         class ValParam1;
     template<class, class>  class ValParam2;
+#else
+    template<class ARGS, int N = Length<ARGS>::value> class ValParamA;
+#endif
 
 template<class ARGS>
 class ValParam_ {
@@ -402,9 +407,22 @@ public:
     ValParam*    clear () { ValParam* tmp = _ptr; _ptr = 0; return tmp; }
 
     ValParam_ () : _ptr(0) {}
+#if 0
+    //XXX -- it was the first attempt
     ValParam_ (ValParam1<typename Nth<0, ARGS>::type>* ptr) : _ptr(ptr) {}
     ValParam_ (ValParam2<typename Nth<0, ARGS>::type,
                          typename Nth<1, ARGS>::type>* ptr) : _ptr(ptr) {}
+#else
+    ValParam_ (ValParamA<ARGS, 1>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 2>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 3>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 4>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 5>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 6>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 7>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 8>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParamA<ARGS, 9>* ptr) : _ptr(ptr) {}
+#endif
 
 private:
     ValParam*   _ptr;

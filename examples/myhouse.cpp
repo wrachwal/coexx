@@ -109,6 +109,7 @@ private:
             kernel.state("room2",   handler(*this,    &MyHouse::on_room2));
             kernel.state("knock",   handler(*this,    &MyHouse::on_knock));
             kernel.state("wife",    handler(*this,    &MyHouse::on_wife));
+            kernel.state("dots",    handler(*this,    &MyHouse::on_dots));
             kernel.state("money",   handler(*this,    &MyHouse::on_money));
 
             kernel.state("command", handler(*this,    &MyHouse::on_command));
@@ -211,6 +212,11 @@ private:
             cout << "and she now have " << cash << "." << endl;
         }
 
+    void on_dots (Kernel& kernel, long& ka, int& al, short& am)
+        {
+            cout << "ka=" << ka << " al=" << al << " am=" << am << endl;
+        }
+
     void on_money (Kernel& kernel, int& pln)
         {
             cout << "i got " << pln << " zlotych and ";
@@ -309,6 +315,7 @@ void test_my_house ()
     kernel1.post(tar, "knock", vparam((char*)"excessive argument!"));
 
     kernel1.post(tar, "wife", vparam(owned_ptr<Flowers>(new Flowers(42, "rose"))));
+    kernel1.post(tar, "dots", vparam(long(175), int(173), short(120)));
 
     kernel1.call(SiD(kernel1.ID(), 1/*root*/), "wrong-path");
 
