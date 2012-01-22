@@ -392,13 +392,7 @@ const _TypeDN _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>::_data
 // ValParam_<ARGS>
 
 class ValParam;
-#if 0
-    ///XXX -- it was the first attempt
-    template<class>         class ValParam1;
-    template<class, class>  class ValParam2;
-#else
     template<class ARGS, int N = Length<ARGS>::value> class ValParamA;
-#endif
 
 template<class ARGS>
 class ValParam_ {
@@ -407,12 +401,6 @@ public:
     ValParam*    clear () { ValParam* tmp = _ptr; _ptr = 0; return tmp; }
 
     ValParam_ () : _ptr(0) {}
-#if 0
-    //XXX -- it was the first attempt
-    ValParam_ (ValParam1<typename Nth<0, ARGS>::type>* ptr) : _ptr(ptr) {}
-    ValParam_ (ValParam2<typename Nth<0, ARGS>::type,
-                         typename Nth<1, ARGS>::type>* ptr) : _ptr(ptr) {}
-#else
     ValParam_ (ValParamA<ARGS, 1>* ptr) : _ptr(ptr) {}
     ValParam_ (ValParamA<ARGS, 2>* ptr) : _ptr(ptr) {}
     ValParam_ (ValParamA<ARGS, 3>* ptr) : _ptr(ptr) {}
@@ -422,7 +410,6 @@ public:
     ValParam_ (ValParamA<ARGS, 7>* ptr) : _ptr(ptr) {}
     ValParam_ (ValParamA<ARGS, 8>* ptr) : _ptr(ptr) {}
     ValParam_ (ValParamA<ARGS, 9>* ptr) : _ptr(ptr) {}
-#endif
 
 private:
     ValParam*   _ptr;
@@ -485,56 +472,48 @@ public:
         : _obj((_Obj*)&obj), _tdn(0)
         { _fun.m0 = MFun0(fun); }
 
-    template<class Obj, class A1>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&))
+    template<class Obj, COE_T(1, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(1, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI1<A1>().data())
         { _fun.m1 = MFun1(fun); }
 
-    template<class Obj, class A1, class A2>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&))
+    template<class Obj, COE_T(2, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(2, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI2<A1, A2>().data())
         { _fun.m2 = MFun2(fun); }
 
-    template<class Obj, class A1, class A2, class A3>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&))
+    template<class Obj, COE_T(3, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(3, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI3<A1, A2, A3>().data())
         { _fun.m3 = MFun3(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&))
+    template<class Obj, COE_T(4, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(4, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI4<A1, A2, A3, A4>().data())
         { _fun.m4 = MFun4(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&))
+    template<class Obj, COE_T(5, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(5, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI5<A1, A2, A3, A4, A5>().data())
         { _fun.m5 = MFun5(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5,
-                        class A6>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
-                                                  A6&))
+    template<class Obj, COE_T(6, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(6, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI6<A1, A2, A3, A4, A5, A6>().data())
         { _fun.m6 = MFun6(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5,
-                        class A6, class A7>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
-                                                  A6&, A7&))
+    template<class Obj, COE_T(7, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(7, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI7<A1, A2, A3, A4, A5, A6, A7>().data())
         { _fun.m7 = MFun7(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5,
-                        class A6, class A7, class A8>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
-                                                  A6&, A7&, A8&))
+    template<class Obj, COE_T(8, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(8, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data())
         { _fun.m8 = MFun8(fun); }
 
-    template<class Obj, class A1, class A2, class A3, class A4, class A5,
-                        class A6, class A7, class A8, class A9>
-    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&,
-                                                  A6&, A7&, A8&, A9&))
+    template<class Obj, COE_T(9, class A)>
+    HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(9, A, &a)))
         : _obj((_Obj*)&obj), _tdn(_TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data())
         { _fun.m9 = MFun9(fun); }
 
@@ -544,52 +523,48 @@ public:
         : _obj(0), _tdn(0)
         { _fun.g0 = GFun0(fun); }
 
-    template<class A1>
-    HandlerX (void (*fun)(Kernel&, A1&))
+    template<COE_T(1, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(1, A, &a)))
         : _obj(0), _tdn(_TypeI1<A1>().data())
         { _fun.g1 = GFun1(fun); }
 
-    template<class A1, class A2>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&))
+    template<COE_T(2, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(2, A, &a)))
         : _obj(0), _tdn(_TypeI2<A1, A2>().data())
         { _fun.g2 = GFun2(fun); }
 
-    template<class A1, class A2, class A3>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&))
+    template<COE_T(3, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(3, A, &a)))
         : _obj(0), _tdn(_TypeI3<A1, A2, A3>().data())
         { _fun.g3 = GFun3(fun); }
 
-    template<class A1, class A2, class A3, class A4>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&))
+    template<COE_T(4, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(4, A, &a)))
         : _obj(0), _tdn(_TypeI4<A1, A2, A3, A4>().data())
         { _fun.g4 = GFun4(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&))
+    template<COE_T(5, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(5, A, &a)))
         : _obj(0), _tdn(_TypeI5<A1, A2, A3, A4, A5>().data())
         { _fun.g5 = GFun5(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&))
+    template<COE_T(6, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(6, A, &a)))
         : _obj(0), _tdn(_TypeI6<A1, A2, A3, A4, A5, A6>().data())
         { _fun.g6 = GFun6(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6, class A7>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&, A7&))
+    template<COE_T(7, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(7, A, &a)))
         : _obj(0), _tdn(_TypeI7<A1, A2, A3, A4, A5, A6, A7>().data())
         { _fun.g7 = GFun7(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6, class A7, class A8>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&, A7&, A8&))
+    template<COE_T(8, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(8, A, &a)))
         : _obj(0), _tdn(_TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data())
         { _fun.g8 = GFun8(fun); }
 
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6, class A7, class A8, class A9>
-    HandlerX (void (*fun)(Kernel&, A1&, A2&, A3&, A4&, A5&, A6&, A7&, A8&, A9&))
+    template<COE_T(9, class A)>
+    HandlerX (void (*fun)(Kernel&, COE_TA(9, A, &a)))
         : _obj(0), _tdn(_TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data())
         { _fun.g9 = GFun9(fun); }
 
@@ -610,25 +585,155 @@ private:
     const _TypeDN*  _tdn;
 };
 
+// ---------------------------------------------------------------------------
+// Handler_<ARGS, N>
+
+template<class ARGS, int N = Length<ARGS>::value> class Handler_;
+
 // ------------------------------------
 
 template<class ARGS>
-class Handler_ {
+class Handler_<ARGS, 1> {
+    HandlerX    _handler;
 public:
     operator HandlerX () const { return _handler; }
-
+    typedef typename Nth<0, ARGS>::type A1;
     Handler_ () {}
-
+    Handler_ (void (*fun)(Kernel&, COE_TA(1, A, &a))) : _handler(fun) {}
     template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, typename Nth<0, ARGS>::type&))
-        : _handler(obj, fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, typename Nth<0, ARGS>::type&,
-                                                  typename Nth<1, ARGS>::type&))
-        : _handler(obj, fun) {}
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(1, A, &a))) : _handler(obj, fun) {}
+};
 
-private:
+template<class ARGS>
+class Handler_<ARGS, 2> {
     HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(2, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(2, A, &a))) : _handler(obj, fun) {}
+};
+
+template<class ARGS>
+class Handler_<ARGS, 3> {
+    HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(3, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(3, A, &a))) : _handler(obj, fun) {}
+};
+
+template<class ARGS>
+class Handler_<ARGS, 4> {
+    HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(4, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(4, A, &a))) : _handler(obj, fun) {}
+};
+
+template<class ARGS>
+class Handler_<ARGS, 5> {
+    HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(5, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(5, A, &a))) : _handler(obj, fun) {}
+};
+
+template<class ARGS>
+class Handler_<ARGS, 6> {
+    HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(6, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(6, A, &a))) : _handler(obj, fun) {}
+};
+
+template<class ARGS>
+class Handler_<ARGS, 7> {
+    HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    typedef typename Nth<6, ARGS>::type A7;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(7, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(7, A, &a))) : _handler(obj, fun) {}
+};
+
+template<class ARGS>
+class Handler_<ARGS, 8> {
+    HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    typedef typename Nth<6, ARGS>::type A7;
+    typedef typename Nth<7, ARGS>::type A8;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(8, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(8, A, &a))) : _handler(obj, fun) {}
+};
+
+template<class ARGS>
+class Handler_<ARGS, 9> {
+    HandlerX    _handler;
+public:
+    operator HandlerX () const { return _handler; }
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    typedef typename Nth<6, ARGS>::type A7;
+    typedef typename Nth<7, ARGS>::type A8;
+    typedef typename Nth<8, ARGS>::type A9;
+    Handler_ () {}
+    Handler_ (void (*fun)(Kernel&, COE_TA(9, A, &a))) : _handler(fun) {}
+    template<class Obj>
+    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(9, A, &a))) : _handler(obj, fun) {}
 };
 
 // ---------------------------------------------------------------------------

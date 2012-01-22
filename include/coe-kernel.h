@@ -52,9 +52,6 @@ class EventArg;
     class RefParam;
     class ValParam;
 
-template<class> struct ValParam_;
-template<class> struct Handler_;
-
 // private data
 struct r4Kernel;
 struct _KlsD;
@@ -314,54 +311,24 @@ struct ValParam {
 };
 #endif
 
-#if 0
-template<class P1>
-ValParam* vparam (const P1&);
-template<class P1, class P2>
-ValParam* vparam (const P1&, const P2&);
-template<class P1, class P2, class P3>
-ValParam* vparam (const P1&, const P2&, const P3&);
-template<class P1, class P2, class P3, class P4>
-ValParam* vparam (const P1&, const P2&, const P3&, const P4&);
-template<class P1, class P2, class P3, class P4, class P5>
-ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&);
-template<class P1, class P2, class P3, class P4, class P5, class P6>
-ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
-ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
-ValParam* vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&, const P9&);
-#else
-template<class P1>
-ValParam_<typename List1<P1>::type>
-vparam (const P1&);
-template<class P1, class P2>
-ValParam_<typename List2<P1, P2>::type>
-vparam (const P1&, const P2&);
-template<class P1, class P2, class P3>
-ValParam_<typename List3<P1, P2, P3>::type>
-vparam (const P1&, const P2&, const P3&);
-template<class P1, class P2, class P3, class P4>
-ValParam_<typename List4<P1, P2, P3, P4>::type>
-vparam (const P1&, const P2&, const P3&, const P4&);
-template<class P1, class P2, class P3, class P4, class P5>
-ValParam_<typename List5<P1, P2, P3, P4, P5>::type>
-vparam (const P1&, const P2&, const P3&, const P4&, const P5&);
-template<class P1, class P2, class P3, class P4, class P5, class P6>
-ValParam_<typename List6<P1, P2, P3, P4, P5, P6>::type>
-vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-ValParam_<typename List7<P1, P2, P3, P4, P5, P6, P7>::type>
-vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
-ValParam_<typename List8<P1, P2, P3, P4, P5, P6, P7, P8>::type>
-vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
-ValParam_<typename List9<P1, P2, P3, P4, P5, P6, P7, P8, P9>::type>
-vparam (const P1&, const P2&, const P3&, const P4&, const P5&, const P6&, const P7&, const P8&, const P9&);
-#endif
+template<COE_T(1, class P)> ValParam_<typename List1<COE_T(1, P)>::type>
+    vparam (COE_TA(1, const P, &p));
+template<COE_T(2, class P)> ValParam_<typename List2<COE_T(2, P)>::type>
+    vparam (COE_TA(2, const P, &p));
+template<COE_T(3, class P)> ValParam_<typename List3<COE_T(3, P)>::type>
+    vparam (COE_TA(3, const P, &p));
+template<COE_T(4, class P)> ValParam_<typename List4<COE_T(4, P)>::type>
+    vparam (COE_TA(4, const P, &p));
+template<COE_T(5, class P)> ValParam_<typename List5<COE_T(5, P)>::type>
+    vparam (COE_TA(5, const P, &p));
+template<COE_T(6, class P)> ValParam_<typename List6<COE_T(6, P)>::type>
+    vparam (COE_TA(6, const P, &p));
+template<COE_T(7, class P)> ValParam_<typename List7<COE_T(7, P)>::type>
+    vparam (COE_TA(7, const P, &p));
+template<COE_T(8, class P)> ValParam_<typename List8<COE_T(8, P)>::type>
+    vparam (COE_TA(8, const P, &p));
+template<COE_T(9, class P)> ValParam_<typename List9<COE_T(9, P)>::type>
+    vparam (COE_TA(9, const P, &p));
 
 // ---------------------------------------------------------------------------
 // rparam (p1[, ...p9])
@@ -389,57 +356,49 @@ RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&);
 // handler (obj, memfun)
 // handler (fun)
 
-template<class Obj>
-Handler0 handler (Obj& obj, void (Obj::*fun)(Kernel&));
-#if 0
-template<class Obj, class P1>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&));
-template<class Obj, class P1, class P2>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&));
-#else
-template<class Obj, class P1>
-Handler_<typename List1<P1>::type>
-handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&));
-template<class Obj, class P1, class P2>
-Handler_<typename List2<P1, P2>::type>
-handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&));
-#endif
-template<class Obj, class P1, class P2, class P3>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&));
-template<class Obj, class P1, class P2, class P3, class P4>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&));
-template<class Obj, class P1, class P2, class P3, class P4, class P5>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&));
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&));
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&));
-template<class Obj, class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
-HandlerX handler (Obj& obj, void (Obj::*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&));
+template<class Obj> Handler0
+    handler (Obj& obj, void (Obj::*fun)(Kernel&));
+template<class Obj, COE_T(1, class P)> Handler_<typename List1<COE_T(1, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(1, P, &p)));
+template<class Obj, COE_T(2, class P)> Handler_<typename List2<COE_T(2, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(2, P, &p)));
+template<class Obj, COE_T(3, class P)> Handler_<typename List3<COE_T(3, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(3, P, &p)));
+template<class Obj, COE_T(4, class P)> Handler_<typename List4<COE_T(4, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(4, P, &p)));
+template<class Obj, COE_T(5, class P)> Handler_<typename List5<COE_T(5, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(5, P, &p)));
+template<class Obj, COE_T(6, class P)> Handler_<typename List6<COE_T(6, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(6, P, &p)));
+template<class Obj, COE_T(7, class P)> Handler_<typename List7<COE_T(7, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(7, P, &p)));
+template<class Obj, COE_T(8, class P)> Handler_<typename List8<COE_T(8, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(8, P, &p)));
+template<class Obj, COE_T(9, class P)> Handler_<typename List9<COE_T(9, P)>::type>
+    handler (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(9, P, &p)));
 
 // ------------------------------------
 
-Handler0 handler (void (*fun)(Kernel&));
-template<class P1>
-HandlerX handler (void (*fun)(Kernel&, P1&));
-template<class P1, class P2>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&));
-template<class P1, class P2, class P3>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&));
-template<class P1, class P2, class P3, class P4>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&));
-template<class P1, class P2, class P3, class P4, class P5>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&));
-template<class P1, class P2, class P3, class P4, class P5, class P6>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&));
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&));
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&));
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
-HandlerX handler (void (*fun)(Kernel&, P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&));
+Handler0
+    handler (void (*fun)(Kernel&));
+template<COE_T(1, class P)> Handler_<typename List1<COE_T(1, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(1, P, &p)));
+template<COE_T(2, class P)> Handler_<typename List2<COE_T(2, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(2, P, &p)));
+template<COE_T(3, class P)> Handler_<typename List3<COE_T(3, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(3, P, &p)));
+template<COE_T(4, class P)> Handler_<typename List4<COE_T(4, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(4, P, &p)));
+template<COE_T(5, class P)> Handler_<typename List5<COE_T(5, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(5, P, &p)));
+template<COE_T(6, class P)> Handler_<typename List6<COE_T(6, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(6, P, &p)));
+template<COE_T(7, class P)> Handler_<typename List7<COE_T(7, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(7, P, &p)));
+template<COE_T(8, class P)> Handler_<typename List8<COE_T(8, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(8, P, &p)));
+template<COE_T(9, class P)> Handler_<typename List9<COE_T(9, P)>::type>
+    handler (void (*fun)(Kernel&, COE_TA(9, P, &p)));
 
 // ===========================================================================
 
