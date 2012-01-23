@@ -333,24 +333,24 @@ template<COE_T(9, class P)> ValParam_<typename List9<COE_T(9, P)>::type>
 // ---------------------------------------------------------------------------
 // rparam (p1[, ...p9])
 
-template<class P1>
-RefParam* rparam (P1&);
-template<class P1, class P2>
-RefParam* rparam (P1&, P2&);
-template<class P1, class P2, class P3>
-RefParam* rparam (P1&, P2&, P3&);
-template<class P1, class P2, class P3, class P4>
-RefParam* rparam (P1&, P2&, P3&, P4&);
-template<class P1, class P2, class P3, class P4, class P5>
-RefParam* rparam (P1&, P2&, P3&, P4&, P5&);
-template<class P1, class P2, class P3, class P4, class P5, class P6>
-RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7>
-RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
-RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&);
-template<class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8, class P9>
-RefParam* rparam (P1&, P2&, P3&, P4&, P5&, P6&, P7&, P8&, P9&);
+template<COE_T(1, class P)> RefParam_<typename List1<COE_T(1, P)>::type>
+    rparam (COE_TA(1, P, &p));
+template<COE_T(2, class P)> RefParam_<typename List2<COE_T(2, P)>::type>
+    rparam (COE_TA(2, P, &p));
+template<COE_T(3, class P)> RefParam_<typename List3<COE_T(3, P)>::type>
+    rparam (COE_TA(3, P, &p));
+template<COE_T(4, class P)> RefParam_<typename List4<COE_T(4, P)>::type>
+    rparam (COE_TA(4, P, &p));
+template<COE_T(5, class P)> RefParam_<typename List5<COE_T(5, P)>::type>
+    rparam (COE_TA(5, P, &p));
+template<COE_T(6, class P)> RefParam_<typename List6<COE_T(6, P)>::type>
+    rparam (COE_TA(6, P, &p));
+template<COE_T(7, class P)> RefParam_<typename List7<COE_T(7, P)>::type>
+    rparam (COE_TA(7, P, &p));
+template<COE_T(8, class P)> RefParam_<typename List8<COE_T(8, P)>::type>
+    rparam (COE_TA(8, P, &p));
+template<COE_T(9, class P)> RefParam_<typename List9<COE_T(9, P)>::type>
+    rparam (COE_TA(9, P, &p));
 
 // ---------------------------------------------------------------------------
 // handler (obj, memfun)

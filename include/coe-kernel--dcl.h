@@ -416,6 +416,12 @@ private:
 };
 
 // ===========================================================================
+// RefParam_<ARGS>
+
+class RefParam;
+template<class ARGS, int N = Length<ARGS>::value> class RefParam_;
+
+// ===========================================================================
 // HandlerX
 
 class HandlerX {

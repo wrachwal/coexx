@@ -459,8 +459,8 @@ private:
 
 class RefParam1 : public RefParam_N<1> {
 public:
-    template<class A1>
-    RefParam1 (A1& a1)
+    template<COE_T(1, class A)>
+    RefParam1 (COE_TA(1, A, &a))
         :   RefParam_N<1>(_TypeI1<A1>().data())
         {
             _arg[0] = &a1;
@@ -471,8 +471,8 @@ public:
 
 class RefParam2 : public RefParam_N<2> {
 public:
-    template<class A1, class A2>
-    RefParam2 (A1& a1, A2& a2)
+    template<COE_T(2, class A)>
+    RefParam2 (COE_TA(2, A, &a))
         :   RefParam_N<2>(_TypeI2<A1, A2>().data())
         {
             _arg[0] = &a1;
@@ -484,8 +484,8 @@ public:
 
 class RefParam3 : public RefParam_N<3> {
 public:
-    template<class A1, class A2, class A3>
-    RefParam3 (A1& a1, A2& a2, A3& a3)
+    template<COE_T(3, class A)>
+    RefParam3 (COE_TA(3, A, &a))
         :   RefParam_N<3>(_TypeI3<A1, A2, A3>().data())
         {
             _arg[0] = &a1;
@@ -498,8 +498,8 @@ public:
 
 class RefParam4 : public RefParam_N<4> {
 public:
-    template<class A1, class A2, class A3, class A4>
-    RefParam4 (A1& a1, A2& a2, A3& a3, A4& a4)
+    template<COE_T(4, class A)>
+    RefParam4 (COE_TA(4, A, &a))
         :   RefParam_N<4>(_TypeI4<A1, A2, A3, A4>().data())
         {
             _arg[0] = &a1;
@@ -513,8 +513,8 @@ public:
 
 class RefParam5 : public RefParam_N<5> {
 public:
-    template<class A1, class A2, class A3, class A4, class A5>
-    RefParam5 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5)
+    template<COE_T(5, class A)>
+    RefParam5 (COE_TA(5, A, &a))
         :   RefParam_N<5>(_TypeI5<A1, A2, A3, A4, A5>().data())
         {
             _arg[0] = &a1;
@@ -529,9 +529,8 @@ public:
 
 class RefParam6 : public RefParam_N<6> {
 public:
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6>
-    RefParam6 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6)
+    template<COE_T(6, class A)>
+    RefParam6 (COE_TA(6, A, &a))
         :   RefParam_N<6>(_TypeI6<A1, A2, A3, A4, A5, A6>().data())
         {
             _arg[0] = &a1;
@@ -547,9 +546,8 @@ public:
 
 class RefParam7 : public RefParam_N<7> {
 public:
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6, class A7>
-    RefParam7 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6, A7& a7)
+    template<COE_T(7, class A)>
+    RefParam7 (COE_TA(7, A, &a))
         :   RefParam_N<7>(_TypeI7<A1, A2, A3, A4, A5, A6, A7>().data())
         {
             _arg[0] = &a1;
@@ -566,9 +564,8 @@ public:
 
 class RefParam8 : public RefParam_N<8> {
 public:
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6, class A7, class A8>
-    RefParam8 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6, A7& a7, A8& a8)
+    template<COE_T(8, class A)>
+    RefParam8 (COE_TA(8, A, &a))
         :   RefParam_N<8>(_TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data())
         {
             _arg[0] = &a1;
@@ -586,9 +583,8 @@ public:
 
 class RefParam9 : public RefParam_N<9> {
 public:
-    template<class A1, class A2, class A3, class A4, class A5,
-             class A6, class A7, class A8, class A9>
-    RefParam9 (A1& a1, A2& a2, A3& a3, A4& a4, A5& a5, A6& a6, A7& a7, A8& a8, A9& a9)
+    template<COE_T(9, class A)>
+    RefParam9 (COE_TA(9, A, &a))
         :   RefParam_N<9>(_TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data())
         {
             _arg[0] = &a1;
@@ -601,6 +597,163 @@ public:
             _arg[7] = &a8;
             _arg[8] = &a9;
         }
+};
+
+// ===========================================================================
+// RefParam_<ARGS, N>
+// ===========================================================================
+
+template<class ARGS>
+class RefParam_<ARGS, 1> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 1 };
+    typedef typename Nth<0, ARGS>::type A1;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(1, A, &a)) : _ptr(new RefParam1(COE_T(1, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 2> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 2 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(2, A, &a)) : _ptr(new RefParam2(COE_T(2, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 3> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 3 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(3, A, &a)) : _ptr(new RefParam3(COE_T(3, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 4> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 4 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(4, A, &a)) : _ptr(new RefParam4(COE_T(4, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 5> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 5 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(5, A, &a)) : _ptr(new RefParam5(COE_T(5, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 6> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 6 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(6, A, &a)) : _ptr(new RefParam6(COE_T(6, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 7> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 7 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    typedef typename Nth<6, ARGS>::type A7;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(7, A, &a)) : _ptr(new RefParam7(COE_T(7, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 8> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 8 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    typedef typename Nth<6, ARGS>::type A7;
+    typedef typename Nth<7, ARGS>::type A8;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(8, A, &a)) : _ptr(new RefParam8(COE_T(8, a))) {}
+private:
+    RefParam*   _ptr;
+};
+
+template<class ARGS>
+class RefParam_<ARGS, 9> {
+public:
+    operator RefParam* () { return _ptr; }
+    RefParam*    clear () { RefParam* tmp = _ptr; _ptr = 0; return tmp; }
+    enum { N = 9 };
+    typedef typename Nth<0, ARGS>::type A1;
+    typedef typename Nth<1, ARGS>::type A2;
+    typedef typename Nth<2, ARGS>::type A3;
+    typedef typename Nth<3, ARGS>::type A4;
+    typedef typename Nth<4, ARGS>::type A5;
+    typedef typename Nth<5, ARGS>::type A6;
+    typedef typename Nth<6, ARGS>::type A7;
+    typedef typename Nth<7, ARGS>::type A8;
+    typedef typename Nth<8, ARGS>::type A9;
+    RefParam_ () : _ptr(0) {}
+    RefParam_ (COE_TA(9, A, &a)) : _ptr(new RefParam9(COE_T(9, a))) {}
+private:
+    RefParam*   _ptr;
 };
 
 // ===========================================================================
@@ -656,45 +809,50 @@ vparam (COE_TA(9, const P, &p))
 // rparam (p1[, ...p9])
 // ===========================================================================
 
-template<class P1>
-RefParam* rparam (P1& p1)
-    { return new RefParam1(p1); }
+template<COE_T(1, class P)>
+RefParam_<typename List1<COE_T(1, P)>::type>
+rparam (COE_TA(1, P, &p))
+    { return RefParam_<typename List1<COE_T(1, P)>::type>(COE_T(1, p)); }
 
-template<class P1, class P2>
-RefParam* rparam (P1& p1, P2& p2)
-    { return new RefParam2(p1, p2); }
+template<COE_T(2, class P)>
+RefParam_<typename List2<COE_T(2, P)>::type>
+rparam (COE_TA(2, P, &p))
+    { return RefParam_<typename List2<COE_T(2, P)>::type>(COE_T(2, p)); }
 
-template<class P1, class P2, class P3>
-RefParam* rparam (P1& p1, P2& p2, P3& p3)
-    { return new RefParam3(p1, p2, p3); }
+template<COE_T(3, class P)>
+RefParam_<typename List3<COE_T(3, P)>::type>
+rparam (COE_TA(3, P, &p))
+    { return RefParam_<typename List3<COE_T(3, P)>::type>(COE_T(3, p)); }
 
-template<class P1, class P2, class P3, class P4>
-RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4)
-    { return new RefParam4(p1, p2, p3, p4); }
+template<COE_T(4, class P)>
+RefParam_<typename List4<COE_T(4, P)>::type>
+rparam (COE_TA(4, P, &p))
+    { return RefParam_<typename List4<COE_T(4, P)>::type>(COE_T(4, p)); }
 
-template<class P1, class P2, class P3, class P4, class P5>
-RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5)
-    { return new RefParam5(p1, p2, p3, p4, p5); }
+template<COE_T(5, class P)>
+RefParam_<typename List5<COE_T(5, P)>::type>
+rparam (COE_TA(5, P, &p))
+    { return RefParam_<typename List5<COE_T(5, P)>::type>(COE_T(5, p)); }
 
-template<class P1, class P2, class P3, class P4, class P5,
-         class P6>
-RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6)
-    { return new RefParam6(p1, p2, p3, p4, p5, p6); }
+template<COE_T(6, class P)>
+RefParam_<typename List6<COE_T(6, P)>::type>
+rparam (COE_TA(6, P, &p))
+    { return RefParam_<typename List6<COE_T(6, P)>::type>(COE_T(6, p)); }
 
-template<class P1, class P2, class P3, class P4, class P5,
-         class P6, class P7>
-RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7)
-    { return new RefParam7(p1, p2, p3, p4, p5, p6, p7); }
+template<COE_T(7, class P)>
+RefParam_<typename List7<COE_T(7, P)>::type>
+rparam (COE_TA(7, P, &p))
+    { return RefParam_<typename List7<COE_T(7, P)>::type>(COE_T(7, p)); }
 
-template<class P1, class P2, class P3, class P4, class P5,
-         class P6, class P7, class P8>
-RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7, P8& p8)
-    { return new RefParam8(p1, p2, p3, p4, p5, p6, p7, p8); }
+template<COE_T(8, class P)>
+RefParam_<typename List8<COE_T(8, P)>::type>
+rparam (COE_TA(8, P, &p))
+    { return RefParam_<typename List8<COE_T(8, P)>::type>(COE_T(8, p)); }
 
-template<class P1, class P2, class P3, class P4, class P5,
-         class P6, class P7, class P8, class P9>
-RefParam* rparam (P1& p1, P2& p2, P3& p3, P4& p4, P5& p5, P6& p6, P7& p7, P8& p8, P9& p9)
-    { return new RefParam9(p1, p2, p3, p4, p5, p6, p7, p8, p9); }
+template<COE_T(9, class P)>
+RefParam_<typename List9<COE_T(9, P)>::type>
+rparam (COE_TA(9, P, &p))
+    { return RefParam_<typename List9<COE_T(9, P)>::type>(COE_T(9, p)); }
 
 // ===========================================================================
 // handler (obj, memfun)
