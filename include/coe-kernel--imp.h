@@ -106,8 +106,8 @@ public:
     // static operator new/delete...
     //
     virtual ~EventArg ();
-    virtual void**         arg_list () const = 0;
-    virtual const _TypeDN* arg_type () const = 0;
+    virtual void**                arg_list () const = 0;
+    virtual const Meta<ArgListI>* arg_type () const = 0;
 };
 
 // ---------------------------------------------------------------------------
@@ -134,8 +134,8 @@ private:
 template<class _Arg>
 _Arg* ValParam::argptr (size_t index)
     {
-        const _TypeDN*  tdn = arg_type();
-        return index < tdn->len && &typeid(_Arg) == tdn->info[index]->info
+        const Meta<ArgListI>*   tdn = arg_type();
+        return index < tdn->info.len && TypeInfo(typeid(_Arg)) == tdn->info.arg[index]->info.type
              ? static_cast<_Arg*>(arg_list()[index])
              : 0;
     }
@@ -151,13 +151,13 @@ class RefParam : public EventArg {};
 template<int N>
 class RefParam_N : public RefParam {
 public:
-    /*final*/ void**         arg_list () const;
-    /*final*/ const _TypeDN* arg_type () const;
+    /*final*/ void**                arg_list () const;
+    /*final*/ const Meta<ArgListI>* arg_type () const;
 private:
-    const _TypeDN*  _info;
+    const Meta<ArgListI>*   _info;
 protected:
-    RefParam_N (const _TypeDN* info) : _info(info) {}
-    void*   _arg[N];
+    RefParam_N (const Meta<ArgListI>* info) : _info(info) {}
+    void*                   _arg[N];
 };
 
 template<int N>
@@ -167,7 +167,7 @@ void** RefParam_N<N>::arg_list () const
     }
 
 template<int N>
-const _TypeDN* RefParam_N<N>::arg_type () const
+const Meta<ArgListI>* RefParam_N<N>::arg_type () const
     {
         return _info;
     }
@@ -185,9 +185,9 @@ public:
         {
             _arg[0] = &_a1;
         }
-    const _TypeDN* arg_type () const { return _TypeI1<A1>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(1, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(1, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -206,9 +206,9 @@ public:
             _arg[0] = &_a1;
             _arg[1] = &_a2;
         }
-    const _TypeDN* arg_type () const { return _TypeI2<A1, A2>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(2, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(2, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -230,9 +230,9 @@ public:
             _arg[1] = &_a2;
             _arg[2] = &_a3;
         }
-    const _TypeDN* arg_type () const { return _TypeI3<A1, A2, A3>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(3, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(3, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -257,9 +257,9 @@ public:
             _arg[2] = &_a3;
             _arg[3] = &_a4;
         }
-    const _TypeDN* arg_type () const { return _TypeI4<A1, A2, A3, A4>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(4, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(4, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -287,9 +287,9 @@ public:
             _arg[3] = &_a4;
             _arg[4] = &_a5;
         }
-    const _TypeDN* arg_type () const { return _TypeI5<A1, A2, A3, A4, A5>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(5, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(5, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -320,9 +320,9 @@ public:
             _arg[4] = &_a5;
             _arg[5] = &_a6;
         }
-    const _TypeDN* arg_type () const { return _TypeI6<A1, A2, A3, A4, A5, A6>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(6, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(6, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -356,9 +356,9 @@ public:
             _arg[5] = &_a6;
             _arg[6] = &_a7;
         }
-    const _TypeDN* arg_type () const { return _TypeI7<A1, A2, A3, A4, A5, A6, A7>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(7, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(7, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -395,9 +395,9 @@ public:
             _arg[6] = &_a7;
             _arg[7] = &_a8;
         }
-    const _TypeDN* arg_type () const { return _TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(8, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(8, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -437,9 +437,9 @@ public:
             _arg[7] = &_a8;
             _arg[8] = &_a9;
         }
-    const _TypeDN* arg_type () const { return _TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data(); }
-    void** arg_list () const         { return (void**)&_arg[0]; }
-    ValParam* clone () const         { return new ValParamA(COE_T(9, _a)); }
+    const Meta<ArgListI>* arg_type () const { return Ctti<ARGS, ArgListI>::meta(); }
+    void** arg_list () const                { return (void**)&_arg[0]; }
+    ValParam* clone () const                { return new ValParamA(COE_T(9, _a)); }
 private:
     void*   _arg[N];
     A1      _a1;
@@ -461,7 +461,7 @@ class RefParam1 : public RefParam_N<1> {
 public:
     template<COE_T(1, class A)>
     RefParam1 (COE_TA(1, A, &a))
-        :   RefParam_N<1>(_TypeI1<A1>().data())
+        :   RefParam_N<1>(Ctti<typename List1<COE_T(1, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
         }
@@ -473,7 +473,7 @@ class RefParam2 : public RefParam_N<2> {
 public:
     template<COE_T(2, class A)>
     RefParam2 (COE_TA(2, A, &a))
-        :   RefParam_N<2>(_TypeI2<A1, A2>().data())
+        :   RefParam_N<2>(Ctti<typename List2<COE_T(2, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;
@@ -486,7 +486,7 @@ class RefParam3 : public RefParam_N<3> {
 public:
     template<COE_T(3, class A)>
     RefParam3 (COE_TA(3, A, &a))
-        :   RefParam_N<3>(_TypeI3<A1, A2, A3>().data())
+        :   RefParam_N<3>(Ctti<typename List3<COE_T(3, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;
@@ -500,7 +500,7 @@ class RefParam4 : public RefParam_N<4> {
 public:
     template<COE_T(4, class A)>
     RefParam4 (COE_TA(4, A, &a))
-        :   RefParam_N<4>(_TypeI4<A1, A2, A3, A4>().data())
+        :   RefParam_N<4>(Ctti<typename List4<COE_T(4, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;
@@ -515,7 +515,7 @@ class RefParam5 : public RefParam_N<5> {
 public:
     template<COE_T(5, class A)>
     RefParam5 (COE_TA(5, A, &a))
-        :   RefParam_N<5>(_TypeI5<A1, A2, A3, A4, A5>().data())
+        :   RefParam_N<5>(Ctti<typename List5<COE_T(5, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;
@@ -531,7 +531,7 @@ class RefParam6 : public RefParam_N<6> {
 public:
     template<COE_T(6, class A)>
     RefParam6 (COE_TA(6, A, &a))
-        :   RefParam_N<6>(_TypeI6<A1, A2, A3, A4, A5, A6>().data())
+        :   RefParam_N<6>(Ctti<typename List6<COE_T(6, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;
@@ -548,7 +548,7 @@ class RefParam7 : public RefParam_N<7> {
 public:
     template<COE_T(7, class A)>
     RefParam7 (COE_TA(7, A, &a))
-        :   RefParam_N<7>(_TypeI7<A1, A2, A3, A4, A5, A6, A7>().data())
+        :   RefParam_N<7>(Ctti<typename List7<COE_T(7, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;
@@ -566,7 +566,7 @@ class RefParam8 : public RefParam_N<8> {
 public:
     template<COE_T(8, class A)>
     RefParam8 (COE_TA(8, A, &a))
-        :   RefParam_N<8>(_TypeI8<A1, A2, A3, A4, A5, A6, A7, A8>().data())
+        :   RefParam_N<8>(Ctti<typename List8<COE_T(8, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;
@@ -585,7 +585,7 @@ class RefParam9 : public RefParam_N<9> {
 public:
     template<COE_T(9, class A)>
     RefParam9 (COE_TA(9, A, &a))
-        :   RefParam_N<9>(_TypeI9<A1, A2, A3, A4, A5, A6, A7, A8, A9>().data())
+        :   RefParam_N<9>(Ctti<typename List9<COE_T(9, A)>::type, ArgListI>::meta())
         {
             _arg[0] = &a1;
             _arg[1] = &a2;

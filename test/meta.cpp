@@ -1,8 +1,6 @@
 // meta.cpp
 
-#include "coe-meta.h"
-
-#include "coe-oev.h"    // Cons, ...
+#include "coe-kernel.h"
 
 #include <string>
 #include <iostream>
@@ -10,61 +8,9 @@
 using namespace std;
 using namespace coe;
 
-// ---------------------------------------------------------------------------
-// ArgI
-
-struct ArgI {
-    TypeInfo    type;
-};
-
-namespace coe {
-    template<class Type>
-    struct init_meta_info<Type, ArgI> {
-        void operator() (ArgI& info) const
-            {
-                info.type = typeid(Type);
-            }
-    };
-}
-
-// ---------------------------------------------------------------------------
-// ArgListI
-
-struct ArgListI {
-    const Meta<ArgI>**  arg;
-    size_t              len;
-};
-
-template<class List> struct assign_arg_info;
-template<>
-struct assign_arg_info<Nil> {
-    static void apply (const Meta<ArgI>**) {}
-};
-template<class Head, class Tail>
-struct assign_arg_info<Cons<Head, Tail> > {
-    static void apply (const Meta<ArgI>** argi)
-        {
-            *argi = Ctti<Head, ArgI>::meta();
-            assign_arg_info<Tail>::apply(++argi);
-        }
-};
-
-namespace coe {
-    template<class List>
-    struct init_meta_info<List, ArgListI> {
-        void operator() (ArgListI& info) const
-            {
-                static const Meta<ArgI>*    args[Length<List>::value + 1];
-                info.arg = args;
-                info.len = Length<List>::value;
-                assign_arg_info<List>::apply(args);
-            }
-    };
-}
+ostream&    log = cout;
 
 // ===========================================================================
-
-ostream&    log = cout;
 
 template<class Self, class Init>
 struct machine {

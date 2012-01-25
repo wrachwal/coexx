@@ -160,8 +160,8 @@ SiD r4Kernel::start_session (Session* s, r4Session* parent, EventArg* arg)
         }
     }
 
-    const _TypeDN*  hT = r4s->_start_handler.par_type();
-    const _TypeDN*  aT = arg ? arg->arg_type() : NULL;
+    const Meta<ArgListI>*   hT = r4s->_start_handler.par_type();
+    const Meta<ArgListI>*   aT = arg ? arg->arg_type() : NULL;
 
     if (! syntax_check(hT, NULL, aT)) {
         //TODO: detailed error message
@@ -482,7 +482,7 @@ void r4Kernel::dispatch_evio (EvIO* evio)
         IO_Ctx  ioctx(evio->fd(), evio->mode());
         void*   pfx[] = { &ioctx };
 
-        run.prefix(_TypeI1<IO_Ctx>().data(), pfx);
+        run.prefix(Ctti<List1<IO_Ctx>::type, ArgListI>::meta(), pfx);
         run.locked_argument(evio->arg());
 
         run.execute(*_handle, find_state_handler(session->_sid.id(), evio->name()));

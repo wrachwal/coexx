@@ -40,6 +40,9 @@ class TypeInfo {
 public:
     TypeInfo () : _ti(0) {}
     TypeInfo (const std::type_info& ti) : _ti(&ti) {}
+    TypeInfo (const TypeInfo& rhs) : _ti(rhs._ti) {}
+    bool operator== (const TypeInfo& rhs) const { return *_ti == *rhs._ti; }    //FIXME NULL CASE!!!
+    bool operator!= (const TypeInfo& rhs) const { return *_ti != *rhs._ti; }    //FIXME NULL CASE!!!
     const char* name () const { return _ti ? _ti->name() : 0; }
 private:
     const std::type_info*   _ti;
