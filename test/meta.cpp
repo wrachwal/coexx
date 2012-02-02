@@ -54,7 +54,7 @@ template<class Self, class Parent>
 struct state {
     state ()
         {
-            log << "or_state<"
+            log << "state<"
                 << Ctti<Self,   ArgI>::meta()->info.type.name() << ","
                 << Ctti<Parent, ArgI>::meta()->info.type.name() << ">"
                 << endl;
@@ -64,20 +64,23 @@ struct state {
 // ---------------------------------------------------------------------------
 // SM2 revisited
 
-struct A;
-struct SM : machine<SM, A> { SM(){} ~SM(){} };
-struct C;
+struct A;   // FORWARD: SM's init state
+struct SM : machine<SM, /*init*/A> { SM(){} ~SM(){} };
+
+struct C;   // FORWARD: A's init state
 struct A : or_state<A, SM, C> { A(){} ~A(){} };
-struct E;
-struct F;
+
+struct E;   // FORWARD: B's init state
+struct F;   // F's init
 struct B : and_state<B, SM, List2<E,F>::type> { B(){} ~B(){} };
 
-struct C1;
-struct C2;
+struct C1;  // FORWARD: C's init state
+struct C2;  // FORWARD: C's init state
 struct C : or_state<C, A, C1> { C(){} ~C(){} };
 struct C1 : state<C1, C> {};
 struct C2 : state<C2, C> {};
 
+// B's final states
 struct E : state<E, B> {};  // or_state
 struct F : state<F, B> {};  // or_state
 
