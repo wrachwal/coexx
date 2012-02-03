@@ -80,10 +80,10 @@ ostream& operator<< (ostream& os, const mXS& xs) { return xs.print(os); }
 template<class _Self, class _Root>
 class machine {
 public:
-    typedef _Self Self;
-    typedef _Root Root;
+    typedef _Self SELF;
+    typedef _Root ROOT;
     machine ()
-        :   _meta(Ctti<Self, mSM>::meta()->info)
+        :   _meta(Ctti<_Self, mSM>::meta()->info)
         {
             log << __FUNCTION__ << endl;
         }
@@ -95,11 +95,11 @@ public:
 
 // ------------------------------------
 
-template<class Self, class Parent>
+template<class _Self, class _Parent>
 class state {
 public:
     enum { _EMPTY_SIZE = 0 };
-    //XXX Parent can be either:
+    //XXX _Parent can be either:
     // - composite state (and | or)
     // - state machine (two forms: [a] final, concrete [b] embeddable, for reuse)
     state ()
@@ -108,14 +108,14 @@ public:
         }
 private:
     template<class, class> friend struct init_meta_info;
-    typedef m_S MetaInfo;
+    typedef m_S META;
     static void constructor (void* ptr) //TODO: (Kernel&) ???
         {
-            new (ptr) Self;
+            new (ptr) _Self;
         }
     static void destructor (void* ptr)
         {
-            static_cast<Self*>(ptr)->~Self();
+            static_cast<_Self*>(ptr)->~_Self();
         }
 };
 
@@ -128,7 +128,7 @@ namespace coe {
         void operator() (mSM& info) const
             {
                 assert(! info.root);
-                info.root = & Ctti<typename Type::Root, typename Type::Root::MetaInfo>::meta()->info;
+                info.root = & Ctti<typename Type::ROOT, typename Type::ROOT::META>::meta()->info;
                 log << "@ init_meta_info --> " << info << endl;
             }
     };
