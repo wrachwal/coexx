@@ -52,6 +52,10 @@ struct mXS {
 struct mOS : mXS {
     mOS () : init(0), chld(0) {}
     eSTATE type () const { return eOS; }
+    ostream& print (ostream& os) const
+        {
+            return mXS::print(os << this << "=mOS(") << " init=" << init << " chld=?)";
+        }
     const mXS*  init;
     const mXS*  chld;
 };
@@ -77,38 +81,108 @@ ostream& operator<< (ostream& os, const mXS& xs) { return xs.print(os); }
 
 // ===========================================================================
 
+template<class _Self,
+         class _Parent,
+         bool _isRoot = meta::IsSame_<typename _Parent::META, mSM>::value>
+class aComposition_Policy;
+
+template<class _Self, class _Parent>
+class aComposition_Policy<_Self, _Parent, false> {
+
+    // local metafunctions
+    struct this_context_imp {
+        template<class Context, class State>
+        static Context& apply (State& state) { return state; }
+    };
+    struct that_context_imp {
+        template<class Context, class State>
+        static Context& apply (State& state)
+#if 0
+            { return static_cast<typename State::PARENT*>(state.parent_())->template context<Context>(); }
+#else
+            ;
+#endif
+    };
+
+public:
+    typedef          _Self              SELF;
+    typedef          _Parent            PARENT;
+    typedef typename _Parent::ROOT      ROOT;
+    typedef typename _Parent::MACHINE   MACHINE;
+
+    //FIXME
+#if 0
+    ROOT& root () { return static_cast<ROOT&>(static_cast<_Self&>(*this)._machine.root()); }
+#endif
+
+    template<class Context>
+    Context& context ()
+        {
+            typedef typename meta::If_<meta::IsSame_<Context, SELF>::value,
+                                       this_context_imp,
+                                       that_context_imp>::type imp;
+            return imp::template apply<Context>(static_cast<SELF&>(*this));
+        }
+
+protected:
+    ~aComposition_Policy () {}
+};
+
+template<class _Self, class _Parent>
+class aComposition_Policy<_Self, _Parent, true> {
+public:
+    typedef _Self   SELF;
+    typedef _Self   ROOT;
+    typedef _Parent MACHINE;
+
+    template<class Context>
+    Context& context ()
+        {
+            // Context can only be SELF; checked by double casts
+            return static_cast<Context&>((static_cast<SELF&>(*this)));
+        }
+
+protected:
+    ~aComposition_Policy () {}
+};
+
+// ===========================================================================
+// machine<>
+
 template<class _Self, class _Root>
 class machine {
 public:
-    typedef _Self SELF;
-    typedef _Root ROOT;
+    typedef _Root   ROOT;
     machine ()
         :   _meta(Ctti<_Self, mSM>::meta()->info)
         {
             log << __FUNCTION__ << endl;
         }
+    typedef mSM META;
+
 private:
-    const mSM&  _meta;
-public:
+    const META& _meta;
+public: /// DEBUG
     enum { _EMPTY_SIZE = sizeof(&_meta) };
 };
 
 // ------------------------------------
+// or_state<>
 
-template<class _Self, class _Parent>
-class state {
+template<class _Self, class _Parent, class _Init>
+class or_state
+    :   public aComposition_Policy<_Self, _Parent> {
 public:
-    enum { _EMPTY_SIZE = 0 };
-    //XXX _Parent can be either:
-    // - composite state (and | or)
-    // - state machine (two forms: [a] final, concrete [b] embeddable, for reuse)
-    state ()
+    typedef _Init   INIT;
+
+    or_state ()
         {
             log << __FUNCTION__ << endl;
         }
+    typedef mOS META;
+
 private:
     template<class, class> friend struct init_meta_info;
-    typedef m_S META;
     static void constructor (void* ptr) //TODO: (Kernel&) ???
         {
             new (ptr) _Self;
@@ -117,9 +191,71 @@ private:
         {
             static_cast<_Self*>(ptr)->~_Self();
         }
+public: /// DEBUG
+    enum { _EMPTY_SIZE = 0 };
+};
+
+// ------------------------------------
+// state<>
+
+template<class _Self, class _Parent>
+class state
+    :   public aComposition_Policy<_Self, _Parent> {
+public:
+    //XXX _Parent can be either:
+    // - composite state (and | or)
+    // - state machine (two forms: [a] final, concrete [b] embeddable, for reuse)
+    state ()
+        {
+            log << __FUNCTION__ << endl;
+        }
+    typedef m_S META;
+
+private:
+    template<class, class> friend struct init_meta_info;
+    static void constructor (void* ptr) //TODO: (Kernel&) ???
+        {
+            new (ptr) _Self;
+        }
+    static void destructor (void* ptr)
+        {
+            static_cast<_Self*>(ptr)->~_Self();
+        }
+public: /// DEBUG
+    enum { _EMPTY_SIZE = 0 };
 };
 
 // ---------------------------------------------------------------------------
+
+template<class _State>
+struct init_state_meta_ {
+
+    struct parent_is_state {
+        static void apply (mXS& info)
+            {
+                info.par = & Ctti<typename _State::PARENT,
+                                  typename _State::PARENT::META>::meta()->info;
+                info.sm  = info.par->sm;
+            }
+    };
+    struct parent_is_machine {
+        static void apply (mXS& info)
+            {
+                assert(! info.par);
+                info.sm  = & Ctti<typename _State::MACHINE, mSM>::meta()->info;
+            }
+    };
+
+    static void apply (mXS& info)
+        {
+            typedef typename meta::If_<meta::IsSame_<_State, typename _State::ROOT>::value,
+                                       parent_is_machine,
+                                       parent_is_state>::type   imp;
+            imp::apply(info);
+        }
+};
+
+// ------------------------------------
 
 namespace coe {
 
@@ -134,10 +270,25 @@ namespace coe {
     };
 
     template<class Type>
+    struct init_meta_info<Type, mOS> {
+        void operator() (mOS& info) const
+            {
+                assert(! info.size);
+                init_state_meta_<Type>::apply(info);    ///
+                info.size = sizeof(Type);
+                info.put  = & Type::constructor;
+                info.clr  = & Type::destructor;
+                info.init = & Ctti<typename Type::INIT, typename Type::INIT::META>::meta()->info;
+                log << "@ init_meta_info --> " << info << endl;
+            }
+    };
+
+    template<class Type>
     struct init_meta_info<Type, m_S> {
         void operator() (m_S& info) const
             {
                 assert(! info.size);
+                init_state_meta_<Type>::apply(info);    ///
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
@@ -171,7 +322,10 @@ void print_meta_info ()
 struct A;   // FORWARD: SM's init state
 struct SM : machine<SM, /*init*/A> { SM(){} ~SM(){} };
 
-struct A : state<A, SM> { A(){} ~A(){} SIZE_(20) };
+struct C;   // FORWARD: A's init state
+struct A : or_state<A, SM, C> { A(){} ~A(){} SIZE_(20) };
+
+struct C : state<C, A> { C(){} ~C(){} SIZE_(12); };
 
 // ===========================================================================
 
@@ -179,11 +333,11 @@ int main ()
 {
     log << string(65, '=') << endl;
     print_meta_info();
-    log << "### START " << string(50, '-') << " " << __FUNCTION__ << endl;
+    log << "*** START " << string(50, '-') << " " << __FUNCTION__ << endl;
     {
         //SM  sm;
     }
-    log << "#### STOP " << string(50, '-') << " " << __FUNCTION__ << endl;
+    log << "**** STOP " << string(50, '-') << " " << __FUNCTION__ << endl;
     print_meta_info();
 }
 
