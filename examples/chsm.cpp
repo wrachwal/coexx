@@ -22,17 +22,31 @@ struct mAS; // of and_state<>
 struct m_S; // of state<>
 
 struct mSM {
-    mSM () : init(0) {}
-    const mXS*  init;
+    mSM () : root(0) {}
+    const mXS*  root;
+    ostream& print (ostream& os) const
+        {
+            return os << this << "=mSM(root=" << root << ")";
+        }
 };
 
 struct mXS {
-    mXS () : sm(0), par(0), size(0) {}
+    mXS () : sm(0), par(0), size(0), put(0), clr(0) {}
     virtual ~mXS () {}
     virtual eSTATE type () const = 0;
+    virtual ostream& print (ostream& os) const ///=0 XXX???
+        {
+            return os << "mXS(sm=" << sm << " par=" << par
+                << " size=" << size
+                << " put=" << (void*)put
+                << " clr=" << (void*)clr
+            << ")";
+        }
     const mSM*  sm;
     const mXS*  par;
     size_t      size;
+    void (*put)(void*);
+    void (*clr)(void*);
 };
 
 struct mOS : mXS {
@@ -50,41 +64,41 @@ struct mAS : mXS {
 
 struct m_S : mXS {
     eSTATE type () const { return e_S; }
+    ostream& print (ostream& os) const
+        {
+            return mXS::print(os << this << "=m_S(") << ")";
+        }
 };
+
+// ------------------------------------
+
+ostream& operator<< (ostream& os, const mSM& sm) { return sm.print(os); }
+ostream& operator<< (ostream& os, const mXS& xs) { return xs.print(os); }
 
 // ===========================================================================
 
-template<class Self, class Init>
+template<class _Self, class _Root>
 class machine {
 public:
+    typedef _Self Self;
+    typedef _Root Root;
     machine ()
+        :   _meta(Ctti<Self, mSM>::meta()->info)
         {
             log << __FUNCTION__ << endl;
-            Init    state;
-            log << "&__burn --> " << &__burn << endl;
         }
 private:
-    struct Burn {
-        Burn ()
-            {
-#if 0
-                //XXX RTTI assertion, equality of types
-                //      typename Init::Parent =:= Self
-                const_cast<mSM&>(Ctti<Self, mSM>::meta()->info).init =
-                    Ctti<Init, typename Init::MetaInfo>::meta();
-#endif
-                log << __FUNCTION__ << endl;
-            }
-    };
-    static Burn __burn;
+    const mSM&  _meta;
+public:
+    enum { _EMPTY_SIZE = sizeof(&_meta) };
 };
 
-template<class Self, class Init>
-typename machine<Self, Init>::Burn machine<Self, Init>::__burn;
+// ------------------------------------
 
 template<class Self, class Parent>
 class state {
 public:
+    enum { _EMPTY_SIZE = 0 };
     //XXX Parent can be either:
     // - composite state (and | or)
     // - state machine (two forms: [a] final, concrete [b] embeddable, for reuse)
@@ -93,20 +107,83 @@ public:
             log << __FUNCTION__ << endl;
         }
 private:
+    template<class, class> friend struct init_meta_info;
+    typedef m_S MetaInfo;
+    static void constructor (void* ptr) //TODO: (Kernel&) ???
+        {
+            new (ptr) Self;
+        }
+    static void destructor (void* ptr)
+        {
+            static_cast<Self*>(ptr)->~Self();
+        }
 };
 
+// ---------------------------------------------------------------------------
+
+namespace coe {
+
+    template<class Type>
+    struct init_meta_info<Type, mSM> {
+        void operator() (mSM& info) const
+            {
+                assert(! info.root);
+                info.root = & Ctti<typename Type::Root, typename Type::Root::MetaInfo>::meta()->info;
+                log << "@ init_meta_info --> " << info << endl;
+            }
+    };
+
+    template<class Type>
+    struct init_meta_info<Type, m_S> {
+        void operator() (m_S& info) const
+            {
+                assert(! info.size);
+                info.size = sizeof(Type);
+                info.put  = & Type::constructor;
+                info.clr  = & Type::destructor;
+                log << "@ init_meta_info --> " << info << endl;
+            }
+    };
+}
+
+// ===========================================================================
+
+template<class Info>
+ostream& print_meta_info (ostream& os)
+{
+    for (const Meta<Info>* meta = Meta<Info>::registry(); meta; meta = meta->next)
+        os << "  #" << meta->indx << " " << meta->info << endl;
+    return os;
+}
+
+void print_meta_info ()
+{
+    print_meta_info<mSM>(log << "@ mSM" << endl);
+    print_meta_info<mOS>(log << "@ mOS" << endl);
+    print_meta_info<mAS>(log << "@ mAS" << endl);
+    print_meta_info<m_S>(log << "@ m_S" << endl);
+}
+
 // ***************************************************************************
+
+#define SIZE_(n)    char __reserve[(n) - _EMPTY_SIZE];
 
 struct A;   // FORWARD: SM's init state
 struct SM : machine<SM, /*init*/A> { SM(){} ~SM(){} };
 
-struct A : state<A, SM> { A(){} ~A(){} };
+struct A : state<A, SM> { A(){} ~A(){} SIZE_(20) };
 
 // ===========================================================================
 
 int main ()
 {
-    SM  sm;
-    log << "### " << __FUNCTION__ << endl;
+    log << string(65, '=') << endl;
+    print_meta_info();
+    log << "### START " << string(50, '-') << " " << __FUNCTION__ << endl;
+    {
+        //SM  sm;
+    }
+    log << "#### STOP " << string(50, '-') << " " << __FUNCTION__ << endl;
+    print_meta_info();
 }
 
