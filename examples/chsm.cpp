@@ -1,6 +1,7 @@
 // chsm.cpp
 
 #include "coe-kernel.h"
+#include "coe-session.h"
 
 #include <string>
 #include <iostream>
@@ -427,6 +428,68 @@ struct Common<Nil, Lst> {
 template<>
 struct Common<Nil, Nil> {
     typedef Nil type;
+};
+
+// ===========================================================================
+// Session_<...>
+//
+// specializations. policies don't work with Session since they operate on the same level
+
+template<class _Self,
+         class _StartArgs = Nil>
+class Session_ : public Session {
+public:
+    SiD start_session (Kernel& kernel,                  ValParam_<_StartArgs> arg);
+    SiD start_session (Kernel& kernel, Session& parent, ValParam_<_StartArgs> arg);
+    SiD start_session (Kernel& kernel,                  RefParam_<_StartArgs> arg);
+    SiD start_session (Kernel& kernel, Session& parent, RefParam_<_StartArgs> arg);
+protected:
+    typedef Session_ SESSION_;
+    Session_ (typename handler_type<_StartArgs>::template mem_fun<_Self>::type fun)
+        : Session(handler(static_cast<_Self&>(*this), fun)) {}
+};
+template<class _Self>
+class Session_<_Self, Nil> : public Session {
+public:
+    SiD start_session (Kernel& kernel);
+    SiD start_session (Kernel& kernel, Session& parent);
+protected:
+    typedef Session_ SESSION_;
+    Session_ (typename handler_type<Nil>::template mem_fun<_Self>::type fun)
+        : Session(handler(static_cast<_Self&>(*this), fun)) {}
+};
+
+// ------------------------------------
+// ... examples
+
+class MySes0 : public Session_<MySes0> {
+public:
+    static SiD spawn (Kernel& kernel)
+        {
+            //return (new MySes0)->start_session(kernel, vparam(int(1)));
+            //return (new MySes0)->start_session(kernel, vparam(short(1)));
+            //return (new MySes0)->start_session(kernel, (EventArg*)0);
+            return (new MySes0)->start_session(kernel);                         //XXX only that works!
+        }
+private:
+    MySes0 () : SESSION_(&MySes0::_start) {}
+    void _start (Kernel&);
+};
+
+// ----------------
+
+class MySes1 : public Session_<MySes1, List1<int>::type> {
+public:
+    static SiD spawn (Kernel& kernel)
+        {
+            return (new MySes1)->start_session(kernel, vparam(int(1)));         //XXX only that works!
+            //return (new MySes1)->start_session(kernel, vparam(short(1)));
+            //return (new MySes1)->start_session(kernel, (EventArg*)0);
+            //return (new MySes1)->start_session(kernel);
+        }
+private:
+    MySes1 () : SESSION_(&MySes1::_start) {}
+    void _start (Kernel&, int&);
 };
 
 // ===========================================================================
