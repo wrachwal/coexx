@@ -10,6 +10,8 @@ using namespace coe;
 
 ostream&    log = cout;
 
+namespace coe { string demangle (const type_info&); }   // coe--util.h
+
 // ===========================================================================
 // meta info
 
@@ -133,6 +135,7 @@ class aComposition_Policy<_Self, _Parent, false> {
     };
 
 public:
+    enum { LEVEL = (_Parent::LEVEL + 1) };
     typedef          _Self              SELF;
     typedef          _Parent            PARENT;
     typedef typename _Parent::ROOT      ROOT;
@@ -159,6 +162,7 @@ protected:
 template<class _Self, class _Parent>
 class aComposition_Policy<_Self, _Parent, true> {
 public:
+    enum { LEVEL = 0 };
     typedef _Self   SELF;
     typedef _Self   ROOT;
     typedef _Parent MACHINE;
@@ -379,6 +383,63 @@ class transition {
     char tmp[64];
 };
 
+// ------------------------------------
+// state_path<State>
+
+template<class State, int Level = State::LEVEL>
+struct state_path {
+    typedef Cons<State, typename state_path<typename State::PARENT>::type> type;
+};
+
+template<class Root>
+struct state_path<Root, 0> {
+    typedef Cons<Root, Nil> type;
+};
+
+// ------------------------------------
+// Reverse<List>
+
+template<class, class> struct Reverse_Acc;
+template<class Acc>
+struct Reverse_Acc<Nil, Acc> {
+    typedef Acc type;
+};
+template<class Head, class Tail, class Acc>
+struct Reverse_Acc<Cons<Head, Tail>, Acc> {
+    typedef typename Reverse_Acc<Tail, Cons<Head, Acc> >::type type;
+};
+// ------
+template<class List>
+struct Reverse {
+    typedef typename Reverse_Acc<List, Nil>::type type;
+};
+
+// ------------------------------------
+// Common<Lst1, Lst2>
+
+template<class Lst1, class Lst2>
+struct Common;
+template<class H1, class T1, class H2, class T2>
+struct Common<Cons<H1, T1>, Cons<H2, T2> > {
+    typedef Nil type;
+};
+template<class H, class T1, class T2>
+struct Common<Cons<H, T1>, Cons<H, T2> > {
+    typedef Cons<H, typename Common<T1, T2>::type> type;
+};
+template<class Lst>
+struct Common<Lst, Nil> {
+    typedef Nil type;
+};
+template<class Lst>
+struct Common<Nil, Lst> {
+    typedef Nil type;
+};
+template<>
+struct Common<Nil, Nil> {
+    typedef Nil type;
+};
+
 // ===========================================================================
 
 template<class Info>
@@ -395,6 +456,26 @@ void print_meta_info ()
     print_meta_info<mOS>(log << "@ mOS" << endl);
     print_meta_info<mAS>(log << "@ mAS" << endl);
     print_meta_info<mBS>(log << "@ mBS" << endl);
+}
+
+// ------------------------------------
+
+ostream& operator<< (ostream& os, const ArgI& arg)
+{
+    const type_info*    ti = arg.type.ptr();
+    if (ti)
+        os << demangle(*ti);
+    else
+        os << '?';
+    return os;
+}
+
+ostream& operator<< (ostream& os, const ArgListI& arglist)
+{
+    os << '[';
+    for (size_t i = 0; i < arglist.len; ++i)
+        os << (i ? ", " : "") << arglist.arg[i]->info;
+    return os << ']';
 }
 
 // ***************************************************************************
@@ -497,6 +578,13 @@ struct MySes {
 
 // ===========================================================================
 
+#define EVAL_(expr) do { cout << #expr << " |--> " << (expr) << endl; } while(0)
+#define PRINT_LIST_(list) do { cout << #list << " |--> " << Ctti<list, ArgListI>::meta()->info << endl; } while(0)
+
+struct A_ {};
+struct B_ {};
+struct C_ {};
+
 int main ()
 {
     log << string(65, '=') << endl;
@@ -513,5 +601,28 @@ int main ()
 
     transition<ev1, Dest, MySes, &MySes::on_ev1>    trans1;
     cout << "transition<>:))))) = " << sizeof(trans1) << endl;
+
+    EVAL_((Ctti<Reverse<state_path<sm2a::F1>::type>::type, ArgListI>::meta()->info));
+    ///
+    PRINT_LIST_(Reverse<state_path<sm2a::F1>::type>::type);
+    PRINT_LIST_(Nil);
+    PRINT_LIST_(Reverse<Nil>::type);
+    PRINT_LIST_(Reverse<state_path<sm2b::SM2b::OUT::B::F::F1>::type>::type);
+    PRINT_LIST_(Reverse<state_path<sm2a::D1>::type>::type);
+    PRINT_LIST_(Reverse<state_path<sm2a::D3_2>::type>::type);
+
+    typedef Reverse<state_path<sm2a::D1>::type>::type   to__D1;
+    typedef Reverse<state_path<sm2a::D3_2>::type>::type to__D3_2;
+
+    PRINT_LIST_(to__D1);
+    PRINT_LIST_(to__D3_2);
+
+    EVAL_((Ctti<Common<to__D1, to__D3_2>::type, ArgListI>::meta()->info));
+
+    //XXX RESTRICTION: One cannot use classes defined locally, i.e. main()::A_ :(
+    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List3<C_,B_,A_>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List3<A_,C_,B_>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List3<A_,B_,C_>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List4<A_,B_,C_,A_>::type>::type, ArgListI>::meta()->info));
 }
 

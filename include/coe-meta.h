@@ -44,6 +44,7 @@ public:
     bool operator== (const TypeInfo& rhs) const { return *_ti == *rhs._ti; }    //FIXME NULL CASE!!!
     bool operator!= (const TypeInfo& rhs) const { return *_ti != *rhs._ti; }    //FIXME NULL CASE!!!
     const char* name () const { return _ti ? _ti->name() : 0; }
+    const std::type_info* ptr () const { return _ti; }
 private:
     const std::type_info*   _ti;
 };
