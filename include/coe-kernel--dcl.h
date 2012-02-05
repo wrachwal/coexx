@@ -296,154 +296,19 @@ private:
 };
 
 // ---------------------------------------------------------------------------
-// Handler_<ARGS, N>
-
-template<class ARGS, int N = Length<ARGS>::value> class Handler_;
-
-// ------------------------------------
+// Handler_<ARGS>
 
 template<class ARGS>
-class Handler_<ARGS, 1> {
+class Handler_ {
     HandlerX    _handler;
 public:
     operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
     Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(1, A, &a))) : _handler(fun) {}
+    Handler_ (typename handler_type<ARGS>::fun_type fun)
+        : _handler(fun) {}
     template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(1, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 2> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(2, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(2, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 3> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    typedef typename Nth<2, ARGS>::type A3;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(3, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(3, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 4> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    typedef typename Nth<2, ARGS>::type A3;
-    typedef typename Nth<3, ARGS>::type A4;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(4, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(4, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 5> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    typedef typename Nth<2, ARGS>::type A3;
-    typedef typename Nth<3, ARGS>::type A4;
-    typedef typename Nth<4, ARGS>::type A5;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(5, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(5, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 6> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    typedef typename Nth<2, ARGS>::type A3;
-    typedef typename Nth<3, ARGS>::type A4;
-    typedef typename Nth<4, ARGS>::type A5;
-    typedef typename Nth<5, ARGS>::type A6;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(6, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(6, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 7> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    typedef typename Nth<2, ARGS>::type A3;
-    typedef typename Nth<3, ARGS>::type A4;
-    typedef typename Nth<4, ARGS>::type A5;
-    typedef typename Nth<5, ARGS>::type A6;
-    typedef typename Nth<6, ARGS>::type A7;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(7, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(7, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 8> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    typedef typename Nth<2, ARGS>::type A3;
-    typedef typename Nth<3, ARGS>::type A4;
-    typedef typename Nth<4, ARGS>::type A5;
-    typedef typename Nth<5, ARGS>::type A6;
-    typedef typename Nth<6, ARGS>::type A7;
-    typedef typename Nth<7, ARGS>::type A8;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(8, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(8, A, &a))) : _handler(obj, fun) {}
-};
-
-template<class ARGS>
-class Handler_<ARGS, 9> {
-    HandlerX    _handler;
-public:
-    operator HandlerX () const { return _handler; }
-    typedef typename Nth<0, ARGS>::type A1;
-    typedef typename Nth<1, ARGS>::type A2;
-    typedef typename Nth<2, ARGS>::type A3;
-    typedef typename Nth<3, ARGS>::type A4;
-    typedef typename Nth<4, ARGS>::type A5;
-    typedef typename Nth<5, ARGS>::type A6;
-    typedef typename Nth<6, ARGS>::type A7;
-    typedef typename Nth<7, ARGS>::type A8;
-    typedef typename Nth<8, ARGS>::type A9;
-    Handler_ () {}
-    Handler_ (void (*fun)(Kernel&, COE_TA(9, A, &a))) : _handler(fun) {}
-    template<class Obj>
-    Handler_ (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(9, A, &a))) : _handler(obj, fun) {}
+    Handler_ (Obj& obj, typename handler_type<ARGS>::template mem_fun<Obj>::type fun)
+        : _handler(obj, fun) {}
 };
 
 // ---------------------------------------------------------------------------
