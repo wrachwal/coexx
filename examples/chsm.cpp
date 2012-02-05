@@ -300,7 +300,10 @@ namespace coe {
 // ===========================================================================
 // typedefs used to define reactions typedef utilized at compile time
 
-template<class Ev, class Dest, class Obj, typename Ev::template mem_fun<Obj>::type fun>
+template<class Ev,
+         class Dest,
+         class Obj,
+         typename handler_type<typename Ev::args_type>::template mem_fun<Obj>::type fun>
 class transition {
     char tmp[64];
 };
