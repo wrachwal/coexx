@@ -180,7 +180,7 @@ public:
 private:
     const META& _meta;
 public: /// DEBUG
-    enum { _EMPTY_SIZE = sizeof(&_meta) };
+    enum { _EMPTY_SIZE = sizeof(META*) };
 };
 
 // ------------------------------------
