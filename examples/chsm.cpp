@@ -100,17 +100,6 @@ ostream& operator<< (ostream& os, const mXS& xs) { return xs.print(os); }
 
 // ===========================================================================
 
-template<class _Root> struct RootStatePolicy { typedef _Root ROOT; };
-template<>            struct RootStatePolicy<void> {};
-
-template<class _Init> struct InitStatePolicy { typedef _Init INIT; };
-template<>            struct InitStatePolicy<void> {};
-
-template<class _InitList> struct InitListStatesPolicy { typedef _InitList INIT_LIST; };
-template<>                struct InitListStatesPolicy<void> {};
-
-// ---------------------------------------------------------------------------
-
 template<class _Self,
          class _Parent,
          bool _isRoot = meta::IsSame_<typename _Parent::META, mSM>::value>
@@ -181,10 +170,10 @@ protected:
 // ===========================================================================
 // machine<>
 
-template<class _Self, class _Root = void>
-class machine
-    :   public RootStatePolicy<_Root> {
+template<class _Self, class _Root>
+class machine {
 public:
+    typedef _Root ROOT;
     machine ()
         :   _meta(Ctti<_Self, mSM>::meta()->info)
         {
@@ -201,11 +190,11 @@ public: /// DEBUG
 // ------------------------------------
 // or_state<>
 
-template<class _Self, class _Parent, class _Init = void>
+template<class _Self, class _Parent, class _Init>
 class or_state
-    :   public InitStatePolicy<_Init>
-    ,   public aComposition_Policy<_Self, _Parent> {
+    :   public aComposition_Policy<_Self, _Parent> {
 public:
+    typedef _Init INIT;
     or_state ()
         {
             log << __FUNCTION__ << endl;
@@ -229,11 +218,11 @@ public: /// DEBUG
 // ------------------------------------
 // and_state<>
 
-template<class _Self, class _Parent, class _InitList = void>
+template<class _Self, class _Parent, class _InitList>
 class and_state
-    :   public InitListStatesPolicy<_InitList>
-    ,   public aComposition_Policy<_Self, _Parent> {
+    :   public aComposition_Policy<_Self, _Parent> {
 public:
+    typedef _InitList INIT_LIST;
     and_state ()
         {
             log << __FUNCTION__ << endl;
@@ -481,7 +470,7 @@ ostream& operator<< (ostream& os, const ArgListI& arglist)
 // ***************************************************************************
 // 'SM2' revisited
 
-namespace sm2a {
+namespace sm2 {
 
 struct OUT;
 struct A;
@@ -494,8 +483,8 @@ struct E1;
 struct F;
 struct F1;
 
-struct SM2a : machine<SM2a, OUT> {};
-struct OUT : or_state<OUT, SM2a, A> {};
+struct SM2 : machine<SM2, OUT> {};
+struct OUT : or_state<OUT, SM2, A> {};
 struct A : or_state<A, OUT, C> {};
 struct C : or_state<C, A, C1> {};
 struct C1 : state<C1, C> {};
@@ -514,59 +503,7 @@ struct F : or_state<F, B, F1> {};   // shallow-history
 struct F1 : state<F1, F> {};
 struct F2 : state<F2, F> {};
 
-} // namespace sm2a
-
-// ---------------------------------------------------------------------------
-// other way to structure a state machine
-
-namespace sm2b {
-
-struct SM2b : machine<SM2b> {
-    typedef struct OUT : or_state<OUT, SM2b> {
-        struct B;   ///XXX forwarding will be necessary
-        typedef struct A : or_state<A, OUT> {
-            typedef struct C : or_state<C, A> {
-                typedef struct C1 : state<C1, C> {} INIT;
-                struct C2 : state<C2, C> {};
-            } INIT;
-            struct D : or_state<D, A> {         // deep-history
-                typedef struct D1 : state<D1, D> {} INIT;
-                struct D2 : state<D2, D> {};
-                struct D3 : or_state<D3, D> {
-                    typedef struct D3_1 : state<D3_1, D3> {} INIT;
-                    struct D3_2 : state<D3_2, D3> {};
-                    void access (SM2b& sm, OUT& out, A& a)
-                        {
-                            sm.xxx  = 1;
-                            out.qqq = 2;
-                            a.aaa   = 3;
-                        }
-                    //XXX if we want use types defined later :(
-                    typedef B elsewhere_B;
-                };
-            };
-        private:
-            int aaa;
-        } INIT;
-        struct B : and_state<B, OUT> {
-            typedef struct E : or_state<E, B> {
-                typedef struct E1 : state<E1, E> {} INIT;
-                struct E2 : state<E2, E> {};
-            } INIT;
-            struct F : or_state<F, B> {         // shallow-history
-                typedef struct F1 : state<F1, F> {} INIT;
-                struct F2 : state<F2, F> {};
-            };
-            typedef List2<E, F>::type INIT_LIST;
-        };
-    private:
-        int qqq;
-    } ROOT;
-private:
-    int xxx;
-};
-
-} // namespace sm2b
+} // namespace sm2
 
 // ---------------------------------------------------------------------------
 
@@ -591,10 +528,7 @@ int main ()
     print_meta_info();
     log << "*** START " << string(50, '-') << " " << __FUNCTION__ << endl;
     {
-        sm2a::SM2a  sm2a;
-    }
-    {
-        sm2b::SM2b  sm2b;
+        sm2::SM2    sm2;
     }
     log << "**** STOP " << string(50, '-') << " " << __FUNCTION__ << endl;
     print_meta_info();
@@ -602,17 +536,16 @@ int main ()
     transition<ev1, Dest, MySes, &MySes::on_ev1>    trans1;
     cout << "transition<>:))))) = " << sizeof(trans1) << endl;
 
-    EVAL_((Ctti<Reverse<state_path<sm2a::F1>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Ctti<Reverse<state_path<sm2::F1>::type>::type, ArgListI>::meta()->info));
     ///
-    PRINT_LIST_(Reverse<state_path<sm2a::F1>::type>::type);
+    PRINT_LIST_(Reverse<state_path<sm2::F1>::type>::type);
     PRINT_LIST_(Nil);
     PRINT_LIST_(Reverse<Nil>::type);
-    PRINT_LIST_(Reverse<state_path<sm2b::SM2b::OUT::B::F::F1>::type>::type);
-    PRINT_LIST_(Reverse<state_path<sm2a::D1>::type>::type);
-    PRINT_LIST_(Reverse<state_path<sm2a::D3_2>::type>::type);
+    PRINT_LIST_(Reverse<state_path<sm2::D1>::type>::type);
+    PRINT_LIST_(Reverse<state_path<sm2::D3_2>::type>::type);
 
-    typedef Reverse<state_path<sm2a::D1>::type>::type   to__D1;
-    typedef Reverse<state_path<sm2a::D3_2>::type>::type to__D3_2;
+    typedef Reverse<state_path<sm2::D1>::type>::type    to__D1;
+    typedef Reverse<state_path<sm2::D3_2>::type>::type  to__D3_2;
 
     PRINT_LIST_(to__D1);
     PRINT_LIST_(to__D3_2);
