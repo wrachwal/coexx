@@ -17,9 +17,10 @@ enum eSTATE { e_S = 0, eOS = 1, eAS = 2 };
 
 struct mSM; // of machine<>
 struct mXS; // of ...state<>
+struct mCS; // of "composition"_state<>
 struct mOS; // of or_state<>
 struct mAS; // of and_state<>
-struct m_S; // of state<>
+struct mBS; // of "basic"state<>
 
 struct mSM {
     mSM () : root(0) {}
@@ -31,10 +32,11 @@ struct mSM {
 };
 
 struct mXS {
-    mXS () : sm(0), par(0), size(0), put(0), clr(0) {}
+    mXS () : sm(0), par(0), next(0), size(0), put(0), clr(0) {}
     virtual ~mXS () {}
     virtual eSTATE type () const = 0;
-    virtual ostream& print (ostream& os) const ///=0 XXX???
+    virtual ostream& print (ostream& os) const = 0;
+    ostream& _print (ostream& os) const
         {
             return os << "mXS(sm=" << sm << " par=" << par
                 << " size=" << size
@@ -43,34 +45,49 @@ struct mXS {
             << ")";
         }
     const mSM*  sm;
-    const mXS*  par;
+    const mCS*  par;
+    const mXS*  next;
     size_t      size;
     void (*put)(void*);
     void (*clr)(void*);
 };
 
-struct mOS : mXS {
-    mOS () : init(0), chld(0) {}
+struct mCS : mXS {
+    mCS () : chld(0) {}
+    ostream& _print (ostream& os) const
+        {
+            mXS::_print(os << "mCS(") << " chld=[";
+            for (const mXS* xs = chld; xs; xs = xs->next)
+                os << (xs == chld ? "" : " ") << xs;
+            return os << "])";
+        }
+    const mXS*  chld;
+};
+
+struct mOS : mCS {
+    mOS () : init(0) {}
     eSTATE type () const { return eOS; }
     ostream& print (ostream& os) const
         {
-            return mXS::print(os << this << "=mOS(") << " init=" << init << " chld=?)";
+            return mCS::_print(os << this << "=mOS(") << " init=" << init << ")";
         }
     const mXS*  init;
-    const mXS*  chld;
 };
 
-struct mAS : mXS {
-    mAS () : chld(0) {}
+struct mAS : mCS {
+    mAS () {}
     eSTATE type () const { return eAS; }
-    const mXS*  chld;
+    ostream& print (ostream& os) const
+        {
+            return mCS::_print(os << this << "=mAS(") << ")";
+        }
 };
 
-struct m_S : mXS {
+struct mBS : mXS {
     eSTATE type () const { return e_S; }
     ostream& print (ostream& os) const
         {
-            return mXS::print(os << this << "=m_S(") << ")";
+            return mXS::_print(os << this << "=mBS(") << ")";
         }
 };
 
@@ -196,6 +213,35 @@ public: /// DEBUG
 };
 
 // ------------------------------------
+// and_state<>
+
+template<class _Self, class _Parent, class _InitList>
+class and_state
+    :   public aComposition_Policy<_Self, _Parent> {
+public:
+    typedef _InitList   INIT_LIST;
+
+    and_state ()
+        {
+            log << __FUNCTION__ << endl;
+        }
+    typedef mAS META;
+
+private:
+    template<class, class> friend struct init_meta_info;
+    static void constructor (void* ptr) //TODO: (Kernel&) ???
+        {
+            new (ptr) _Self;
+        }
+    static void destructor (void* ptr)
+        {
+            static_cast<_Self*>(ptr)->~_Self();
+        }
+public: /// DEBUG
+    enum { _EMPTY_SIZE = 0 };
+};
+
+// ------------------------------------
 // state<>
 
 template<class _Self, class _Parent>
@@ -209,7 +255,7 @@ public:
         {
             log << __FUNCTION__ << endl;
         }
-    typedef m_S META;
+    typedef mBS META;
 
 private:
     template<class, class> friend struct init_meta_info;
@@ -226,6 +272,7 @@ public: /// DEBUG
 };
 
 // ---------------------------------------------------------------------------
+// coe::init_meta_info<Type, (mSM|mOS|mBS)>
 
 template<class _State>
 struct init_state_meta_ {
@@ -235,14 +282,16 @@ struct init_state_meta_ {
             {
                 info.par = & Ctti<typename _State::PARENT,
                                   typename _State::PARENT::META>::meta()->info;
-                info.sm  = info.par->sm;
+                info.next = info.par->chld;
+                const_cast<mCS*>(info.par)->chld = &info;
+                info.sm = info.par->sm;
             }
     };
     struct parent_is_machine {
         static void apply (mXS& info)
             {
                 assert(! info.par);
-                info.sm  = & Ctti<typename _State::MACHINE, mSM>::meta()->info;
+                info.sm = & Ctti<typename _State::MACHINE, mSM>::meta()->info;
             }
     };
 
@@ -284,8 +333,21 @@ namespace coe {
     };
 
     template<class Type>
-    struct init_meta_info<Type, m_S> {
-        void operator() (m_S& info) const
+    struct init_meta_info<Type, mAS> {
+        void operator() (mAS& info) const
+            {
+                assert(! info.size);
+                init_state_meta_<Type>::apply(info);    ///
+                info.size = sizeof(Type);
+                info.put  = & Type::constructor;
+                info.clr  = & Type::destructor;
+                log << "@ init_meta_info --> " << info << endl;
+            }
+    };
+
+    template<class Type>
+    struct init_meta_info<Type, mBS> {
+        void operator() (mBS& info) const
             {
                 assert(! info.size);
                 init_state_meta_<Type>::apply(info);    ///
@@ -323,25 +385,47 @@ void print_meta_info ()
     print_meta_info<mSM>(log << "@ mSM" << endl);
     print_meta_info<mOS>(log << "@ mOS" << endl);
     print_meta_info<mAS>(log << "@ mAS" << endl);
-    print_meta_info<m_S>(log << "@ m_S" << endl);
+    print_meta_info<mBS>(log << "@ mBS" << endl);
 }
 
 // ***************************************************************************
+// 'SM2' revisited
 
-#define SIZE_(n)    char __reserve[(n) - _EMPTY_SIZE];
+struct OUT;
+struct A;
+struct C;
+struct C1;
+struct D1;
+struct D3_1;
+struct E;
+struct E1;
+struct F;
+struct F1;
 
-struct A;   // FORWARD: SM's init state
-struct SM : machine<SM, /*init*/A> { SM(){} ~SM(){} };
+struct SM2 : machine<SM2, OUT> {};
+struct OUT : or_state<OUT, SM2, A> {};
+struct A : or_state<A, OUT, C> {};
+struct C : or_state<C, A, C1> {};
+struct C1 : state<C1, C> {};
+struct C2 : state<C2, C> {};
+struct D : or_state<D, A, D1> {};   // deep-history
+struct D1 : state<D1, D> {};
+struct D2 : state<D2, D> {};
+struct D3 : or_state<D3, D, D3_1> {};
+struct D3_1 : state<D3_1, D> {};
+struct D3_2 : state<D3_2, D> {};
+struct B : and_state<B, OUT, List2<E, F> > {};
+struct E : or_state<E, B, E1> {};
+struct E1 : state<E1, E> {};
+struct E2 : state<E2, E> {};
+struct F : or_state<F, B, F1> {};   // shallow-history
+struct F1 : state<F1, F> {};
+struct F2 : state<F2, F> {};
 
-struct C;   // FORWARD: A's init state
-struct A : or_state<A, SM, C> { A(){} ~A(){} SIZE_(20) };
-
-struct C : state<C, A> { C(){} ~C(){} SIZE_(12); };
-
-// ------------------------------------
+// ---------------------------------------------------------------------------
 
 struct ev1 : event<short> {};
-
+struct Dest {};
 struct MySes {
     void on_ev1 (Kernel&, short&);
 };
@@ -354,12 +438,12 @@ int main ()
     print_meta_info();
     log << "*** START " << string(50, '-') << " " << __FUNCTION__ << endl;
     {
-        //SM  sm;
+        SM2 sm;
     }
     log << "**** STOP " << string(50, '-') << " " << __FUNCTION__ << endl;
     print_meta_info();
 
-    transition<ev1, A, MySes, &MySes::on_ev1>   trans1;
+    transition<ev1, Dest, MySes, &MySes::on_ev1>    trans1;
     cout << "transition<>:))))) = " << sizeof(trans1) << endl;
 }
 
