@@ -400,6 +400,8 @@ void print_meta_info ()
 // ***************************************************************************
 // 'SM2' revisited
 
+namespace sm2a {
+
 struct OUT;
 struct A;
 struct C;
@@ -431,11 +433,16 @@ struct F : or_state<F, B, F1> {};   // shallow-history
 struct F1 : state<F1, F> {};
 struct F2 : state<F2, F> {};
 
+} // namespace sm2a
+
 // ---------------------------------------------------------------------------
 // other way to structure a state machine
 
+namespace sm2b {
+
 struct SM2b : machine<SM2b> {
     typedef struct OUT : or_state<OUT, SM2b> {
+        struct B;   ///XXX forwarding will be necessary
         typedef struct A : or_state<A, OUT> {
             typedef struct C : or_state<C, A> {
                 typedef struct C1 : state<C1, C> {} INIT;
@@ -453,6 +460,8 @@ struct SM2b : machine<SM2b> {
                             out.qqq = 2;
                             a.aaa   = 3;
                         }
+                    //XXX if we want use types defined later :(
+                    typedef B elsewhere_B;
                 };
             };
         private:
@@ -476,6 +485,8 @@ private:
     int xxx;
 };
 
+} // namespace sm2b
+
 // ---------------------------------------------------------------------------
 
 struct ev1 : event<short> {};
@@ -492,10 +503,10 @@ int main ()
     print_meta_info();
     log << "*** START " << string(50, '-') << " " << __FUNCTION__ << endl;
     {
-        SM2a    sm2a;
+        sm2a::SM2a  sm2a;
     }
     {
-        SM2b    sm2b;
+        sm2b::SM2b  sm2b;
     }
     log << "**** STOP " << string(50, '-') << " " << __FUNCTION__ << endl;
     print_meta_info();
