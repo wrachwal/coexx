@@ -166,35 +166,77 @@ struct event;
 
 // ------------------------------------
 
+class Kernel;
+
 template<>                              struct event<COE_X(10, void)> {
     typedef Nil args_type;
+    typedef void (*fun_type)(Kernel&);
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&);
+    };
 };
 template<COE_T(1, class A)> struct event<COE_T(1, A), COE_X(9, void)> {
     typedef typename List1<COE_T(1, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(1, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(1, A, &a));
+    };
 };
 template<COE_T(2, class A)> struct event<COE_T(2, A), COE_X(8, void)> {
     typedef typename List2<COE_T(2, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(2, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(2, A, &a));
+    };
 };
 template<COE_T(3, class A)> struct event<COE_T(3, A), COE_X(7, void)> {
     typedef typename List3<COE_T(3, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(3, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(3, A, &a));
+    };
 };
 template<COE_T(4, class A)> struct event<COE_T(4, A), COE_X(6, void)> {
     typedef typename List4<COE_T(4, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(4, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(4, A, &a));
+    };
 };
 template<COE_T(5, class A)> struct event<COE_T(5, A), COE_X(5, void)> {
     typedef typename List5<COE_T(5, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(5, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(5, A, &a));
+    };
 };
 template<COE_T(6, class A)> struct event<COE_T(6, A), COE_X(4, void)> {
     typedef typename List6<COE_T(6, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(6, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(6, A, &a));
+    };
 };
 template<COE_T(7, class A)> struct event<COE_T(7, A), COE_X(3, void)> {
     typedef typename List7<COE_T(7, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(7, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(7, A, &a));
+    };
 };
 template<COE_T(8, class A)> struct event<COE_T(8, A), COE_X(2, void)> {
     typedef typename List8<COE_T(8, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(8, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(8, A, &a));
+    };
 };
 template<COE_T(9, class A)> struct event<COE_T(9, A), COE_X(1, void)> {
     typedef typename List9<COE_T(9, A)>::type args_type;
+    typedef void (*fun_type)(Kernel&, COE_TA(9, A, &a));
+    template<class Obj> struct mem_fun {
+        typedef void (Obj::*type)(Kernel&, COE_TA(9, A, &a));
+    };
 };
 
 // ===========================================================================

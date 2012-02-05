@@ -298,6 +298,14 @@ namespace coe {
 }
 
 // ===========================================================================
+// typedefs used to define reactions typedef utilized at compile time
+
+template<class Ev, class Dest, class Obj, typename Ev::template mem_fun<Obj>::type fun>
+class transition {
+    char tmp[64];
+};
+
+// ===========================================================================
 
 template<class Info>
 ostream& print_meta_info (ostream& os)
@@ -327,6 +335,14 @@ struct A : or_state<A, SM, C> { A(){} ~A(){} SIZE_(20) };
 
 struct C : state<C, A> { C(){} ~C(){} SIZE_(12); };
 
+// ------------------------------------
+
+struct ev1 : event<short> {};
+
+struct MySes {
+    void on_ev1 (Kernel&, short&);
+};
+
 // ===========================================================================
 
 int main ()
@@ -339,5 +355,8 @@ int main ()
     }
     log << "**** STOP " << string(50, '-') << " " << __FUNCTION__ << endl;
     print_meta_info();
+
+    transition<ev1, A, MySes, &MySes::on_ev1>   trans1;
+    cout << "transition<>:))))) = " << sizeof(trans1) << endl;
 }
 
