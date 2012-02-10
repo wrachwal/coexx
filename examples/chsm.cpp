@@ -508,7 +508,7 @@ ostream& operator<< (ostream& os, const ArgListI& arglist)
 {
     os << '[';
     for (size_t i = 0; i < arglist.len; ++i)
-        os << (i ? ", " : "") << arglist.arg[i]->info;
+        os << (i ? ", " : "") << *arglist.arg[i];
     return os << ']';
 }
 

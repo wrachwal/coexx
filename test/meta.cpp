@@ -44,7 +44,7 @@ struct and_state {
             log << "and_state<"
                 << Ctti<Self,   ArgI>::meta()->info.type.name() << ","
                 << Ctti<Parent, ArgI>::meta()->info.type.name() << ","
-                << Ctti<InitList, ArgListI>::meta()->info.arg[0]->info.type.name() << "...>"
+                << Ctti<InitList, ArgListI>::meta()->info.arg[0]->type.name() << "...>"
                 << endl;
             typename InitList::car_type init;   // instantiating all impossible this way
         }
@@ -122,8 +122,8 @@ int main ()
     for (const Meta<ArgListI>* ml = Meta<ArgListI>::registry(); ml; ml = ml->next) {
         cout << "ArgListI#" << ml->indx << " -- args (" << ml->info.len << ")" << endl;
         for (size_t i = 0; i < ml->info.len; ++i) {
-            const Meta<ArgI>    *ma = ml->info.arg[i];
-            cout << "  - [" << i << "] -- " << ma->info.type.name() << " #" << ma->indx << endl;
+            const ArgI* ma = ml->info.arg[i];
+            cout << "  - [" << i << "] -- " << ma->type.name() << " #" << ma->iid << endl;
         }
     }
 

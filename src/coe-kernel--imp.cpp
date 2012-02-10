@@ -69,9 +69,9 @@ const _TypeDN* _TypeDN::_register (_TypeDN* type)
 // ------------------------------------
 #endif
 
-bool coe::syntax_check (const Meta<ArgListI>* hT,
-                        const Meta<ArgListI>* xT,
-                        const Meta<ArgListI>* aT)
+bool coe::syntax_check (const ArgListI* hT,
+                        const ArgListI* xT,
+                        const ArgListI* aT)
 {
     if (NULL == xT) {
         return (hT == aT);
@@ -79,19 +79,19 @@ bool coe::syntax_check (const Meta<ArgListI>* hT,
     if (NULL == aT) {
         return (hT == xT);
     }
-    if (NULL == hT || hT->info.len != xT->info.len + aT->info.len) {
+    if (NULL == hT || hT->len != xT->len + aT->len) {
         return false;
     }
 
     size_t i = 0;
-    while (i < xT->info.len) {
-        if (hT->info.arg[i]->info.type != xT->info.arg[i]->info.type) {
+    while (i < xT->len) {
+        if (hT->arg[i]->type != xT->arg[i]->type) {
             return false;
         }
         ++i;
     }
-    for (size_t j = 0; j < aT->info.len; ++j, ++i) {
-        if (hT->info.arg[i]->info.type != aT->info.arg[j]->info.type) {
+    for (size_t j = 0; j < aT->len; ++j, ++i) {
+        if (hT->arg[i]->type != aT->arg[j]->type) {
             return false;
         }
     }
@@ -134,7 +134,7 @@ void HandlerX::execute (Kernel& kernel, void* arg[]) const
             (_obj->*_fun.m0)(kernel);
         }
         else {
-            switch (_tdn->info.len) {
+            switch (_tdn->len) {
                 case 1:
                     (_obj->*_fun.m1)(
                         kernel,
@@ -233,7 +233,7 @@ void HandlerX::execute (Kernel& kernel, void* arg[]) const
             (*_fun.g0)(kernel);
         }
         else {
-            switch (_tdn->info.len) {
+            switch (_tdn->len) {
                 case 1:
                     (*_fun.g1)(
                         kernel,

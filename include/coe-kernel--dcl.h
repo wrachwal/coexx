@@ -59,21 +59,21 @@ struct init_meta_info<Type, ArgI> {
 // ArgListI
 
 struct ArgListI {
-    const Meta<ArgI>**  arg;
-    size_t              len;
-    size_t              iid;    // info identity >= 1
+    const ArgI**    arg;
+    size_t          len;
+    size_t          iid;    // info identity >= 1
 };
 
 template<class List> struct assign_arg_info;
 template<>
 struct assign_arg_info<Nil> {
-    static void apply (const Meta<ArgI>**) {}
+    static void apply (const ArgI**) {}
 };
 template<class Head, class Tail>
 struct assign_arg_info<Cons<Head, Tail> > {
-    static void apply (const Meta<ArgI>** argi)
+    static void apply (const ArgI** argi)
         {
-            *argi = Ctti<Head, ArgI>::meta();
+            *argi = & Ctti<Head, ArgI>::meta()->info;
             assign_arg_info<Tail>::apply(++argi);
         }
 };
@@ -82,7 +82,7 @@ template<class List>
 struct init_meta_info<List, ArgListI> {
     void operator() (ArgListI& info) const
         {
-            static const Meta<ArgI>*    args[Length<List>::value + 1/*NULL*/];
+            static const ArgI*  args[Length<List>::value + 1/*NULL*/];
             info.iid = Meta<ArgListI>::head_indx();
             info.arg = args;
             info.len = Length<List>::value;
@@ -92,9 +92,9 @@ struct init_meta_info<List, ArgListI> {
 
 // ------------------------------------
 
-bool syntax_check (const Meta<ArgListI>* hT,
-                   const Meta<ArgListI>* xT,
-                   const Meta<ArgListI>* aT);
+bool syntax_check (const ArgListI* hT,
+                   const ArgListI* xT,
+                   const ArgListI* aT);
 
 // ===========================================================================
 // ValParam_<ARGS>
@@ -152,7 +152,7 @@ public:
         }
     bool operator!= (const HandlerX& rhs) const { return ! operator==(rhs); }
 
-    const Meta<ArgListI>* par_type () const { return _tdn; }
+    const ArgListI* par_type () const { return _tdn; }
 
     void execute (Kernel& kernel, void* arg[]) const;
 
@@ -183,52 +183,62 @@ public:
 
     template<class Obj>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&))
-        : _obj((_Obj*)&obj), _tdn(0)
+        : _obj((_Obj*)&obj)
+        , _tdn(0)
         { _fun.m0 = MFun0(fun); }
 
     template<class Obj, COE_T(1, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(1, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List1<COE_T(1, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List1<COE_T(1, A)>::type, ArgListI>::meta()->info)
         { _fun.m1 = MFun1(fun); }
 
     template<class Obj, COE_T(2, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(2, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List2<COE_T(2, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List2<COE_T(2, A)>::type, ArgListI>::meta()->info)
         { _fun.m2 = MFun2(fun); }
 
     template<class Obj, COE_T(3, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(3, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List3<COE_T(3, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List3<COE_T(3, A)>::type, ArgListI>::meta()->info)
         { _fun.m3 = MFun3(fun); }
 
     template<class Obj, COE_T(4, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(4, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List4<COE_T(4, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List4<COE_T(4, A)>::type, ArgListI>::meta()->info)
         { _fun.m4 = MFun4(fun); }
 
     template<class Obj, COE_T(5, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(5, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List5<COE_T(5, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List5<COE_T(5, A)>::type, ArgListI>::meta()->info)
         { _fun.m5 = MFun5(fun); }
 
     template<class Obj, COE_T(6, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(6, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List6<COE_T(6, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List6<COE_T(6, A)>::type, ArgListI>::meta()->info)
         { _fun.m6 = MFun6(fun); }
 
     template<class Obj, COE_T(7, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(7, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List7<COE_T(7, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List7<COE_T(7, A)>::type, ArgListI>::meta()->info)
         { _fun.m7 = MFun7(fun); }
 
     template<class Obj, COE_T(8, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(8, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List8<COE_T(8, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List8<COE_T(8, A)>::type, ArgListI>::meta()->info)
         { _fun.m8 = MFun8(fun); }
 
     template<class Obj, COE_T(9, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(9, A, &a)))
-        : _obj((_Obj*)&obj), _tdn(Ctti<typename List9<COE_T(9, A)>::type, ArgListI>::meta())
+        : _obj((_Obj*)&obj)
+        , _tdn(& Ctti<typename List9<COE_T(9, A)>::type, ArgListI>::meta()->info)
         { _fun.m9 = MFun9(fun); }
 
     // --------------------------------
@@ -239,47 +249,47 @@ public:
 
     template<COE_T(1, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(1, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List1<COE_T(1, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List1<COE_T(1, A)>::type, ArgListI>::meta()->info)
         { _fun.g1 = GFun1(fun); }
 
     template<COE_T(2, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(2, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List2<COE_T(2, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List2<COE_T(2, A)>::type, ArgListI>::meta()->info)
         { _fun.g2 = GFun2(fun); }
 
     template<COE_T(3, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(3, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List3<COE_T(3, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List3<COE_T(3, A)>::type, ArgListI>::meta()->info)
         { _fun.g3 = GFun3(fun); }
 
     template<COE_T(4, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(4, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List4<COE_T(4, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List4<COE_T(4, A)>::type, ArgListI>::meta()->info)
         { _fun.g4 = GFun4(fun); }
 
     template<COE_T(5, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(5, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List5<COE_T(5, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List5<COE_T(5, A)>::type, ArgListI>::meta()->info)
         { _fun.g5 = GFun5(fun); }
 
     template<COE_T(6, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(6, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List6<COE_T(6, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List6<COE_T(6, A)>::type, ArgListI>::meta()->info)
         { _fun.g6 = GFun6(fun); }
 
     template<COE_T(7, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(7, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List7<COE_T(7, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List7<COE_T(7, A)>::type, ArgListI>::meta()->info)
         { _fun.g7 = GFun7(fun); }
 
     template<COE_T(8, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(8, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List8<COE_T(8, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List8<COE_T(8, A)>::type, ArgListI>::meta()->info)
         { _fun.g8 = GFun8(fun); }
 
     template<COE_T(9, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(9, A, &a)))
-        : _obj(0), _tdn(Ctti<typename List9<COE_T(9, A)>::type, ArgListI>::meta())
+        : _obj(0), _tdn(& Ctti<typename List9<COE_T(9, A)>::type, ArgListI>::meta()->info)
         { _fun.g9 = GFun9(fun); }
 
 private:
@@ -294,9 +304,9 @@ private:
         MFun7 m7; GFun7 g7;
         MFun8 m8; GFun8 g8;
         MFun9 m9; GFun9 g9;
-    }                       _fun;
-    _Obj*                   _obj;
-    const Meta<ArgListI>*   _tdn;
+    }               _fun;
+    _Obj*           _obj;
+    const ArgListI* _tdn;
 };
 
 // ---------------------------------------------------------------------------

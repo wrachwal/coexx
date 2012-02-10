@@ -48,7 +48,7 @@ struct ExecuteContext {
 
     ~ExecuteContext ();
 
-    void        prefix (const Meta<ArgListI>* type, void* pval[]);
+    void        prefix (const ArgListI* type, void* pval[]);
     void locked_prefix (ValParam* vp);
 
     void        argument (EventArg* ea);
@@ -71,7 +71,7 @@ struct ExecuteContext {
 
     Handler0            continuation;
 
-    const Meta<ArgListI>*   pfx_type;
+    const ArgListI*     pfx_type;
     void**              pfx_pval;
     ValParam*           pfx_locked;
 

@@ -188,7 +188,7 @@ ExecuteContext::~ExecuteContext ()
 
 // ---------------------------------------------------------------------------
 
-void ExecuteContext::prefix (const Meta<ArgListI>* type, void* pval[])
+void ExecuteContext::prefix (const ArgListI* type, void* pval[])
 {
     assert(NULL == pfx_pval);
     pfx_type = type;
@@ -230,18 +230,18 @@ bool ExecuteContext::execute (Kernel& kernel, const HandlerX& handler)
     //
     // argptr[]
     //
-    size_t  len = pfx_type ? pfx_type->info.len : 0;
+    size_t  len = pfx_type ? pfx_type->len : 0;
 
     if (len) {
         copy(pfx_pval, pfx_pval + len, argptr);
     }
 
-    const Meta<ArgListI>*   aT = arg ? arg->arg_type() : NULL;
+    const ArgListI* aT = arg ? arg->arg_type() : NULL;
 
     if (arg) {
         void**  aV = arg->arg_list();
-        copy(aV, aV + aT->info.len, argptr + len);
-        len += aT->info.len;
+        copy(aV, aV + aT->len, argptr + len);
+        len += aT->len;
     }
 
     if (! handler) {
@@ -251,7 +251,7 @@ bool ExecuteContext::execute (Kernel& kernel, const HandlerX& handler)
         return false;
     }
 
-    const Meta<ArgListI>*   hT = handler.par_type();
+    const ArgListI* hT = handler.par_type();
 
     if (! syntax_check(hT, pfx_type, aT)) {
         cerr << "! ERROR: type mismatch\n";
