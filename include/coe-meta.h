@@ -57,7 +57,7 @@ template<class Type, class Info> struct init_meta_info;
 // ===========================================================================
 // Meta<Info>
 
-template<class, class> class Ctti;
+template<class, class> class Rtti;
 
 template<class Info>
 struct Meta : private _Noncopyable {
@@ -67,7 +67,7 @@ struct Meta : private _Noncopyable {
     static const Meta* registry () { return head; }
     static size_t head_indx () { return head ? head->indx : 0; }
 private:
-    template<class, class> friend class Ctti;
+    template<class, class> friend class Rtti;
     template<class Type>
     Meta (Type*) : next(head), indx(head_indx() + 1)
         {
@@ -83,10 +83,10 @@ template<class Info>
 Meta<Info>* Meta<Info>::head = 0;
 
 // ===========================================================================
-// Ctti<Type, Info>
+// Rtti<Type, Info>
 
 template<class Type, class Info>
-class Ctti {
+class Rtti {
 public:
     static const Meta<Info>* meta () { return &_meta; }
 private:
@@ -96,7 +96,7 @@ private:
 // ------------------------------------
 
 template<class Type, class Info>
-const Meta<Info> Ctti<Type, Info>::_meta((Type*)0);
+const Meta<Info> Rtti<Type, Info>::_meta((Type*)0);
 
 // ===========================================================================
 

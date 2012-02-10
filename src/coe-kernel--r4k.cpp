@@ -482,7 +482,7 @@ void r4Kernel::dispatch_evio (EvIO* evio)
         IO_Ctx  ioctx(evio->fd(), evio->mode());
         void*   pfx[] = { &ioctx };
 
-        run.prefix(& Ctti<List1<IO_Ctx>::type, ArgListI>::meta()->info, pfx);
+        run.prefix(& Rtti<List1<IO_Ctx>::type, ArgListI>::meta()->info, pfx);
         run.locked_argument(evio->arg());
 
         run.execute(*_handle, find_state_handler(session->_sid.id(), evio->name()));

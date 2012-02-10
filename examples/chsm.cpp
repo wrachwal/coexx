@@ -176,7 +176,7 @@ class machine {
 public:
     typedef _Root ROOT;
     machine ()
-        :   _meta(Ctti<_Self, mSM>::meta()->info)
+        :   _meta(Rtti<_Self, mSM>::meta()->info)
         {
             log << __FUNCTION__ << endl;
         }
@@ -283,7 +283,7 @@ struct init_state_meta_ {
     struct parent_is_state {
         static void apply (mXS& info)
             {
-                info.par = & Ctti<typename _State::PARENT,
+                info.par = & Rtti<typename _State::PARENT,
                                   typename _State::PARENT::META>::meta()->info;
                 info.next = info.par->chld;
                 const_cast<mCS*>(info.par)->chld = &info;
@@ -294,7 +294,7 @@ struct init_state_meta_ {
         static void apply (mXS& info)
             {
                 assert(! info.par);
-                info.sm = & Ctti<typename _State::MACHINE, mSM>::meta()->info;
+                info.sm = & Rtti<typename _State::MACHINE, mSM>::meta()->info;
             }
     };
 
@@ -316,7 +316,7 @@ namespace coe {
         void operator() (mSM& info) const
             {
                 assert(! info.root);
-                info.root = & Ctti<typename Type::ROOT, typename Type::ROOT::META>::meta()->info;
+                info.root = & Rtti<typename Type::ROOT, typename Type::ROOT::META>::meta()->info;
                 log << "@ init_meta_info --> " << info << endl;
             }
     };
@@ -330,7 +330,7 @@ namespace coe {
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
-                info.init = & Ctti<typename Type::INIT, typename Type::INIT::META>::meta()->info;
+                info.init = & Rtti<typename Type::INIT, typename Type::INIT::META>::meta()->info;
                 log << "@ init_meta_info --> " << info << endl;
             }
     };
@@ -587,7 +587,7 @@ struct MySes {
 // ===========================================================================
 
 #define EVAL_(expr) do { cout << #expr << " |--> " << (expr) << endl; } while(0)
-#define PRINT_LIST_(list) do { cout << #list << " |--> " << Ctti<list, ArgListI>::meta()->info << endl; } while(0)
+#define PRINT_LIST_(list) do { cout << #list << " |--> " << Rtti<list, ArgListI>::meta()->info << endl; } while(0)
 
 struct A_ {};
 struct B_ {};
@@ -607,7 +607,7 @@ int main ()
     transition<ev1, Dest, MySes, &MySes::on_ev1>    trans1;
     cout << "transition<>:))))) = " << sizeof(trans1) << endl;
 
-    EVAL_((Ctti<Reverse<state_path<sm2::F1>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Rtti<Reverse<state_path<sm2::F1>::type>::type, ArgListI>::meta()->info));
     ///
     PRINT_LIST_(Reverse<state_path<sm2::F1>::type>::type);
     PRINT_LIST_(Nil);
@@ -621,12 +621,12 @@ int main ()
     PRINT_LIST_(to__D1);
     PRINT_LIST_(to__D3_2);
 
-    EVAL_((Ctti<Common<to__D1, to__D3_2>::type, ArgListI>::meta()->info));
+    EVAL_((Rtti<Common<to__D1, to__D3_2>::type, ArgListI>::meta()->info));
 
     //XXX RESTRICTION: One cannot use classes defined locally, i.e. main()::A_ :(
-    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List3<C_,B_,A_>::type>::type, ArgListI>::meta()->info));
-    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List3<A_,C_,B_>::type>::type, ArgListI>::meta()->info));
-    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List3<A_,B_,C_>::type>::type, ArgListI>::meta()->info));
-    EVAL_((Ctti<Common<List3<A_,B_,C_>::type, List4<A_,B_,C_,A_>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Rtti<Common<List3<A_,B_,C_>::type, List3<C_,B_,A_>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Rtti<Common<List3<A_,B_,C_>::type, List3<A_,C_,B_>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Rtti<Common<List3<A_,B_,C_>::type, List3<A_,B_,C_>::type>::type, ArgListI>::meta()->info));
+    EVAL_((Rtti<Common<List3<A_,B_,C_>::type, List4<A_,B_,C_,A_>::type>::type, ArgListI>::meta()->info));
 }
 
