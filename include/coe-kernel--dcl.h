@@ -43,12 +43,14 @@ class Kernel;
 
 struct ArgI {
     TypeInfo    type;
+    size_t      iid;    // info identity >= 1
 };
 
 template<class Type>
 struct init_meta_info<Type, ArgI> {
     void operator() (ArgI& info) const
         {
+            info.iid  = Meta<ArgI>::head_indx();
             info.type = typeid(Type);
         }
 };
@@ -59,6 +61,7 @@ struct init_meta_info<Type, ArgI> {
 struct ArgListI {
     const Meta<ArgI>**  arg;
     size_t              len;
+    size_t              iid;    // info identity >= 1
 };
 
 template<class List> struct assign_arg_info;
@@ -79,10 +82,11 @@ template<class List>
 struct init_meta_info<List, ArgListI> {
     void operator() (ArgListI& info) const
         {
-            static const Meta<ArgI>*    args[Length<List>::value + 1];
+            static const Meta<ArgI>*    args[Length<List>::value + 1/*NULL*/];
+            info.iid = Meta<ArgListI>::head_indx();
             info.arg = args;
             info.len = Length<List>::value;
-            assign_arg_info<List>::apply(args);
+            assign_arg_info<List>::apply(args); // fill args recursively
         }
 };
 

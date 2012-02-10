@@ -494,24 +494,6 @@ private:
 
 // ===========================================================================
 
-template<class Info>
-ostream& print_meta_info (ostream& os)
-{
-    for (const Meta<Info>* meta = Meta<Info>::registry(); meta; meta = meta->next)
-        os << "  #" << meta->indx << " " << meta->info << endl;
-    return os;
-}
-
-void print_meta_info ()
-{
-    print_meta_info<mSM>(log << "@ mSM" << endl);
-    print_meta_info<mOS>(log << "@ mOS" << endl);
-    print_meta_info<mAS>(log << "@ mAS" << endl);
-    print_meta_info<mBS>(log << "@ mBS" << endl);
-}
-
-// ------------------------------------
-
 ostream& operator<< (ostream& os, const ArgI& arg)
 {
     const type_info*    ti = arg.type.ptr();
@@ -528,6 +510,32 @@ ostream& operator<< (ostream& os, const ArgListI& arglist)
     for (size_t i = 0; i < arglist.len; ++i)
         os << (i ? ", " : "") << arglist.arg[i]->info;
     return os << ']';
+}
+
+// ------------------------------------
+
+template<class Info>
+ostream& print_meta_info (ostream& os)
+{
+    for (const Meta<Info>* meta = Meta<Info>::registry(); meta; meta = meta->next)
+        os << "  #" << meta->indx << " " << meta->info << endl;
+    return os;
+}
+
+void print_meta_info ()
+{
+#if 1   /* check integrity of meta-info types which duplicated their identities */
+    for (const Meta<ArgI>* meta = Meta<ArgI>::registry(); meta; meta = meta->next)
+        assert(meta->indx == meta->info.iid);
+    for (const Meta<ArgListI>* meta = Meta<ArgListI>::registry(); meta; meta = meta->next)
+        assert(meta->indx == meta->info.iid);
+#endif
+    print_meta_info<ArgI>(log << "@ ArgI" << endl);
+    print_meta_info<ArgListI>(log << "@ ArgListI" << endl);
+    print_meta_info<mSM>(log << "@ mSM" << endl);
+    print_meta_info<mOS>(log << "@ mOS" << endl);
+    print_meta_info<mAS>(log << "@ mAS" << endl);
+    print_meta_info<mBS>(log << "@ mBS" << endl);
 }
 
 // ***************************************************************************

@@ -65,13 +65,14 @@ struct Meta : private _Noncopyable {
     size_t      indx;
     Info        info;
     static const Meta* registry () { return head; }
+    static size_t head_indx () { return head ? head->indx : 0; }
 private:
     template<class, class> friend class Ctti;
     template<class Type>
-    Meta (Type*) : next(head), indx(next ? next->indx + 1 : 1)
+    Meta (Type*) : next(head), indx(head_indx() + 1)
         {
-            init_meta_info<Type, Info>()(info);
             head = this;
+            init_meta_info<Type, Info>()(info);
         }
     static Meta*    head;
 };
