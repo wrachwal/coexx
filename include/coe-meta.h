@@ -83,9 +83,9 @@ template<class Info>
 Meta<Info>* Meta<Info>::head = 0;
 
 // ===========================================================================
-// Rtti<Type, Info>
+// Rtti<Info, Type>
 
-template<class Type, class Info>
+template<class Info, class Type>
 class Rtti {
 public:
     static const Meta<Info>* meta () { return &_meta; }
@@ -95,8 +95,8 @@ private:
 
 // ------------------------------------
 
-template<class Type, class Info>
-const Meta<Info> Rtti<Type, Info>::_meta((Type*)0);
+template<class Info, class Type>
+const Meta<Info> Rtti<Info, Type>::_meta((Type*)0);
 
 // ===========================================================================
 

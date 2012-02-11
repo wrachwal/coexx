@@ -73,7 +73,7 @@ template<class Head, class Tail>
 struct assign_arg_info<Cons<Head, Tail> > {
     static void apply (const ArgI** argi)
         {
-            *argi = & Rtti<Head, ArgI>::meta()->info;
+            *argi = & Rtti<ArgI, Head>::meta()->info;
             assign_arg_info<Tail>::apply(++argi);
         }
 };
@@ -190,55 +190,55 @@ public:
     template<class Obj, COE_T(1, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(1, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List1<COE_T(1, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List1<COE_T(1, A)>::type>::meta()->info)
         { _fun.m1 = MFun1(fun); }
 
     template<class Obj, COE_T(2, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(2, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List2<COE_T(2, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List2<COE_T(2, A)>::type>::meta()->info)
         { _fun.m2 = MFun2(fun); }
 
     template<class Obj, COE_T(3, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(3, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List3<COE_T(3, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List3<COE_T(3, A)>::type>::meta()->info)
         { _fun.m3 = MFun3(fun); }
 
     template<class Obj, COE_T(4, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(4, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List4<COE_T(4, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List4<COE_T(4, A)>::type>::meta()->info)
         { _fun.m4 = MFun4(fun); }
 
     template<class Obj, COE_T(5, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(5, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List5<COE_T(5, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List5<COE_T(5, A)>::type>::meta()->info)
         { _fun.m5 = MFun5(fun); }
 
     template<class Obj, COE_T(6, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(6, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List6<COE_T(6, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List6<COE_T(6, A)>::type>::meta()->info)
         { _fun.m6 = MFun6(fun); }
 
     template<class Obj, COE_T(7, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(7, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List7<COE_T(7, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List7<COE_T(7, A)>::type>::meta()->info)
         { _fun.m7 = MFun7(fun); }
 
     template<class Obj, COE_T(8, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(8, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List8<COE_T(8, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List8<COE_T(8, A)>::type>::meta()->info)
         { _fun.m8 = MFun8(fun); }
 
     template<class Obj, COE_T(9, class A)>
     HandlerX (Obj& obj, void (Obj::*fun)(Kernel&, COE_TA(9, A, &a)))
         : _obj((_Obj*)&obj)
-        , _tdn(& Rtti<typename List9<COE_T(9, A)>::type, ArgListI>::meta()->info)
+        , _tdn(& Rtti<ArgListI, typename List9<COE_T(9, A)>::type>::meta()->info)
         { _fun.m9 = MFun9(fun); }
 
     // --------------------------------
@@ -249,47 +249,47 @@ public:
 
     template<COE_T(1, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(1, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List1<COE_T(1, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List1<COE_T(1, A)>::type>::meta()->info)
         { _fun.g1 = GFun1(fun); }
 
     template<COE_T(2, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(2, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List2<COE_T(2, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List2<COE_T(2, A)>::type>::meta()->info)
         { _fun.g2 = GFun2(fun); }
 
     template<COE_T(3, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(3, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List3<COE_T(3, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List3<COE_T(3, A)>::type>::meta()->info)
         { _fun.g3 = GFun3(fun); }
 
     template<COE_T(4, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(4, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List4<COE_T(4, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List4<COE_T(4, A)>::type>::meta()->info)
         { _fun.g4 = GFun4(fun); }
 
     template<COE_T(5, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(5, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List5<COE_T(5, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List5<COE_T(5, A)>::type>::meta()->info)
         { _fun.g5 = GFun5(fun); }
 
     template<COE_T(6, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(6, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List6<COE_T(6, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List6<COE_T(6, A)>::type>::meta()->info)
         { _fun.g6 = GFun6(fun); }
 
     template<COE_T(7, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(7, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List7<COE_T(7, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List7<COE_T(7, A)>::type>::meta()->info)
         { _fun.g7 = GFun7(fun); }
 
     template<COE_T(8, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(8, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List8<COE_T(8, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List8<COE_T(8, A)>::type>::meta()->info)
         { _fun.g8 = GFun8(fun); }
 
     template<COE_T(9, class A)>
     HandlerX (void (*fun)(Kernel&, COE_TA(9, A, &a)))
-        : _obj(0), _tdn(& Rtti<typename List9<COE_T(9, A)>::type, ArgListI>::meta()->info)
+        : _obj(0), _tdn(& Rtti<ArgListI, typename List9<COE_T(9, A)>::type>::meta()->info)
         { _fun.g9 = GFun9(fun); }
 
 private:
