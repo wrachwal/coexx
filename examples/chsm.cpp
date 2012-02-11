@@ -31,8 +31,7 @@ struct mOS; // of or_state<>
 struct mAS; // of and_state<>
 struct mBS; // of "basic"state<>
 
-struct mSM {
-    mSM () : root(0), info(0) {}
+struct mSM : private _Noncopyable {
     const mXS*          root;
     const type_info*    info;
     string              name;
@@ -42,8 +41,7 @@ struct mSM {
         }
 };
 
-struct mXS {
-    mXS () : sm(0), par(0), next(0), level(-1), size(0), info(0), put(0), clr(0) {}
+struct mXS : private _Noncopyable {
     virtual ~mXS () {}
     virtual eSTATE type () const = 0;
     string path () const;
@@ -68,7 +66,14 @@ struct mXS {
 };
 
 struct mCS : mXS {
-    mCS () : chld(0) {}
+
+    //XXX IMPORTANT: Meta objects are initialized in more or less unpredictable
+    //order. So, if a meta object of a child state is initalized first, it's
+    //crucial to preserve what that child has setup in 'chld' of its (not yet
+    //initialized) parent. Therefore, esp. the 'chld' field cannot be
+    //initialized in the constructor (if defined). Fortunately, all data members
+    //of static objects are initially zero, so are pointers!
+
     ostream& _print (ostream& os) const
         {
             mXS::_print(os << "mCS(") << " chld=[";
@@ -80,7 +85,6 @@ struct mCS : mXS {
 };
 
 struct mOS : mCS {
-    mOS () : init(0), hist(NO_HISTORY) {}
     eSTATE type () const { return eOS; }
     ostream& print (ostream& os) const
         {
@@ -93,7 +97,6 @@ struct mOS : mCS {
 };
 
 struct mAS : mCS {
-    mAS () {}
     eSTATE type () const { return eAS; }
     ostream& print (ostream& os) const
         {
@@ -315,10 +318,10 @@ struct init_state_meta_ {
             {
                 info.par = & Rtti<typename _State::PARENT::META,
                                   typename _State::PARENT>::meta()->info;
+                cout << "### parent " << info.par << endl;
                 info.next = info.par->chld;
                 const_cast<mCS*>(info.par)->chld = &info;
                 info.sm = info.par->sm;
-                info.level = info.par->level + 1;
             }
     };
     struct parent_is_machine {
@@ -326,7 +329,6 @@ struct init_state_meta_ {
             {
                 assert(! info.par);
                 info.sm = & Rtti<mSM, typename _State::MACHINE>::meta()->info;
-                info.level = 0;
             }
     };
 
@@ -374,12 +376,12 @@ namespace coe {
     struct init_meta_info<mOS, Type> {
         void operator() (mOS& info) const
             {
+                cout << ">>> BEG -- " << &info << " " << demangle(typeid(Type)) << endl;
                 assert(! info.size);
                 info.info = &typeid(Type);
                 info.name = demangle(*info.info);
                 init_state_meta_<Type>::apply(info);    ///
-                cout << info.name << " ### L-vs-l : " << Type::LEVEL << " <-> " << info.level << endl;
-                //assert(Type::LEVEL == info.level);
+                info.level = Type::LEVEL;
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
@@ -387,6 +389,7 @@ namespace coe {
                                    typename Type::INIT>::meta()->info;
                 info.hist = Type::history();
                 log << "@ init_meta_info --> " << info << endl;
+                cout << "<<< END -- " << demangle(typeid(Type)) << endl;
             }
     };
 
@@ -394,17 +397,18 @@ namespace coe {
     struct init_meta_info<mAS, Type> {
         void operator() (mAS& info) const
             {
+                cout << ">>> BEG -- " << &info << " " << demangle(typeid(Type)) << endl;
                 assert(! info.size);
                 info.info = &typeid(Type);
                 info.name = demangle(*info.info);
                 init_state_meta_<Type>::apply(info);    ///
-                cout << info.name << " ### L-vs-l : " << Type::LEVEL << " <-> " << info.level << endl;
-                //assert(Type::LEVEL == info.level);
+                info.level = Type::LEVEL;
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
                 log << "@ init_meta_info --> " << info << endl;
                 force_init_kids_<typename Type::INIT_LIST>::apply();
+                cout << "<<< END -- " << demangle(typeid(Type)) << endl;
             }
     };
 
@@ -412,16 +416,17 @@ namespace coe {
     struct init_meta_info<mBS, Type> {
         void operator() (mBS& info) const
             {
+                cout << ">>> BEG -- " << &info << " " << demangle(typeid(Type)) << endl;
                 assert(! info.size);
                 info.info = &typeid(Type);
                 info.name = demangle(*info.info);
                 init_state_meta_<Type>::apply(info);    ///
-                cout << info.name << " ### L-vs-l : " << Type::LEVEL << " <-> " << info.level << endl;
-                //assert(Type::LEVEL == info.level);
+                info.level = Type::LEVEL;
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
                 log << "@ init_meta_info --> " << info << endl;
+                cout << "<<< END -- " << demangle(typeid(Type)) << endl;
             }
     };
 }
@@ -684,8 +689,8 @@ struct F2 : state<F2, F> {};
 
 } // namespace sm2
 
-///
-sm2::SM2::SM2() { B b; F2 f2; }
+/// -- force all states to be present
+sm2::SM2::SM2() { B b; F2 f2; E2 e2; D3_2 d3_2; D2 d2; C2 c2; }
 
 // ---------------------------------------------------------------------------
 
