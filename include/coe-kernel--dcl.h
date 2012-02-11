@@ -47,7 +47,7 @@ struct ArgI {
 };
 
 template<class Type>
-struct init_meta_info<Type, ArgI> {
+struct init_meta_info<ArgI, Type> {
     void operator() (ArgI& info) const
         {
             info.iid  = Meta<ArgI>::head_indx();
@@ -79,7 +79,7 @@ struct assign_arg_info<Cons<Head, Tail> > {
 };
 
 template<class List>
-struct init_meta_info<List, ArgListI> {
+struct init_meta_info<ArgListI, List> {
     void operator() (ArgListI& info) const
         {
             static const ArgI*  args[Length<List>::value + 1/*NULL*/];

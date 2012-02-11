@@ -50,9 +50,9 @@ private:
 };
 
 // ===========================================================================
-// init_meta_info<Type, Info>
+// init_meta_info<Info, Type>
 
-template<class Type, class Info> struct init_meta_info;
+template<class Info, class Type> struct init_meta_info;
 
 // ===========================================================================
 // Meta<Info>
@@ -72,7 +72,7 @@ private:
     Meta (Type*) : next(head), indx(head_indx() + 1)
         {
             head = this;
-            init_meta_info<Type, Info>()(info);
+            init_meta_info<Info, Type>()(info);
         }
     static Meta*    head;
 };

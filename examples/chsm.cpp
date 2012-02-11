@@ -275,7 +275,7 @@ public: /// DEBUG
 };
 
 // ---------------------------------------------------------------------------
-// coe::init_meta_info<Type, (mSM|mOS|mBS)>
+// coe::init_meta_info<(mSM|mOS|mBS), Type>
 
 template<class _State>
 struct init_state_meta_ {
@@ -312,7 +312,7 @@ struct init_state_meta_ {
 namespace coe {
 
     template<class Type>
-    struct init_meta_info<Type, mSM> {
+    struct init_meta_info<mSM, Type> {
         void operator() (mSM& info) const
             {
                 assert(! info.root);
@@ -323,7 +323,7 @@ namespace coe {
     };
 
     template<class Type>
-    struct init_meta_info<Type, mOS> {
+    struct init_meta_info<mOS, Type> {
         void operator() (mOS& info) const
             {
                 assert(! info.size);
@@ -338,7 +338,7 @@ namespace coe {
     };
 
     template<class Type>
-    struct init_meta_info<Type, mAS> {
+    struct init_meta_info<mAS, Type> {
         void operator() (mAS& info) const
             {
                 assert(! info.size);
@@ -351,7 +351,7 @@ namespace coe {
     };
 
     template<class Type>
-    struct init_meta_info<Type, mBS> {
+    struct init_meta_info<mBS, Type> {
         void operator() (mBS& info) const
             {
                 assert(! info.size);
