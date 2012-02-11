@@ -31,43 +31,7 @@ THE SOFTWARE.
 using namespace std;
 using namespace coe;
 
-#if 0
 // ===========================================================================
-// _TypeD
-
-const _TypeD* _TypeD::_register (_TypeD* type)
-{
-    static _TypeD*  head = NULL;
-
-    if (NULL != type) {
-        assert(NULL == type->next);
-        type->pos  = head ? head->pos + 1 : 0;
-        type->next = head;
-        head = type;
-    }
-
-    return head;
-}
-
-// ===========================================================================
-// _TypeDN
-
-const _TypeDN* _TypeDN::_register (_TypeDN* type)
-{
-    static _TypeDN* head = NULL;
-
-    if (NULL != type) {
-        assert(NULL == type->next);
-        type->pos  = head ? head->pos + 1 : 0;
-        type->next = head;
-        head = type;
-    }
-
-    return head;
-}
-
-// ------------------------------------
-#endif
 
 bool coe::syntax_check (const ArgListI* hT,
                         const ArgListI* xT,
