@@ -18,6 +18,12 @@ namespace coe { string demangle (const type_info&); }   // coe--util.h
 
 enum eSTATE { e_S = 0, eOS = 1, eAS = 2 };
 
+enum History {
+    NO_HISTORY      = 0,
+    SHALLOW_HISTORY = 1,
+    DEEP_HISTORY    = 2
+};
+
 struct mSM; // of machine<>
 struct mXS; // of ...state<>
 struct mCS; // of "composition"_state<>
@@ -26,8 +32,10 @@ struct mAS; // of and_state<>
 struct mBS; // of "basic"state<>
 
 struct mSM {
-    mSM () : root(0) {}
-    const mXS*  root;
+    mSM () : root(0), info(0) {}
+    const mXS*          root;
+    const type_info*    info;
+    string              name;
     ostream& print (ostream& os) const
         {
             return os << this << "=mSM(root=" << root << ")";
@@ -35,9 +43,10 @@ struct mSM {
 };
 
 struct mXS {
-    mXS () : sm(0), par(0), next(0), size(0), put(0), clr(0) {}
+    mXS () : sm(0), par(0), next(0), level(-1), size(0), info(0), put(0), clr(0) {}
     virtual ~mXS () {}
     virtual eSTATE type () const = 0;
+    string path () const;
     virtual ostream& print (ostream& os) const = 0;
     ostream& _print (ostream& os) const
         {
@@ -47,10 +56,13 @@ struct mXS {
                 << " clr=" << (void*)clr
             << ")";
         }
-    const mSM*  sm;
-    const mCS*  par;
-    const mXS*  next;
-    size_t      size;
+    const mSM*          sm;
+    const mCS*          par;
+    const mXS*          next;
+    int                 level;
+    size_t              size;
+    const type_info*    info;
+    string              name;
     void (*put)(void*);
     void (*clr)(void*);
 };
@@ -68,13 +80,16 @@ struct mCS : mXS {
 };
 
 struct mOS : mCS {
-    mOS () : init(0) {}
+    mOS () : init(0), hist(NO_HISTORY) {}
     eSTATE type () const { return eOS; }
     ostream& print (ostream& os) const
         {
-            return mCS::_print(os << this << "=mOS(") << " init=" << init << ")";
+            static const char* hs[] = { "no", "H", "H*" };
+            return mCS::_print(os << this << "=mOS(")
+                << " init=" << init << " hist=" << hs[hist] << ")";
         }
     const mXS*  init;
+    History     hist;
 };
 
 struct mAS : mCS {
@@ -96,18 +111,17 @@ struct mBS : mXS {
 
 // ------------------------------------
 
+string mXS::path () const { return par ? par->path() + '.' + name : name; }
+
+// ------------------------------------
+
 ostream& operator<< (ostream& os, const mSM& sm) { return sm.print(os); }
 ostream& operator<< (ostream& os, const mXS& xs) { return xs.print(os); }
 
 // ===========================================================================
 
-template<class _Self,
-         class _Parent,
-         bool _isRoot = meta::IsSame_<typename _Parent::META, mSM>::value>
-class aComposition_Policy;
-
-template<class _Self, class _Parent>
-class aComposition_Policy<_Self, _Parent, false> {
+template<class _Self, class _Parent, class _Meta = typename _Parent::META>
+class aComposition_Policy {
 
     // local metafunctions
     struct this_context_imp {
@@ -150,7 +164,7 @@ protected:
 };
 
 template<class _Self, class _Parent>
-class aComposition_Policy<_Self, _Parent, true> {
+class aComposition_Policy<_Self, _Parent, mSM> {
 public:
     enum { LEVEL = 0 };
     typedef _Self   SELF;
@@ -189,18 +203,30 @@ public: /// DEBUG
 };
 
 // ------------------------------------
+// any_state
+
+class any_state {
+public:
+    virtual ~any_state () {}
+    virtual const mXS& meta () const = 0;
+};
+
+// ------------------------------------
 // or_state<>
 
-template<class _Self, class _Parent, class _Init>
+template<class _Self, class _Parent, class _Init, History _history = NO_HISTORY>
 class or_state
-    :   public aComposition_Policy<_Self, _Parent> {
+    :   public any_state
+    ,   public aComposition_Policy<_Self, _Parent> {
 public:
     typedef _Init INIT;
     or_state ()
         {
             log << __FUNCTION__ << endl;
         }
+    static History history () { return _history; }  //TODO part of dedicated Policy class
     typedef mOS META;
+    const META& meta () const { return Rtti<META, _Self>::meta()->info; }
 
 private:
     template<class, class> friend struct init_meta_info;
@@ -221,7 +247,8 @@ public: /// DEBUG
 
 template<class _Self, class _Parent, class _InitList>
 class and_state
-    :   public aComposition_Policy<_Self, _Parent> {
+    :   public any_state
+    ,   public aComposition_Policy<_Self, _Parent> {
 public:
     typedef _InitList INIT_LIST;
     and_state ()
@@ -229,6 +256,7 @@ public:
             log << __FUNCTION__ << endl;
         }
     typedef mAS META;
+    const META& meta () const { return Rtti<META, _Self>::meta()->info; }
 
 private:
     template<class, class> friend struct init_meta_info;
@@ -249,7 +277,8 @@ public: /// DEBUG
 
 template<class _Self, class _Parent>
 class state
-    :   public aComposition_Policy<_Self, _Parent> {
+    :   public any_state
+    ,   public aComposition_Policy<_Self, _Parent> {
 public:
     //XXX _Parent can be either:
     // - composite state (and | or)
@@ -259,6 +288,7 @@ public:
             log << __FUNCTION__ << endl;
         }
     typedef mBS META;
+    const META& meta () const { return Rtti<META, _Self>::meta()->info; }
 
 private:
     template<class, class> friend struct init_meta_info;
@@ -288,6 +318,7 @@ struct init_state_meta_ {
                 info.next = info.par->chld;
                 const_cast<mCS*>(info.par)->chld = &info;
                 info.sm = info.par->sm;
+                info.level = info.par->level + 1;
             }
     };
     struct parent_is_machine {
@@ -295,6 +326,7 @@ struct init_state_meta_ {
             {
                 assert(! info.par);
                 info.sm = & Rtti<mSM, typename _State::MACHINE>::meta()->info;
+                info.level = 0;
             }
     };
 
@@ -304,7 +336,21 @@ struct init_state_meta_ {
                                        parent_is_machine,
                                        parent_is_state>::type   imp;
             imp::apply(info);
+            assert(NULL != info.info);
         }
+};
+
+template<class _List> struct force_init_kids_;
+template<>
+struct force_init_kids_<Nil> {
+    static void apply () {}
+};
+template<class H, class T>
+struct force_init_kids_<Cons<H, T> > {
+    static void apply () {
+        (void) Rtti<typename H::META, H>::meta();
+        force_init_kids_<T>::apply();
+    }
 };
 
 // ------------------------------------
@@ -318,6 +364,8 @@ namespace coe {
                 assert(! info.root);
                 info.root = & Rtti<typename Type::ROOT::META,
                                    typename Type::ROOT>::meta()->info;
+                info.info = &typeid(Type);
+                info.name = demangle(*info.info);
                 log << "@ init_meta_info --> " << info << endl;
             }
     };
@@ -327,12 +375,17 @@ namespace coe {
         void operator() (mOS& info) const
             {
                 assert(! info.size);
+                info.info = &typeid(Type);
+                info.name = demangle(*info.info);
                 init_state_meta_<Type>::apply(info);    ///
+                cout << info.name << " ### L-vs-l : " << Type::LEVEL << " <-> " << info.level << endl;
+                //assert(Type::LEVEL == info.level);
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
                 info.init = & Rtti<typename Type::INIT::META,
                                    typename Type::INIT>::meta()->info;
+                info.hist = Type::history();
                 log << "@ init_meta_info --> " << info << endl;
             }
     };
@@ -342,11 +395,16 @@ namespace coe {
         void operator() (mAS& info) const
             {
                 assert(! info.size);
+                info.info = &typeid(Type);
+                info.name = demangle(*info.info);
                 init_state_meta_<Type>::apply(info);    ///
+                cout << info.name << " ### L-vs-l : " << Type::LEVEL << " <-> " << info.level << endl;
+                //assert(Type::LEVEL == info.level);
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
                 log << "@ init_meta_info --> " << info << endl;
+                force_init_kids_<typename Type::INIT_LIST>::apply();
             }
     };
 
@@ -355,7 +413,11 @@ namespace coe {
         void operator() (mBS& info) const
             {
                 assert(! info.size);
+                info.info = &typeid(Type);
+                info.name = demangle(*info.info);
                 init_state_meta_<Type>::apply(info);    ///
+                cout << info.name << " ### L-vs-l : " << Type::LEVEL << " <-> " << info.level << endl;
+                //assert(Type::LEVEL == info.level);
                 info.size = sizeof(Type);
                 info.put  = & Type::constructor;
                 info.clr  = & Type::destructor;
@@ -516,6 +578,50 @@ ostream& operator<< (ostream& os, const ArgListI& arglist)
 
 // ------------------------------------
 
+static char state_symb (const mXS& xs)
+{
+    eSTATE  type = xs.type();
+    if      (e_S == type)   return '-';
+    else if (eAS == type)   return '&';
+    else {
+        assert(eOS == type);
+        const mOS&  os = static_cast<const mOS&>(xs);
+        if      (SHALLOW_HISTORY == os.hist)    return 'h';
+        else if (DEEP_HISTORY    == os.hist)    return 'H';
+        else {
+            assert(NO_HISTORY == os.hist);
+            return '|';
+        }
+    }
+}
+
+static void print_xs (ostream& os, const mXS& xs, bool init)
+{
+#if 0
+    os << state_symb(xs) << " " << xs.path() << (init ? " =" : "") << "\n";
+#else
+    os << state_symb(xs) << " " << string(xs.level * 2, ' ')
+       << xs.name << (init ? " @" : "") << "\n";
+#endif
+    eSTATE  type = xs.type();
+    if (e_S != type) {
+        const mCS&  comp = static_cast<const mCS&>(xs);
+        const mXS*  init_child = (eOS == type) ? static_cast<const mOS&>(xs).init : NULL;
+        for (const mXS* ch = comp.chld; ch; ch = ch->next) {
+            print_xs(os, *ch, (ch == init_child));
+        }
+    }
+}
+
+ostream& print_meta_machine (ostream& os, const mSM& sm)
+{
+    assert(NULL != sm.root);
+    print_xs(os, *sm.root, false);
+    return os;
+}
+
+// ------------------------------------
+
 template<class Info>
 ostream& print_meta_info (ostream& os)
 {
@@ -556,13 +662,13 @@ struct E1;
 struct F;
 struct F1;
 
-struct SM2 : machine<SM2, OUT> {};
+struct SM2 : machine<SM2, OUT> { SM2(); };
 struct OUT : or_state<OUT, SM2, A> {};
 struct A : or_state<A, OUT, C> {};
 struct C : or_state<C, A, C1> {};
 struct C1 : state<C1, C> {};
 struct C2 : state<C2, C> {};
-struct D : or_state<D, A, D1> {};   // deep-history
+struct D : or_state<D, A, D1, DEEP_HISTORY> {};
 struct D1 : state<D1, D> {};
 struct D2 : state<D2, D> {};
 struct D3 : or_state<D3, D, D3_1> {};
@@ -572,11 +678,14 @@ struct B : and_state<B, OUT, List2<E, F>::type> {};
 struct E : or_state<E, B, E1> {};
 struct E1 : state<E1, E> {};
 struct E2 : state<E2, E> {};
-struct F : or_state<F, B, F1> {};   // shallow-history
+struct F : or_state<F, B, F1, SHALLOW_HISTORY> {};
 struct F1 : state<F1, F> {};
 struct F2 : state<F2, F> {};
 
 } // namespace sm2
+
+///
+sm2::SM2::SM2() { B b; F2 f2; }
 
 // ---------------------------------------------------------------------------
 
@@ -630,5 +739,9 @@ int main ()
     EVAL_((Rtti<ArgListI, Common<List3<A_,B_,C_>::type, List3<A_,C_,B_>::type>::type>::meta()->info));
     EVAL_((Rtti<ArgListI, Common<List3<A_,B_,C_>::type, List3<A_,B_,C_>::type>::type>::meta()->info));
     EVAL_((Rtti<ArgListI, Common<List3<A_,B_,C_>::type, List4<A_,B_,C_,A_>::type>::type>::meta()->info));
+
+    for (const Meta<mSM>* meta = Meta<mSM>::registry(); meta; meta = meta->next) {
+        print_meta_machine(cout << "\n### ===== " << meta->info.name << "\n", meta->info) << endl;
+    }
 }
 

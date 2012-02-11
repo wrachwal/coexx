@@ -100,11 +100,22 @@ namespace meta {
 template<class X, class Y> struct IsSame_       { enum { value = false }; };
 template<class X>          struct IsSame_<X, X> { enum { value = true  }; };
 
-template<bool C, class T, class E> struct If_;
-template        <class T, class E> struct If_<true,  T, E> { typedef T type; };
+template<bool C, class T, class E> struct If_              { typedef T type; };
 template        <class T, class E> struct If_<false, T, E> { typedef E type; };
 
 } // namespace meta
+
+// ---------------------------------------------------------------------------
+// COE_STATIC_CHECK_ -- macro stolen from Alexandrescu's book
+
+template<bool> struct CompileTimeChecker {
+    CompileTimeChecker (...);
+};
+template<> struct CompileTimeChecker<false> {};
+#define COE_STATIC_CHECK_(expr, msg) do {                               \
+        class ERROR_##msg {};                                           \
+        (void)sizeof(CompileTimeChecker<(expr) != 0>((ERROR_##msg()))); \
+    } while(0)
 
 // ===========================================================================
 
