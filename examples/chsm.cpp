@@ -16,12 +16,13 @@ namespace coe { string demangle (const type_info&); }   // coe--util.h
 // ===========================================================================
 // meta info
 
-enum eSTATE { e_S = 0, eOS = 1, eAS = 2 };
+enum eSTATE { eBS = 0, eOS = 1, eAS = 2 };
 
 enum History {
-    NO_HISTORY      = 0,
-    SHALLOW_HISTORY = 1,
-    DEEP_HISTORY    = 2
+    NO_HISTORY          = 0,
+    SHALLOW_HISTORY     = 1,
+    DEEP_HISTORY        = 2,
+    INHERITED_HISTORY   = 3
 };
 
 struct mSM; // of machine<>
@@ -88,7 +89,7 @@ struct mOS : mCS {
     eSTATE type () const { return eOS; }
     ostream& print (ostream& os) const
         {
-            static const char* hs[] = { "no", "H", "H*" };
+            static const char* hs[] = { "no", "H", "H*", "h*" };
             return mCS::_print(os << this << "=mOS(")
                 << " init=" << init << " hist=" << hs[hist] << ")";
         }
@@ -105,7 +106,7 @@ struct mAS : mCS {
 };
 
 struct mBS : mXS {
-    eSTATE type () const { return e_S; }
+    eSTATE type () const { return eBS; }
     ostream& print (ostream& os) const
         {
             return mXS::_print(os << this << "=mBS(") << ")";
@@ -122,6 +123,20 @@ ostream& operator<< (ostream& os, const mSM& sm) { return sm.print(os); }
 ostream& operator<< (ostream& os, const mXS& xs) { return xs.print(os); }
 
 // ===========================================================================
+// state_path<State>
+
+template<class State, int Level = State::LEVEL>
+struct state_path {
+    typedef Cons<State, typename state_path<typename State::PARENT>::type> type;
+};
+
+template<class Root>
+struct state_path<Root, 0> {
+    typedef Cons<Root, Nil> type;
+};
+
+// ===========================================================================
+// aComposition_Policy<..>
 
 template<class _Self, class _Parent, class _Meta = typename _Parent::META>
 class aComposition_Policy {
@@ -172,6 +187,7 @@ public:
     enum { LEVEL = 0 };
     typedef _Self   SELF;
     typedef _Self   ROOT;
+    typedef _Parent PARENT;
     typedef _Parent MACHINE;
 
     template<class Context>
@@ -185,6 +201,52 @@ protected:
     ~aComposition_Policy () {}
 };
 
+// ---------------------------------------------------------------------------
+// HistoryPolicy<..>
+
+
+template<class _OrState, History _history = History(_OrState::_HISTORY_TYPE)>
+struct InheritHistoryPolicy {
+    enum { _HISTORY_TYPE = _history };
+};
+template<class _OrState>
+struct InheritHistoryPolicy<_OrState, SHALLOW_HISTORY> {
+    enum { _HISTORY_TYPE = NO_HISTORY };
+};
+template<class _OrState>
+struct InheritHistoryPolicy<_OrState, DEEP_HISTORY> {
+    typedef _OrState HISTORY_ROOT;
+    enum { _HISTORY_TYPE = INHERITED_HISTORY };
+};
+template<class _OrState>
+struct InheritHistoryPolicy<_OrState, INHERITED_HISTORY> {
+    typedef typename _OrState::HISTORY_ROOT HISTORY_ROOT;
+    enum { _HISTORY_TYPE = INHERITED_HISTORY };
+};
+
+// ---
+
+template<class _Parent, class _Meta = typename _Parent::META>
+struct ParentHistoryPolicy : ParentHistoryPolicy<typename _Parent::PARENT> {};
+template<class _Parent>
+struct ParentHistoryPolicy<_Parent, mOS> : InheritHistoryPolicy<_Parent> {};
+template<class _Parent>
+struct ParentHistoryPolicy<_Parent, mSM> {
+    enum { _HISTORY_TYPE = NO_HISTORY };
+};
+
+// ---
+
+template<class _Self, class _Parent, History _history>
+struct HistoryPolicy {
+    typedef _Self HISTORY_ROOT;
+    enum { _HISTORY_TYPE = _history };
+};
+template<class _Self, class _Parent>
+struct HistoryPolicy<_Self, _Parent, NO_HISTORY> : ParentHistoryPolicy<_Parent> {};
+template<class _Self, class _Parent>
+struct HistoryPolicy<_Self, _Parent, INHERITED_HISTORY> : ParentHistoryPolicy<_Parent> {};
+
 // ===========================================================================
 // machine<>
 
@@ -193,16 +255,11 @@ class machine {
 public:
     typedef _Root ROOT;
     machine ()
-        :   _meta(Rtti<mSM, _Self>::meta()->info)
         {
             log << __FUNCTION__ << endl;
         }
     typedef mSM META;
-
-private:
-    const META& _meta;
-public: /// DEBUG
-    enum { _EMPTY_SIZE = sizeof(META*) };
+    const META& meta () const { return Rtti<META, _Self>::meta()->info; }
 };
 
 // ------------------------------------
@@ -220,14 +277,14 @@ public:
 template<class _Self, class _Parent, class _Init, History _history = NO_HISTORY>
 class or_state
     :   public any_state
-    ,   public aComposition_Policy<_Self, _Parent> {
+    ,   public aComposition_Policy<_Self, _Parent>
+    ,   public HistoryPolicy<_Self, _Parent, _history> {
 public:
     typedef _Init INIT;
     or_state ()
         {
             log << __FUNCTION__ << endl;
         }
-    static History history () { return _history; }  //TODO part of dedicated Policy class
     typedef mOS META;
     const META& meta () const { return Rtti<META, _Self>::meta()->info; }
 
@@ -241,8 +298,6 @@ private:
         {
             static_cast<_Self*>(ptr)->~_Self();
         }
-public: /// DEBUG
-    enum { _EMPTY_SIZE = 0 };
 };
 
 // ------------------------------------
@@ -271,8 +326,6 @@ private:
         {
             static_cast<_Self*>(ptr)->~_Self();
         }
-public: /// DEBUG
-    enum { _EMPTY_SIZE = 0 };
 };
 
 // ------------------------------------
@@ -303,8 +356,6 @@ private:
         {
             static_cast<_Self*>(ptr)->~_Self();
         }
-public: /// DEBUG
-    enum { _EMPTY_SIZE = 0 };
 };
 
 // ---------------------------------------------------------------------------
@@ -387,7 +438,7 @@ namespace coe {
                 info.clr  = & Type::destructor;
                 info.init = & Rtti<typename Type::INIT::META,
                                    typename Type::INIT>::meta()->info;
-                info.hist = Type::history();
+                info.hist = History(Type::_HISTORY_TYPE);
                 log << "@ init_meta_info --> " << info << endl;
                 cout << "<<< END -- " << demangle(typeid(Type)) << endl;
             }
@@ -443,19 +494,6 @@ class transition {
 };
 
 // ------------------------------------
-// state_path<State>
-
-template<class State, int Level = State::LEVEL>
-struct state_path {
-    typedef Cons<State, typename state_path<typename State::PARENT>::type> type;
-};
-
-template<class Root>
-struct state_path<Root, 0> {
-    typedef Cons<Root, Nil> type;
-};
-
-// ------------------------------------
 // Reverse<List>
 
 template<class, class> struct Reverse_Acc;
@@ -464,14 +502,10 @@ struct Reverse_Acc<Nil, Acc> {
     typedef Acc type;
 };
 template<class Head, class Tail, class Acc>
-struct Reverse_Acc<Cons<Head, Tail>, Acc> {
-    typedef typename Reverse_Acc<Tail, Cons<Head, Acc> >::type type;
-};
+struct Reverse_Acc<Cons<Head, Tail>, Acc> : Reverse_Acc<Tail, Cons<Head, Acc> > {};
 // ------
 template<class List>
-struct Reverse {
-    typedef typename Reverse_Acc<List, Nil>::type type;
-};
+struct Reverse : Reverse_Acc<List, Nil> {};
 
 // ------------------------------------
 // Common<Lst1, Lst2>
@@ -585,18 +619,18 @@ ostream& operator<< (ostream& os, const ArgListI& arglist)
 
 static char state_symb (const mXS& xs)
 {
-    eSTATE  type = xs.type();
-    if      (e_S == type)   return '-';
-    else if (eAS == type)   return '&';
-    else {
-        assert(eOS == type);
-        const mOS&  os = static_cast<const mOS&>(xs);
-        if      (SHALLOW_HISTORY == os.hist)    return 'h';
-        else if (DEEP_HISTORY    == os.hist)    return 'H';
-        else {
-            assert(NO_HISTORY == os.hist);
-            return '|';
-        }
+    switch (xs.type()) {
+        default:    assert(0);
+        case eBS:   return '-';
+        case eAS:   return '&';
+        case eOS:
+            switch (static_cast<const mOS&>(xs).hist) {
+                default:                assert(0);
+                case NO_HISTORY:        return '|';
+                case SHALLOW_HISTORY:   return 'h';
+                case DEEP_HISTORY:      return 'H';
+                case INHERITED_HISTORY: return '/';
+            }
     }
 }
 
@@ -609,7 +643,7 @@ static void print_xs (ostream& os, const mXS& xs, bool init)
        << xs.name << (init ? " @" : "") << "\n";
 #endif
     eSTATE  type = xs.type();
-    if (e_S != type) {
+    if (eBS != type) {
         const mCS&  comp = static_cast<const mCS&>(xs);
         const mXS*  init_child = (eOS == type) ? static_cast<const mOS&>(xs).init : NULL;
         for (const mXS* ch = comp.chld; ch; ch = ch->next) {
@@ -668,7 +702,11 @@ struct F;
 struct F1;
 
 struct SM2 : machine<SM2, OUT> { SM2(); };
+#if 1
 struct OUT : or_state<OUT, SM2, A> {};
+#else
+struct OUT : and_state<OUT, SM2, List1<A>::type> {};
+#endif
 struct A : or_state<A, OUT, C> {};
 struct C : or_state<C, A, C1> {};
 struct C1 : state<C1, C> {};

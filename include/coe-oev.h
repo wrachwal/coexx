@@ -93,6 +93,30 @@ struct Cons {
 
 // ------------------------------------
 
+template<class L> struct Car;
+template<class H, class T>
+struct Car<Cons<H, T> > {
+    typedef H type;
+};
+template<>
+struct Car<Nil> {
+    typedef Nil type;
+};
+
+// ------------------------------------
+
+template<class L> struct Cdr;
+template<class H, class T>
+struct Cdr<Cons<H, T> > {
+    typedef T type;
+};
+template<>
+struct Cdr<Nil> {
+    typedef Nil type;
+};
+
+// ------------------------------------
+
 template<class> struct Length;
 template<>
 struct Length<Nil> {
@@ -117,6 +141,18 @@ struct Nth<0, Cons<Car, Cdr> > {
 template<int N, class Car, class Cdr>
 struct Nth<N, Cons<Car, Cdr> > {
     typedef typename Nth<N - 1, Cdr>::type type;
+};
+
+// ------------------------------------
+
+template<class Pred, class List> struct MemberIf;
+template<class Pred, class H, class T>
+struct MemberIf<Pred, Cons<H, T> > {
+    typedef typename meta::If_<Pred::template apply<H>::value, H, typename MemberIf<Pred, T>::type>::type type;
+};
+template<class Pred>
+struct MemberIf<Pred, Nil> {
+    typedef Nil type;
 };
 
 // ---------------------------------------------------------------------------
