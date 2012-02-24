@@ -493,46 +493,6 @@ class transition {
     char tmp[64];
 };
 
-// ------------------------------------
-// Reverse<List>
-
-template<class, class> struct Reverse_Acc;
-template<class Acc>
-struct Reverse_Acc<Nil, Acc> {
-    typedef Acc type;
-};
-template<class Head, class Tail, class Acc>
-struct Reverse_Acc<Cons<Head, Tail>, Acc> : Reverse_Acc<Tail, Cons<Head, Acc> > {};
-// ------
-template<class List>
-struct Reverse : Reverse_Acc<List, Nil> {};
-
-// ------------------------------------
-// Common<Lst1, Lst2>
-
-template<class Lst1, class Lst2>
-struct Common;
-template<class H1, class T1, class H2, class T2>
-struct Common<Cons<H1, T1>, Cons<H2, T2> > {
-    typedef Nil type;
-};
-template<class H, class T1, class T2>
-struct Common<Cons<H, T1>, Cons<H, T2> > {
-    typedef Cons<H, typename Common<T1, T2>::type> type;
-};
-template<class Lst>
-struct Common<Lst, Nil> {
-    typedef Nil type;
-};
-template<class Lst>
-struct Common<Nil, Lst> {
-    typedef Nil type;
-};
-template<>
-struct Common<Nil, Nil> {
-    typedef Nil type;
-};
-
 // ===========================================================================
 // Session_<...>
 //
