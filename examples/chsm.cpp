@@ -32,6 +32,15 @@ struct mOS; // of or_state<>
 struct mAS; // of and_state<>
 struct mBS; // of "basic"state<>
 
+struct MetaVisitor {
+    virtual ~MetaVisitor () {}
+    virtual void visit (mOS& os) = 0;
+    virtual void visit (mAS& as) = 0;
+    virtual void visit (mBS& bs) = 0;
+};
+
+// ------------------------------------
+
 struct mSM : private _Noncopyable {
     const mXS*          root;
     const type_info*    info;
@@ -45,6 +54,7 @@ struct mSM : private _Noncopyable {
 struct mXS : private _Noncopyable {
     virtual ~mXS () {}
     virtual eSTATE type () const = 0;
+    virtual void accept (MetaVisitor& visitor) = 0;
     string path () const;
     virtual ostream& print (ostream& os) const = 0;
     ostream& _print (ostream& os) const
@@ -87,6 +97,7 @@ struct mCS : mXS {
 
 struct mOS : mCS {
     eSTATE type () const { return eOS; }
+    void accept (MetaVisitor& visitor) { visitor.visit(*this); }
     ostream& print (ostream& os) const
         {
             static const char* hs[] = { "no", "H", "H*", "h*" };
@@ -99,6 +110,7 @@ struct mOS : mCS {
 
 struct mAS : mCS {
     eSTATE type () const { return eAS; }
+    void accept (MetaVisitor& visitor) { visitor.visit(*this); }
     ostream& print (ostream& os) const
         {
             return mCS::_print(os << this << "=mAS(") << ")";
@@ -107,6 +119,7 @@ struct mAS : mCS {
 
 struct mBS : mXS {
     eSTATE type () const { return eBS; }
+    void accept (MetaVisitor& visitor) { visitor.visit(*this); }
     ostream& print (ostream& os) const
         {
             return mXS::_print(os << this << "=mBS(") << ")";
@@ -121,6 +134,42 @@ string mXS::path () const { return par ? par->path() + '.' + name : name; }
 
 ostream& operator<< (ostream& os, const mSM& sm) { return sm.print(os); }
 ostream& operator<< (ostream& os, const mXS& xs) { return xs.print(os); }
+
+// ------------------------------------
+
+void walk_top_down (mXS& xs, MetaVisitor& visitor)
+{
+    // root
+    xs.accept(visitor);
+    // children
+    if (eBS != xs.type()) {
+        mCS&    cs = static_cast<mCS&>(xs);
+        for (mXS* ch = const_cast<mXS*>(cs.chld);
+             NULL != ch;
+             ch = const_cast<mXS*>(ch->next))
+        {
+            // recurse
+            walk_top_down(*ch, visitor);
+        }
+    }
+}
+
+void walk_bottom_up (mXS& xs, MetaVisitor& visitor)
+{
+    // children
+    if (eBS != xs.type()) {
+        mCS&    cs = static_cast<mCS&>(xs);
+        for (mXS* ch = const_cast<mXS*>(cs.chld);
+             NULL != ch;
+             ch = const_cast<mXS*>(ch->next))
+        {
+            // recurse
+            walk_bottom_up(*ch, visitor);
+        }
+    }
+    // root
+    xs.accept(visitor);
+}
 
 // ===========================================================================
 // state_path<State>
