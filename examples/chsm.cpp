@@ -3,8 +3,10 @@
 #include "coe-kernel.h"
 #include "coe-session.h"
 
-#include <string>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 using namespace std;
 using namespace coe;
@@ -44,6 +46,7 @@ struct MetaVisitor {
 struct mSM : private _Noncopyable {
     const mXS*          root;
     const type_info*    info;
+    size_t              size;   // total, including all states
     string              name;
     ostream& print (ostream& os) const
         {
@@ -70,6 +73,7 @@ struct mXS : private _Noncopyable {
     const mXS*          next;
     int                 level;
     size_t              size;
+    ssize_t             offset;
     const type_info*    info;
     string              name;
     void (*put)(void*);
@@ -532,6 +536,117 @@ namespace coe {
 }
 
 // ===========================================================================
+
+#define ALIGN_SIZE      int(sizeof(void*))
+#define ALIGN_(pos)     ((((pos) + ALIGN_SIZE - 1) / ALIGN_SIZE) * ALIGN_SIZE)
+
+static ssize_t set_offset_nohist_state (mXS& xs, ssize_t pos, vector<mOS*>& hroots)
+{
+    assert(0 == xs.offset);
+    assert(ALIGN_(pos) == pos);
+
+    switch (xs.type()) {
+        default:
+            return pos;
+        case eBS:
+            {
+                xs.offset = pos;
+                return ALIGN_(pos + xs.size);
+            }
+        case eAS:
+            {
+                xs.offset = pos;
+                pos = ALIGN_(pos + xs.size);
+                mAS&    as = static_cast<mAS&>(xs);
+                for (mXS* ch = const_cast<mXS*>(as.chld);
+                    NULL != ch;
+                    ch = const_cast<mXS*>(ch->next))
+                {
+                    pos = set_offset_nohist_state(*ch, pos, hroots);
+                }
+                return pos;
+            }
+        case eOS:
+            {
+                mOS&    os = static_cast<mOS&>(xs);
+                if (NO_HISTORY == os.hist) {
+                    xs.offset = pos;
+                    pos = ALIGN_(pos + xs.size);
+                }
+                else if (INHERITED_HISTORY != os.hist) {
+                    hroots.push_back(&os);
+                }
+                ssize_t max_eop = pos;
+                for (mXS* ch = const_cast<mXS*>(os.chld);
+                    NULL != ch;
+                    ch = const_cast<mXS*>(ch->next))
+                {
+                    ssize_t eop = set_offset_nohist_state(*ch, pos, hroots);
+                    max_eop = max(eop, max_eop);
+                }
+                return max_eop;
+            }
+    }
+}
+
+static ssize_t set_offset_unset_hist (mXS& xs, ssize_t pos)
+{
+    assert(ALIGN_(pos) == pos);
+
+    switch (xs.type()) {
+        default:
+            return pos;
+        case eAS:
+            {
+                mAS&    as = static_cast<mAS&>(xs);
+                for (mXS* ch = const_cast<mXS*>(as.chld);
+                    NULL != ch;
+                    ch = const_cast<mXS*>(ch->next))
+                {
+                    pos = set_offset_unset_hist(*ch, pos);
+                }
+                return pos;
+            }
+        case eOS:
+            {
+                if (0 != xs.offset) {   // stop at other hroot processed earlier
+                    return pos;
+                }
+                else {
+                    xs.offset = pos;
+                    pos = ALIGN_(pos + xs.size);
+                    mOS&    os = static_cast<mOS&>(xs);
+                    ssize_t max_eop = pos;
+                    for (mXS* ch = const_cast<mXS*>(os.chld);
+                        NULL != ch;
+                        ch = const_cast<mXS*>(ch->next))
+                    {
+                        ssize_t eop = set_offset_unset_hist(*ch, pos);
+                        max_eop = max(eop, max_eop);
+                    }
+                    return max_eop;
+                }
+            }
+    }
+}
+
+void init_offsets (mSM& sm)
+{
+    if (0 == sm.size) {
+        vector<mOS*>    hroots;
+        ssize_t pos = ALIGN_(/*TODO*/10);
+        // 'hroots' collected top-down
+        pos = set_offset_nohist_state(*const_cast<mXS*>(sm.root), pos, hroots);
+        // will be processed bottom-up
+        while (! hroots.empty()) {
+            pos = set_offset_unset_hist(*hroots.back(), pos);
+            hroots.pop_back();
+        }
+        sm.size = pos;
+    }
+}
+
+// ===========================================================================
 // typedefs used to define reactions typedef utilized at compile time
 
 template<class Ev,
@@ -645,12 +760,21 @@ static char state_symb (const mXS& xs)
 
 static void print_xs (ostream& os, const mXS& xs, bool init)
 {
+    // root
+    {
+        ostringstream   oss;
 #if 0
-    os << state_symb(xs) << " " << xs.path() << (init ? " =" : "") << "\n";
+        oss << state_symb(xs) << " " << xs.path() << (init ? " @" : "");
 #else
-    os << state_symb(xs) << " " << string(xs.level * 2, ' ')
-       << xs.name << (init ? " @" : "") << "\n";
+        oss << state_symb(xs) << " " << string(xs.level * 2, ' ')
+            << xs.name << (init ? " @" : "");
+        oss << string(max(40 - int(oss.str().length()), 1), ' ');
+        oss << "# " << xs.offset << " + " << xs.size << "\n";
+
+        os << oss.str();
 #endif
+    }
+    // children
     eSTATE  type = xs.type();
     if (eBS != type) {
         const mCS&  comp = static_cast<const mCS&>(xs);
@@ -793,7 +917,10 @@ int main ()
     EVAL_((Rtti<ArgListI, Common<List3<A_,B_,C_>::type, List4<A_,B_,C_,A_>::type>::type>::meta()->info));
 
     for (const Meta<mSM>* meta = Meta<mSM>::registry(); meta; meta = meta->next) {
-        print_meta_machine(cout << "\n### ===== " << meta->info.name << "\n", meta->info) << endl;
+        ::init_offsets(const_cast<mSM&>(meta->info));   //TODO call from a better place
+        print_meta_machine(cout << "\n### ===== "
+                                << meta->info.name << " (size=" << meta->info.size << ")\n",
+                           meta->info) << endl;
     }
 }
 
