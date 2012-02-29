@@ -112,9 +112,9 @@ template<bool> struct CompileTimeChecker {
     CompileTimeChecker (...);
 };
 template<> struct CompileTimeChecker<false> {};
-#define COE_STATIC_CHECK_(expr, msg) do {                               \
-        class ERROR_##msg {};                                           \
-        (void)sizeof(CompileTimeChecker<(expr) != 0>((ERROR_##msg()))); \
+#define COE_STATIC_CHECK_(expr, msg) do {                                   \
+        class ERROR_##msg {};                                               \
+        (void)sizeof((CompileTimeChecker<(expr) != 0>((ERROR_##msg()))));   \
     } while(0)
 
 // ===========================================================================
