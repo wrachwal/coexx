@@ -654,7 +654,10 @@ template<class Ev,
          class Obj,
          typename handler_type<typename Ev::args_type>::template mem_fun<Obj>::type fun>
 class transition {
+    typedef typename handler_type<typename Ev::args_type>::template mem_fun<Obj>::type mem_fun_type;
     char tmp[64];
+public:
+    static mem_fun_type mem_fun_ptr () { return fun; }
 };
 
 // ===========================================================================
@@ -892,7 +895,10 @@ int main ()
     print_meta_info();
 
     transition<ev1, Dest, MySes, &MySes::on_ev1>    trans1;
-    cout << "transition<>:))))) = " << sizeof(trans1) << endl;
+    cout << "sizeof(transition<..>()) = "
+         << sizeof(trans1) << endl;
+    cout << "transition<..>::mem_fun_ptr() = "
+         << transition<ev1, Dest, MySes, &MySes::on_ev1>::mem_fun_ptr() << endl;
 
     EVAL_((Rtti<ArgListI, Reverse<state_path<sm2::F1>::type>::type>::meta()->info));
     ///
