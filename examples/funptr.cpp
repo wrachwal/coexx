@@ -4,6 +4,8 @@
 #include "coe--local.h" // namespace meta
 #include "coe-oev.h"
 
+#include <stdexcept>
+
 using namespace std;
 using namespace coe;
 
@@ -18,6 +20,120 @@ struct Mfun {
     class _Obj; class _R;
     typedef _R (_Obj::*type)();
 };
+
+// ---------------------------------------------------------------------------
+
+template<class R>
+R execute (Mfun::type fun, int arity, void* obj, void* arg[]) throw (std::length_error)
+{
+    class _Obj;
+    class _A;
+
+    typedef R (_Obj::*M00)();
+    typedef R (_Obj::*M01)(COE_X( 1, _A&));
+    typedef R (_Obj::*M02)(COE_X( 2, _A&));
+    typedef R (_Obj::*M03)(COE_X( 3, _A&));
+    typedef R (_Obj::*M04)(COE_X( 4, _A&));
+    typedef R (_Obj::*M05)(COE_X( 5, _A&));
+    typedef R (_Obj::*M06)(COE_X( 6, _A&));
+    typedef R (_Obj::*M07)(COE_X( 7, _A&));
+    typedef R (_Obj::*M08)(COE_X( 8, _A&));
+    typedef R (_Obj::*M09)(COE_X( 9, _A&));
+    typedef R (_Obj::*M10)(COE_X(10, _A&));
+
+    switch (arity) {
+        default:
+            throw std::length_error("more than 10 args");
+        case 0:
+            return (((_Obj*)obj) ->* (M00(fun)))(
+            );
+        case 1:
+            return (((_Obj*)obj) ->* (M01(fun)))(
+                *(_A*)arg[0]
+            );
+        case 2:
+            return (((_Obj*)obj) ->* (M02(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1]
+            );
+        case 3:
+            return (((_Obj*)obj) ->* (M03(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2]
+            );
+        case 4:
+            return (((_Obj*)obj) ->* (M04(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2],
+                *(_A*)arg[3]
+            );
+        case 5:
+            return (((_Obj*)obj) ->* (M05(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2],
+                *(_A*)arg[3],
+                *(_A*)arg[4]
+            );
+        case 6:
+            return (((_Obj*)obj) ->* (M06(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2],
+                *(_A*)arg[3],
+                *(_A*)arg[4],
+                *(_A*)arg[5]
+            );
+        case 7:
+            return (((_Obj*)obj) ->* (M07(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2],
+                *(_A*)arg[3],
+                *(_A*)arg[4],
+                *(_A*)arg[5],
+                *(_A*)arg[6]
+            );
+        case 8:
+            return (((_Obj*)obj) ->* (M08(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2],
+                *(_A*)arg[3],
+                *(_A*)arg[4],
+                *(_A*)arg[5],
+                *(_A*)arg[6],
+                *(_A*)arg[7]
+            );
+        case 9:
+            return (((_Obj*)obj) ->* (M09(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2],
+                *(_A*)arg[3],
+                *(_A*)arg[4],
+                *(_A*)arg[5],
+                *(_A*)arg[6],
+                *(_A*)arg[7],
+                *(_A*)arg[8]
+            );
+        case 10:
+            return (((_Obj*)obj) ->* (M10(fun)))(
+                *(_A*)arg[0],
+                *(_A*)arg[1],
+                *(_A*)arg[2],
+                *(_A*)arg[3],
+                *(_A*)arg[4],
+                *(_A*)arg[5],
+                *(_A*)arg[6],
+                *(_A*)arg[7],
+                *(_A*)arg[8],
+                *(_A*)arg[9]
+            );
+    }
+}
 
 // ---------------------------------------------------------------------------
 
@@ -90,6 +206,11 @@ struct Cls {
     void m2a (A1&, A2&) {}
     void h2a (Kernel&, A1&, A2&) {}
     void h2A (Kernel&, A1&, A2&) const {}
+    double plus_fi (float& f, int& i)
+        {
+            cout << "calling " << __FUNCTION__ << "(f=" << f << ", i=" << i << ")" << endl;
+            return f + i;
+        }
 };
 void g2a (A1&, A2&) {}
 
@@ -107,7 +228,7 @@ int main ()
     Gfun::type g2 = Gfun::type(&g2a);
     cout << (void*)g2 << " sizeof(g2)=" << sizeof(g2) << endl;
 
-    // ===
+    // === getting degenerated pointer
 
     cout << MFUN<void>        ::ptr(&Cls::m0a) << endl;
 
@@ -115,5 +236,19 @@ int main ()
     cout << MFUN<void, CoePfx>::ptr(&Cls::h2a) << endl;
 
     cout << MFUN<void, CoePfx>::ptr(&Cls::h2A) << endl;
+
+    // === and then execute it
+
+    float   val_f = 5;
+    int     val_i = 3;
+    void*   argfi[] = { &val_f, &val_i };
+
+    Cls obj;
+
+    double  ret = execute<double>(MFUN<double>::ptr(&Cls::plus_fi),
+                                  2,
+                                  &obj,
+                                  argfi);
+    cout << "# ret = " << ret << endl;
 }
 
