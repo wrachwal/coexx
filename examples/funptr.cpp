@@ -190,6 +190,56 @@ struct MFUN {
 };
 
 // ---------------------------------------------------------------------------
+// OnEv<EV> [::react<Obj, &Obj::fun> | ...] ::type
+
+#if 0
+template<class _EV>
+struct OnEv {
+    typedef _EV EV;
+    enum { has_target = false };
+    enum { has_react  = false };
+    enum { has_guard  = false };
+    template<class Obj,
+             typename handler_type<typename _EV::args_type>::template mem_fun<Obj>::type fun>
+    struct react {
+        typedef typename handler_type<typename _EV::args_type>::template mem_fun<Obj>::type react_fun_type;
+        static react_fun_type react_fun_ptr () { return fun; }
+        typedef _EV EV;
+        enum { has_target = false };
+        enum { has_react  = true  };
+        enum { has_guard  = false };
+    };
+};
+#else
+template<class _EV>
+struct OnEv {
+    struct type {   // result
+        typedef _EV EV;
+        enum { has_target = false };
+        enum { has_react  = false };
+        enum { has_guard  = false };
+    };
+    typedef type _type; // alias
+
+    template<class Obj,
+             typename handler_type<typename _EV::args_type>::template mem_fun<Obj>::type fun>
+    struct react : protected _type {    // protected to force client to put final ::type
+        struct type {   // result
+            typedef typename _type::EV EV;
+            enum { has_target = _type::has_target };
+            typedef typename handler_type<typename EV::args_type>::template mem_fun<Obj>::type react_fun_type;
+            enum { has_react = true  };
+            static react_fun_type react_fun_ptr () { return fun; }
+            enum { has_guard = _type::has_guard };
+        };
+        typedef type _type; // alias
+
+        ///XXX nested api(s) for OnEv/react ...
+    };
+};
+#endif
+
+// ---------------------------------------------------------------------------
 
 struct A1 {};
 struct A2 {};
@@ -245,5 +295,13 @@ int main ()
                           argfi));
 
     EXPR_((Length<List2<A1, A2>::type>::value));
+
+    // === explore alternative interface for transitions
+
+    EXPR_((Length<OnEv<ev12>::react<Cls, &Cls::h2a>::type::EV::args_type>::value));
+    EXPR_((OnEv<ev12>::react<Cls, &Cls::h2a>::type::has_target));
+    EXPR_((OnEv<ev12>::react<Cls, &Cls::h2a>::type::has_react));
+    EXPR_((OnEv<ev12>::react<Cls, &Cls::h2a>::type::react_fun_ptr()));
+    EXPR_((OnEv<ev12>::react<Cls, &Cls::h2a>::type::has_guard));
 }
 
