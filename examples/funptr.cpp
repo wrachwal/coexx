@@ -203,7 +203,8 @@ struct Cls {
     void h2A (Kernel&, A1&, A2&) const {}
     double plus_fi (float& f, int& i)
         {
-            cout << "calling " << __FUNCTION__ << "(f=" << f << ", i=" << i << ")" << endl;
+            cout << "/*** calling " << __FUNCTION__
+                                  << "(f=" << f << ", i=" << i << ") ***/" << endl;
             return f + i;
         }
 };
@@ -211,39 +212,38 @@ void g2a (A1&, A2&) {}
 
 // ***************************************************************************
 
+#define EXPR_(expr) do { cout << #expr << " ==> " << (expr) << endl; } while(0)
+
 typedef Cons<Kernel, Nil> CoePfx;
 
 int main ()
 {
-    Mfun::type m2 = Mfun::type(&Cls::m2a);
-    // for (void*)m2 we get the message:
+    EXPR_((void*)Gfun::type(&g2a));
+    EXPR_(sizeof(Gfun::type(&g2a)));
     // converting from 'Mfun::_R (Mfun::_Obj::*)()' to 'void*'
     // warning with gcc 4.4.3; error with gcc 4.1.1
-    cout << m2 << " sizeof(m2)=" << sizeof(m2) << endl;
-    Gfun::type g2 = Gfun::type(&g2a);
-    cout << (void*)g2 << " sizeof(g2)=" << sizeof(g2) << endl;
+    EXPR_(Mfun::type(&Cls::m2a));
+    EXPR_(sizeof(Mfun::type(&Cls::m2a)));
 
-    // === getting degenerated pointer
+    // === check/get degenerated pointer
 
-    cout << MFUN<void>        ::ptr(&Cls::m0a) << endl;
-
-    cout << MFUN<void>        ::ptr(&Cls::m2a) << endl;
-    cout << MFUN<void, CoePfx>::ptr(&Cls::h2a) << endl;
-
-    cout << MFUN<void, CoePfx>::ptr(&Cls::h2A) << endl;
+    EXPR_((MFUN<void>        ::ptr(&Cls::m0a)));
+    EXPR_((MFUN<void, CoePfx>::ptr(&Cls::h2a)));
+    EXPR_((MFUN<void, CoePfx>::ptr(&Cls::h2A)));
 
     // === and then execute it
 
-    float   val_f = 5;
-    int     val_i = 3;
+    float   val_f = 7;
+    int     val_i = 6;
     void*   argfi[] = { &val_f, &val_i };
 
     Cls obj;
 
-    double  ret = execute<double>(MFUN<double>::ptr(&Cls::plus_fi),
-                                  2,
-                                  &obj,
-                                  argfi);
-    cout << "# ret = " << ret << endl;
+    EXPR_(execute<double>(MFUN<double>::ptr(&Cls::plus_fi),
+                          2,
+                          &obj,
+                          argfi));
+
+    EXPR_((Length<List2<A1, A2>::type>::value));
 }
 
