@@ -102,4 +102,5 @@ test/literal.cpp
 include/coe-oev.h
 include/coe-meta.h
 examples/chsm.cpp
+examples/funptr.cpp
 
