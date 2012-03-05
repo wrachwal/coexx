@@ -40,97 +40,92 @@ R execute (Mfun::type fun, int arity, void* obj, void* arg[]) throw (std::length
     typedef R (_Obj::*M08)(COE_X( 8, _A&));
     typedef R (_Obj::*M09)(COE_X( 9, _A&));
     typedef R (_Obj::*M10)(COE_X(10, _A&));
+    typedef R (_Obj::*M11)(COE_X(11, _A&));
+    typedef R (_Obj::*M12)(COE_X(12, _A&));
+    typedef R (_Obj::*M13)(COE_X(13, _A&));
+    typedef R (_Obj::*M14)(COE_X(14, _A&));
+    typedef R (_Obj::*M15)(COE_X(15, _A&));
 
     switch (arity) {
         default:
-            throw std::length_error("more than 10 args");
+            throw std::length_error("more than 15 args");
         case 0:
             return (((_Obj*)obj) ->* (M00(fun)))(
             );
         case 1:
             return (((_Obj*)obj) ->* (M01(fun)))(
-                *(_A*)arg[0]
+                *(_A*)arg[ 0]
             );
         case 2:
             return (((_Obj*)obj) ->* (M02(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1]
+                *(_A*)arg[ 0], *(_A*)arg[ 1]
             );
         case 3:
             return (((_Obj*)obj) ->* (M03(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2]
             );
         case 4:
             return (((_Obj*)obj) ->* (M04(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2],
-                *(_A*)arg[3]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3]
             );
         case 5:
             return (((_Obj*)obj) ->* (M05(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2],
-                *(_A*)arg[3],
-                *(_A*)arg[4]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4]
             );
         case 6:
             return (((_Obj*)obj) ->* (M06(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2],
-                *(_A*)arg[3],
-                *(_A*)arg[4],
-                *(_A*)arg[5]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5]
             );
         case 7:
             return (((_Obj*)obj) ->* (M07(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2],
-                *(_A*)arg[3],
-                *(_A*)arg[4],
-                *(_A*)arg[5],
-                *(_A*)arg[6]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6]
             );
         case 8:
             return (((_Obj*)obj) ->* (M08(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2],
-                *(_A*)arg[3],
-                *(_A*)arg[4],
-                *(_A*)arg[5],
-                *(_A*)arg[6],
-                *(_A*)arg[7]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7]
             );
         case 9:
             return (((_Obj*)obj) ->* (M09(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2],
-                *(_A*)arg[3],
-                *(_A*)arg[4],
-                *(_A*)arg[5],
-                *(_A*)arg[6],
-                *(_A*)arg[7],
-                *(_A*)arg[8]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7], *(_A*)arg[ 8]
             );
         case 10:
             return (((_Obj*)obj) ->* (M10(fun)))(
-                *(_A*)arg[0],
-                *(_A*)arg[1],
-                *(_A*)arg[2],
-                *(_A*)arg[3],
-                *(_A*)arg[4],
-                *(_A*)arg[5],
-                *(_A*)arg[6],
-                *(_A*)arg[7],
-                *(_A*)arg[8],
-                *(_A*)arg[9]
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7], *(_A*)arg[ 8], *(_A*)arg[ 9]
+            );
+        case 11:
+            return (((_Obj*)obj) ->* (M11(fun)))(
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7], *(_A*)arg[ 8], *(_A*)arg[ 9],
+                *(_A*)arg[10]
+            );
+        case 12:
+            return (((_Obj*)obj) ->* (M12(fun)))(
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7], *(_A*)arg[ 8], *(_A*)arg[ 9],
+                *(_A*)arg[10], *(_A*)arg[11]
+            );
+        case 13:
+            return (((_Obj*)obj) ->* (M13(fun)))(
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7], *(_A*)arg[ 8], *(_A*)arg[ 9],
+                *(_A*)arg[10], *(_A*)arg[11], *(_A*)arg[12]
+            );
+        case 14:
+            return (((_Obj*)obj) ->* (M14(fun)))(
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7], *(_A*)arg[ 8], *(_A*)arg[ 9],
+                *(_A*)arg[10], *(_A*)arg[11], *(_A*)arg[12], *(_A*)arg[13]
+            );
+        case 15:
+            return (((_Obj*)obj) ->* (M15(fun)))(
+                *(_A*)arg[ 0], *(_A*)arg[ 1], *(_A*)arg[ 2], *(_A*)arg[ 3], *(_A*)arg[ 4],
+                *(_A*)arg[ 5], *(_A*)arg[ 6], *(_A*)arg[ 7], *(_A*)arg[ 8], *(_A*)arg[ 9],
+                *(_A*)arg[10], *(_A*)arg[11], *(_A*)arg[12], *(_A*)arg[13], *(_A*)arg[14]
             );
     }
 }

@@ -27,16 +27,21 @@ THE SOFTWARE.
 
 // ---------------------------------------------------------------------------
 #define COE_X0(x)       /**/
-#define COE_X1(x)                  x
-#define COE_X2(x)       COE_X1(x), x
-#define COE_X3(x)       COE_X2(x), x
-#define COE_X4(x)       COE_X3(x), x
-#define COE_X5(x)       COE_X4(x), x
-#define COE_X6(x)       COE_X5(x), x
-#define COE_X7(x)       COE_X6(x), x
-#define COE_X8(x)       COE_X7(x), x
-#define COE_X9(x)       COE_X8(x), x
-#define COE_X10(x)      COE_X9(x), x
+#define COE_X1(x)                   x
+#define COE_X2(x)       COE_X1(x),  x
+#define COE_X3(x)       COE_X2(x),  x
+#define COE_X4(x)       COE_X3(x),  x
+#define COE_X5(x)       COE_X4(x),  x
+#define COE_X6(x)       COE_X5(x),  x
+#define COE_X7(x)       COE_X6(x),  x
+#define COE_X8(x)       COE_X7(x),  x
+#define COE_X9(x)       COE_X8(x),  x
+#define COE_X10(x)      COE_X9(x),  x
+#define COE_X11(x)      COE_X10(x), x
+#define COE_X12(x)      COE_X11(x), x
+#define COE_X13(x)      COE_X12(x), x
+#define COE_X14(x)      COE_X13(x), x
+#define COE_X15(x)      COE_X14(x), x
 #define COE_X(i, x)     COE_X##i(x)
 // ------------------------------------
 #define COE_T0(t)       /**/
