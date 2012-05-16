@@ -4,6 +4,7 @@
 #include "coe--local.h" // namespace meta
 #include "coe-oev.h"
 
+#include <typeinfo>
 #include <stdexcept>
 
 using namespace std;
@@ -341,7 +342,22 @@ struct OnEv<detail::_noev> : detail::onev_apiset<detail::result_onev<detail::_no
 
 // ---------------------------------------------------------------------------
 
-struct A1 {};
+template<typename Pmf>
+struct retval;
+template<class R, class Obj, class A1, class A2>
+struct retval<R (Obj::*)(A1&, A2&)> {
+    typedef R type;
+    typedef Obj obj_type;
+};
+template<class R, class Obj, class A1, class A2>
+struct retval<R (Obj::*)(A1&, A2&) const> {
+    typedef R type;
+    typedef Obj obj_type;
+};
+
+// ---------------------------------------------------------------------------
+
+struct A1 { virtual ~A1(){} char xx[10]; };
 struct A2 {};
 
 struct ev12 : event<A1, A2> {};
@@ -349,6 +365,7 @@ struct ev12 : event<A1, A2> {};
 struct Cls {
     void m0a () {}
     void m2a (A1&, A2&) {}
+    void m2A (A1&, A2&) const {}
     void h0a (Kernel&) {}
     void h2a (Kernel&, A1&, A2&) {}
     void h2A (Kernel&, A1&, A2&) const {}
@@ -446,5 +463,31 @@ int main ()
 
     EXPR_(ONEV(OnEv<>::guard<Cls, &Cls::h0a>::to<A2>::type::optset));
     EXPR_(ONEV(OnEv<ev12>::to<A2>::type::optset));
+
+    typedef retval<typeof(&Cls::m2a)>::type M2a;
+    typedef retval<typeof(&Cls::m2A)>::type M2A;
+
+    EXPR_(typeid(retval<typeof(&Cls::m2a)>::obj_type).name());
+    EXPR_(typeid(retval<typeof(&Cls::m2A)>::obj_type).name());
+    EXPR_(typeid(int).name());
+    EXPR_(typeid(const int).name());
+    EXPR_(typeid(int&).name());
+    EXPR_(typeid(const int&).name());
+    EXPR_(typeid(A1).name());
+    EXPR_(typeid(const A1).name());
+    EXPR_(typeid(A1&).name());
+    EXPR_(typeid(const A1&).name());
+    EXPR_(&typeid(A1));
+    EXPR_(&typeid(const A1));
+    EXPR_(&typeid(A1&));
+    EXPR_(&typeid(const A1&));
+    EXPR_(typeid(int).name());
+    EXPR_(typeid(const int).name());
+    EXPR_(typeid(int&).name());
+    EXPR_(typeid(const int&).name());
+    EXPR_(typeid(int*).name());
+    EXPR_(typeid(const int*).name());
+    EXPR_(typeid(int*&).name());
+    EXPR_(typeid(const int*&).name());
 }
 
