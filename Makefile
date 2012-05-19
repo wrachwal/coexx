@@ -60,10 +60,9 @@ test/list.o: CXXFLAGS += -Wno-invalid-offsetof
 test/cond.o: CXXFLAGS += -Wno-missing-braces
 
 $(examples) $(tests): %: %.o
-	$(CXX) $(LDFLAGS) $< $(LDLIBS) -o $@
+	$(CXX) $(LDFLAGS) $< -Llib -lcoe $(LDLIBS) -o $@
 
 $(examples) $(tests): $(library)
-$(examples) $(tests): LDLIBS += -Llib -lcoe
 
 clean: mostlyclean
 	-rm $(library)

@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __COE__LIST_H
 
 #include <cstdlib>
+#include <cstddef>  // offsetof -- used by clients including this header
 #include <cassert>
 #include <iterator>
 

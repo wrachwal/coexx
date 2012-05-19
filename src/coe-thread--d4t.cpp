@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 #include <sys/select.h> // select() on Cygwin
 #include <unistd.h>     // read() on Linux
+#include <time.h>       // clock_gettime() on POSIX
 
 using namespace std;
 using namespace coe;
