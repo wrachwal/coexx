@@ -52,7 +52,7 @@ namespace coe {
                 prefix = NULL;  // just in case
             }
         }
-        _Atomic<size_t> refcnt;
+        _AtomIC<size_t> refcnt;
         SiD             target;
         CoeStr          evname;
         ValParam*       prefix;

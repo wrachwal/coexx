@@ -66,13 +66,13 @@ bool operator!= (const _SafeBoolBase<T1>& lhs, const _SafeBoolBase<T2>&)
     { return /*compile-time error*/lhs.this_class_does_not_support_comparisons(); }
 
 // ===========================================================================
-// _Atomic<T>
+// _AtomIC<T>
 
 template<class T>
-class _Atomic : private _Noncopyable {
+class _AtomIC : private _Noncopyable {
 public:
-    _Atomic () : _value(0) {}
-    _Atomic (T init) : _value(init) {}
+    _AtomIC () : _value(0) {}
+    _AtomIC (T init) : _value(init) {}
 
     // intentionally there is no method to just "get" the _value.
     // to mimic this, use e.g. (atomic += 0).
