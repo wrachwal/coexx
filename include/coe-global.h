@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef __COE_GLOBAL_H
 #define __COE_GLOBAL_H
 
+#include <typeinfo>
+
 namespace coe { /////
 
 // ===========================================================================

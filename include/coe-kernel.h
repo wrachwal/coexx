@@ -30,7 +30,6 @@ THE SOFTWARE.
 #include "coe-sys-time.h"       // TimeSpec
 #include "coe-global.h"         // Factory<T>
 
-#include <typeinfo>
 #include "coe-kernel--dcl.h"
 #include <memory>               // auto_ptr<>
 
