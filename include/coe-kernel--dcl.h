@@ -575,7 +575,7 @@ class Handler0 {
 public:
     Handler0 () : _obj(0) { _fun.g0 = 0; }
 
-    class _Obj;     // nowhere defined
+    typedef HandlerX::_Obj _Obj;    // nowhere defined
 
     operator _SafeBool<Handler0, _Obj*>::Type () const
         {
