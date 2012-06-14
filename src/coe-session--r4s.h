@@ -1,7 +1,7 @@
 // coe-session--r4s.h
 
 /*****************************************************************************
-Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2012 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -87,9 +87,11 @@ struct r4Session {
 struct _r4Session {
     typedef dList<r4Session, offsetof(r4Session, _link_children)> ChildrenList;
 
-    // -Wno-strict-aliasing
     static ChildrenList& list_children (r4Session& session)
-        { return reinterpret_cast<ChildrenList&>(session._list_children); }
+        {
+            void*   plist = &session._list_children;
+            return *static_cast<ChildrenList*>(plist);
+        }
 };
 
 // ---------------------------------------------------------------------------

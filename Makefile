@@ -43,7 +43,7 @@ objects_all := $(objects) $(patsubst %.cpp,%.o,$(wildcard examples/*.cpp test/*.
 lib/%.o: src/%.cpp 
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-lib/%.o: CXXFLAGS += -Wno-invalid-offsetof -Wno-strict-aliasing
+lib/%.o: CXXFLAGS += -Wno-invalid-offsetof
 
 $(library): $(library)($(objects))
 

@@ -1,7 +1,7 @@
 // coe-coestr.h
 
 /*****************************************************************************
-Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2012 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -82,11 +82,12 @@ public:
     int compare (const char*        rhs) const;
 
 private:
-    const std::string& _xs () const { return *(const std::string*)(void*)_xb.xmem; }
-          std::string& _xs ()       { return *(      std::string*)(void*)_xb.xmem; }
+    const std::string& _xs () const { return *(const std::string*)(void*)&_xb.aptr; }
+          std::string& _xs ()       { return *(      std::string*)(void*)&_xb.aptr; }
     const char* _cs;
     union {
-        char    xmem[sizeof(std::string)];  // aligned to hold std::string
+        void*   aptr;   // alignment
+        char    xmem[sizeof(std::string)];
 ///     size_t  hash;
     } _xb;
     static const char*  _Empty;
