@@ -1,7 +1,7 @@
 // coe-session.h
 
 /*****************************************************************************
-Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2013 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ THE SOFTWARE.
 
 namespace coe { /////
 
+class ContextSwitch;
 struct r4Session;   // private data
 
 // ===========================================================================
@@ -66,9 +67,25 @@ protected:
     virtual ~Session ();
 
 private:
+    friend class ContextSwitch;
     friend struct r4Kernel;
     friend struct r4Session;
     r4Session*   _r4session;
+};
+
+// ===========================================================================
+// ContextSwitch -- switching the context to another session
+
+class ContextSwitch : private _Noncopyable {
+public:
+    explicit ContextSwitch (Session& session);
+    ~ContextSwitch ();
+
+    Kernel* kernel ();
+
+private:
+    r4Session*      _r4switched;
+    ExecuteContext* _execontext;
 };
 
 // ===========================================================================

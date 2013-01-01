@@ -1,7 +1,7 @@
 // coe-session.cpp
 
 /*****************************************************************************
-Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2013 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -215,5 +215,36 @@ bool Session::call_keep_arg (bool warn, Kernel& kernel, const CoeStr& ev, EventA
     r4Kernel*   r4k = kernel._r4kernel;
     assert(NULL != r4k);
     return r4k->call_event_handler(warn, _r4session, ev, &arg);
+}
+
+// ===========================================================================
+// ContextSwitch
+
+ContextSwitch::ContextSwitch (Session& session)
+:   _r4switched(session._r4session)
+,   _execontext(NULL)
+{
+    assert(NULL != _r4switched);    // session object always has a resource object
+    if (_r4switched->_sid) {        // but can be switched to only if has started
+        _execontext = new ExecuteContext(_r4switched, EventContext::CALL, ".switch");
+    }
+}
+
+ContextSwitch::~ContextSwitch ()
+{
+    if (NULL != _execontext) {
+
+        assert(_r4switched->_kernel);
+        // check that a user did not screw up the stack
+        assert(_r4switched->_kernel->_current_context == _execontext);
+
+        delete _execontext;
+        _execontext = NULL; // just in case
+    }
+}
+
+Kernel* ContextSwitch::kernel ()
+{
+    return _execontext ? _r4switched->_kernel->_handle : NULL;
 }
 
