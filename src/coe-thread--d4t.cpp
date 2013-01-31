@@ -1,7 +1,7 @@
 // coe-thread--d4t.cpp
 
 /*****************************************************************************
-Copyright (c) 2008-2011 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2013 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,6 @@ THE SOFTWARE.
 
 using namespace std;
 using namespace coe;
-
-#define TABLEN(tab)     int(sizeof(tab) / sizeof((tab)[0]))
 
 d4Thread::Glob  d4Thread::glob;
 
@@ -586,8 +584,9 @@ void d4Thread::_select_io (const TimeSpec* due)
             file descriptors sets
         ******************************/
 
-        for (int i = 0; i < TABLEN(_fdset); ++i)
-            _fdset[i].zero();
+        _fdset[IO_read ].zero();
+        _fdset[IO_write].zero();
+        _fdset[IO_error].zero();
 
         for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
             EvIO*   evio = (*i).second;
@@ -596,42 +595,51 @@ void d4Thread::_select_io (const TimeSpec* due)
             }
         }
 
+        // highest descriptor including '_msgpipe_rfd' which...
+        const int max_fd = max(_fdset[IO_read ].max_fd,
+                           max(_fdset[IO_write].max_fd,
+                           max(_fdset[IO_error].max_fd,
+                               _msgpipe_rfd)));     // will be add_fd()'ed after assert(s)
+
 #if COEXX_SELECT_USE_FD_SET
+        // check if      _msgpipe_rfd not clobbered
         assert(0 == FD_ISSET(     _msgpipe_rfd, &_fdset[IO_read ].lval));
+        assert(0 == FD_ISSET(     _msgpipe_rfd, &_fdset[IO_write].lval));
+        assert(0 == FD_ISSET(     _msgpipe_rfd, &_fdset[IO_error].lval));
+        // check if sched.msgpipe_wfd not clobbered
+        assert(0 == FD_ISSET(sched.msgpipe_wfd, &_fdset[IO_read ].lval));
         assert(0 == FD_ISSET(sched.msgpipe_wfd, &_fdset[IO_write].lval));
+        assert(0 == FD_ISSET(sched.msgpipe_wfd, &_fdset[IO_error].lval));
 #else
+        // align all lvec(s) to the longest, enlarged to assumption made in checks
+        {
+            int max_fd_and_pipes = max(max_fd,  // _msgpipe_rfd included in max_fd
+                                       sched.msgpipe_wfd);
+            _fdset[IO_read ].fit_fd(max_fd_and_pipes);
+            _fdset[IO_write].fit_fd(max_fd_and_pipes);
+            _fdset[IO_error].fit_fd(max_fd_and_pipes);
+        }
+
+        // check if      _msgpipe_rfd not clobbered
         {
             int     word =         _msgpipe_rfd / NFDBITS;
             fd_mask mask = 1UL << (_msgpipe_rfd % NFDBITS);
-            assert(0 ==         _fdset[IO_read].lvec_max
-                   || (word <   _fdset[IO_read].lvec_max
-                       && 0 == (_fdset[IO_read].lvec[word] & mask)));
+            assert(0 == (_fdset[IO_read ].lvec[word] & mask));
+            assert(0 == (_fdset[IO_write].lvec[word] & mask));
+            assert(0 == (_fdset[IO_error].lvec[word] & mask));
         }
+        // check if sched.msgpipe_wfd not clobbered
         {
             int     word =         sched.msgpipe_wfd / NFDBITS;
             fd_mask mask = 1UL << (sched.msgpipe_wfd % NFDBITS);
-            assert(0 ==         _fdset[IO_write].lvec_max
-                   || (word <   _fdset[IO_write].lvec_max
-                       && 0 == (_fdset[IO_write].lvec[word] & mask)));
+            assert(0 == (_fdset[IO_read ].lvec[word] & mask));
+            assert(0 == (_fdset[IO_write].lvec[word] & mask));
+            assert(0 == (_fdset[IO_error].lvec[word] & mask));
         }
 #endif
 
+        // finally add '_msgpipe_rfd'
         _fdset[IO_read].add_fd(_msgpipe_rfd);
-
-        int max_fd = -1;
-        for (size_t i = 0; i < TABLEN(_fdset); ++i) {
-            max_fd = max(max_fd, _fdset[i].max_fd);
-        }
-
-#if ! COEXX_SELECT_USE_FD_SET
-        if (max_fd >= 0) {
-            for (size_t i = 0; i < TABLEN(_fdset); ++i) {
-                if (_fdset[i].max_fd >= 0) {
-                    _fdset[i].fit_fd(max_fd);
-                }
-            }
-        }
-#endif
 
         /******************************
                     timeout
