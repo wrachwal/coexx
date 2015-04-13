@@ -1,7 +1,7 @@
 // coe-thread--d4t.cpp
 
 /*****************************************************************************
-Copyright (c) 2008-2013 Waldemar Rachwal <waldemar.rachwal@gmail.com>
+Copyright (c) 2008-2015 Waldemar Rachwal <waldemar.rachwal@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -696,9 +696,42 @@ void d4Thread::_select_io (const TimeSpec* due)
             }
 
             //
-            //TODO: diagnostics on EBADF and possibly EINVAL
+            // diagnostics on EBADF and possibly EINVAL
             //
-
+            int last_errno = errno;
+            {
+                char    errbuf[1024];
+                // _msgpipe_rfd
+                assert(_msgpipe_rfd >= 0);
+                _fdset[IO_read].zero();
+                _fdset[IO_read].add_fd(_msgpipe_rfd);
+                struct timeval  no_wait = {0, 0};
+                if (select(_msgpipe_rfd + 1, _fdset[IO_read].sel_set(), NULL, NULL, &no_wait) == -1) {
+                    sprintf(errbuf, "select(internal-read-pipe-FD=%d)", _msgpipe_rfd);
+                    perror(errbuf);
+                }
+                // user's fd(s)
+                for (FdModeSid_Map::iterator i = _fms_map.begin(); i != _fms_map.end(); ++i) {
+                    EvIO*   evio = (*i).second;
+                    if (evio->active()) {
+                        int fd = evio->fd();
+                        assert(fd >= 0);
+                        IO_Mode mode = evio->mode();
+                        assert(mode >= 0 && mode < 3);
+                        fd_set* selset[3] = {NULL, NULL, NULL};
+                        FdSet*  oneset = &_fdset[mode];
+                        oneset->zero();
+                        oneset->add_fd(fd);
+                        selset[mode] = oneset->sel_set();
+                        struct timeval  no_wait = {0, 0};
+                        if (select(fd + 1, selset[0], selset[1], selset[2], &no_wait) == -1) {
+                            sprintf(errbuf, "select(FD=%d, MODE=%d, EV=%s)", fd, int(mode), evio->name().c_str());
+                            perror(errbuf);
+                        }
+                    }
+                }
+            }
+            errno = last_errno;
             perror("select");
             abort();
         }
