@@ -478,8 +478,19 @@ EvCommon* d4Thread::dequeue_event ()
         Mutex::Guard    guard(sched.mutex);
 
         if (! sched.pending.empty()) {
+
+            _timestamp = get_current_time();
+
+            // pqueue alarms expired in the meantime
+            DueSidAid_Map::iterator i;
+            while ((i = _dsa_map.begin()) != _dsa_map.end() && _timestamp >= i->first.due) {
+                i->second->dsa_iter(invalid_dsa_iter());
+                _pqueue.put_tail(i->second);
+                _dsa_map.erase(i);
+            }
+
             _pqueue_pending_events();
-            continue;
+            continue; ///
         }
 
         //TODO:
