@@ -22,6 +22,7 @@ endif
 
 CXX 	 += -MMD
 CXXFLAGS += -g -O2 -Wall -Iinclude
+ARFLAGS = rvU
 
 # Satisfy rules from (*.d) whose dependencies have been moved/renamed.
 %.h: ;
