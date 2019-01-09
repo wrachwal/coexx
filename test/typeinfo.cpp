@@ -6,7 +6,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cstring>      // strlen
-#include <memory>       // auto_ptr
+#include <memory>       // unique_ptr
 
 using namespace std;
 
@@ -149,7 +149,7 @@ static void type_info_show ()
         make_ti<pair<int,int> >("pair<int,int>"),
         make_ti<pair<int,pair<int,int> > >("pair<int,pair<int,int> >"),
         make_ti<pair<int,pair<int,int> >&>("pair<int,pair<int,int> >&"),
-        make_ti<auto_ptr<Udt> >("auto_ptr<Udt>")
+        make_ti<unique_ptr<Udt> >("unique_ptr<Udt>")
     };
 
     // calculate max. lengths for best printout

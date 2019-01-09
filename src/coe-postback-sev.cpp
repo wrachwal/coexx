@@ -149,7 +149,7 @@ bool Postback::post (Kernel& kernel, ValParam* vp)
 
 // ------------------------------------
 
-bool Postback::post (Kernel& kernel, auto_ptr<ValParam>& vp)
+bool Postback::post (Kernel& kernel, unique_ptr<ValParam>& vp)
 {
     if (NULL == _impl) {
         //errno = ???
@@ -210,7 +210,7 @@ bool Postback::anon_post (ValParam* vp)
 
 // ------------------------------------
 
-bool Postback::anon_post (auto_ptr<ValParam>& vp)
+bool Postback::anon_post (unique_ptr<ValParam>& vp)
 {
     if (NULL == _impl) {
         //errno = ???

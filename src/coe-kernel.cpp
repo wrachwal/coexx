@@ -28,8 +28,6 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 #include "coe--errno.h"
 
-#include <memory>       // auto_ptr
-
 using namespace std;
 using namespace coe;
 
@@ -258,7 +256,7 @@ bool Kernel::anon_post (SiD to, const CoeStr& ev, ValParam* vp)
 
 // ------------------------------------
 
-bool Kernel::anon_post (SiD to, const CoeStr& ev, auto_ptr<ValParam>& vp)
+bool Kernel::anon_post (SiD to, const CoeStr& ev, unique_ptr<ValParam>& vp)
 {
     if (   ! target_valid(to)
         || ! user_evname(ev))
@@ -309,7 +307,7 @@ bool Kernel::post (SiD to, const CoeStr& ev, ValParam* vp)
 
 // ------------------------------------
 
-bool Kernel::post (SiD to, const CoeStr& ev, auto_ptr<ValParam>& vp)
+bool Kernel::post (SiD to, const CoeStr& ev, unique_ptr<ValParam>& vp)
 {
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(to)
@@ -359,7 +357,7 @@ bool Kernel::yield (const CoeStr& ev, ValParam* vp)
 
 bool Kernel::call (SiD on, const CoeStr& ev, EventArg* arg)
 {
-    auto_ptr<EventArg>  __arg(arg);
+    unique_ptr<EventArg>    __arg(arg);
     if (   ! kernel_attached(_r4kernel)
         || ! target_valid(on)
         || ! kernel_equal(_r4kernel, on)

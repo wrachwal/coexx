@@ -116,7 +116,7 @@ SiD Callback::session () const
 
 bool Callback::call (Kernel& kernel, EventArg* arg)
 {
-    auto_ptr<EventArg>  __arg(arg);
+    unique_ptr<EventArg>    __arg(arg);
     if (NULL == _impl) {
         //errno = ???
         return false;

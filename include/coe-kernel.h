@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include "coe-global.h"         // Factory<T>
 
 #include "coe-kernel--dcl.h"
-#include <memory>               // auto_ptr<>
+#include <memory>               // unique_ptr<>
 
 namespace coe { /////
 
@@ -99,9 +99,9 @@ public:
      * Asynchronous Messages
      */
            bool      post          (SiD to, const CoeStr& ev, ValParam* vp=0);
-           bool      post          (SiD to, const CoeStr& ev, std::auto_ptr<ValParam>& vp);
+           bool      post          (SiD to, const CoeStr& ev, std::unique_ptr<ValParam>& vp);
     static bool anon_post          (SiD to, const CoeStr& ev, ValParam* vp=0);
-    static bool anon_post          (SiD to, const CoeStr& ev, std::auto_ptr<ValParam>& vp);
+    static bool anon_post          (SiD to, const CoeStr& ev, std::unique_ptr<ValParam>& vp);
            bool     yield          (        const CoeStr& ev, ValParam* vp=0);
 
     /*
@@ -231,9 +231,9 @@ public:
     SiD session () const;
 
     bool      post (Kernel& kernel, ValParam* vp=0);
-    bool      post (Kernel& kernel, std::auto_ptr<ValParam>& vp);
+    bool      post (Kernel& kernel, std::unique_ptr<ValParam>& vp);
     bool anon_post (                ValParam* vp=0);
-    bool anon_post (                std::auto_ptr<ValParam>& vp);
+    bool anon_post (                std::unique_ptr<ValParam>& vp);
 
 private:
     friend class Kernel;

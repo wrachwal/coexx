@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 #include "coe-stats.h"
 
-#include <memory>       // auto_ptr
 #include <cassert>
 #include <iostream>
 
