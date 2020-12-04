@@ -29,6 +29,8 @@ THE SOFTWARE.
 #ifndef __COE_KERNEL__DCL_H
 #define __COE_KERNEL__DCL_H
 
+#include "coe-oev.h"
+
 namespace coe { /////
 
 // ---------------------------------------------------------------------------
@@ -385,6 +387,28 @@ template<class T1, class T2, class T3, class T4, class T5,
          class T6, class T7, class T8, class T9>
 const _TypeDN _TypeI9<T1, T2, T3, T4, T5, T6, T7, T8, T9>::_data
         ((T1*)0, (T2*)0, (T3*)0, (T4*)0, (T5*)0, (T6*)0, (T7*)0, (T8*)0, (T9*)0);
+
+// ===========================================================================
+// ValParam_<ARGS>
+
+class ValParam;
+    template<class>         class ValParam1;
+    template<class, class>  class ValParam2;
+
+template<class ARGS>
+class ValParam_ {
+public:
+    operator const ValParam* () const { return _ptr; }
+    operator       ValParam* ()       { return _ptr; }
+
+    ValParam_ () : _ptr(0) {}
+    ValParam_ (ValParam1<typename Nth<0, ARGS>::type>* ptr) : _ptr(ptr) {}
+    ValParam_ (ValParam2<typename Nth<0, ARGS>::type,
+                         typename Nth<1, ARGS>::type>* ptr) : _ptr(ptr) {}
+
+private:
+    ValParam*   _ptr;
+};
 
 // ===========================================================================
 // HandlerX

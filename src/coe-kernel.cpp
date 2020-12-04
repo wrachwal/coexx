@@ -28,6 +28,8 @@ THE SOFTWARE.
 #include "coe-session--r4s.h"
 #include "coe--errno.h"
 
+#include <iostream>
+
 using namespace std;
 using namespace coe;
 
@@ -303,6 +305,71 @@ bool Kernel::post (SiD to, const CoeStr& ev, ValParam* vp)
     else {
         return true;
     }
+}
+
+// ------------------------------------
+
+bool Kernel::_post_oev_0 (SiD to, const type_info* ev, Nil)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(to))
+    {
+        return false;
+    }
+    assert(NULL != ev);
+    assert(NULL != _r4kernel->_current_context);
+    assert(NULL != _r4kernel->_current_context->session);
+
+    //TODO EvMsg --> OEvMsg
+#if 0
+    EvMsg*  evmsg = new EvMsg(ev, NULL, *_r4kernel->_current_context);
+
+    evmsg = d4Thread::post_event(_r4kernel, to, evmsg);
+
+    if (NULL != evmsg) {
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
+#else
+    cerr << "\n!!! " << __FUNCTION__ << ": " << to << " <== " << ev->name() << "\n" << endl;
+    return false;
+#endif
+}
+
+bool Kernel::_post_oev_x (SiD to, const type_info* ev, ValParam* vp)
+{
+    if (   ! kernel_attached(_r4kernel)
+        || ! target_valid(to)
+        || NULL == vp)  //TODO function
+    {
+        delete vp;
+        return false;
+    }
+    assert(NULL != ev);
+    assert(NULL != _r4kernel->_current_context);
+    assert(NULL != _r4kernel->_current_context->session);
+
+    //TODO EvMsg --> OEvMsg
+#if 0
+    EvMsg*  evmsg = new EvMsg(ev, vp, *_r4kernel->_current_context);
+
+    evmsg = d4Thread::post_event(_r4kernel, to, evmsg);
+
+    if (NULL != evmsg) {
+        delete evmsg;
+        return false;
+    }
+    else {
+        return true;
+    }
+#else
+    cerr << "\n!!! " << __FUNCTION__ << ": " << to << " <== " << ev->name() << "\n" << endl;
+    delete vp;
+    return false;
+#endif
 }
 
 // ------------------------------------

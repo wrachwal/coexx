@@ -587,6 +587,7 @@ public:
 // vparam (p1[, ...p9])
 // ===========================================================================
 
+#if 0
 template<class P1>
 ValParam* vparam (const P1& p1)
     { return new ValParam1<P1>(p1); }
@@ -594,6 +595,17 @@ ValParam* vparam (const P1& p1)
 template<class P1, class P2>
 ValParam* vparam (const P1& p1, const P2& p2)
     { return new ValParam2<P1, P2>(p1, p2); }
+#else
+template<class P1>
+ValParam_<typename List1<P1>::type>
+vparam (const P1& p1)
+    { return new ValParam1<P1>(p1); }
+
+template<class P1, class P2>
+ValParam_<typename List2<P1, P2>::type>
+vparam (const P1& p1, const P2& p2)
+    { return new ValParam2<P1, P2>(p1, p2); }
+#endif
 
 template<class P1, class P2, class P3>
 ValParam* vparam (const P1& p1, const P2& p2, const P3& p3)

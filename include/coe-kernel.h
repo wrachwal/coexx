@@ -52,6 +52,8 @@ class EventArg;
     class RefParam;
     class ValParam;
 
+template<class> struct ValParam_;
+
 // private data
 struct r4Kernel;
 struct _KlsD;
@@ -103,6 +105,18 @@ public:
     static bool anon_post          (SiD to, const CoeStr& ev, ValParam* vp=0);
     static bool anon_post          (SiD to, const CoeStr& ev, std::unique_ptr<ValParam>& vp);
            bool     yield          (        const CoeStr& ev, ValParam* vp=0);
+
+    template<class Ev>
+    bool post (SiD to)
+        {
+            return this->_post_oev_0(to, &typeid(Ev), typename Ev::args_type());
+        }
+    template<class Ev>
+    bool post (SiD to, ValParam_<typename Ev::args_type> vp)
+        {
+            //TODO compile-time type assertion put here
+            return this->_post_oev_x(to, &typeid(Ev), vp);
+        }
 
     /*
      * Synchronous Messages
@@ -172,6 +186,8 @@ private:
     friend struct r4Kernel;
     Kernel ();
     void* _get_user_kls (const _KlsD* data);
+    bool _post_oev_0 (SiD to, const std::type_info* ev, Nil);
+    bool _post_oev_x (SiD to, const std::type_info* ev, ValParam* vp);
 
     friend class Session;
     friend class Callback;
@@ -284,10 +300,19 @@ struct ValParam {
 };
 #endif
 
+#if 0
 template<class P1>
 ValParam* vparam (const P1&);
 template<class P1, class P2>
 ValParam* vparam (const P1&, const P2&);
+#else
+template<class P1>
+ValParam_<typename List1<P1>::type>
+vparam (const P1&);
+template<class P1, class P2>
+ValParam_<typename List2<P1, P2>::type>
+vparam (const P1&, const P2&);
+#endif
 template<class P1, class P2, class P3>
 ValParam* vparam (const P1&, const P2&, const P3&);
 template<class P1, class P2, class P3, class P4>

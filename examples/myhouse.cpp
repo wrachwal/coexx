@@ -15,6 +15,12 @@ using namespace coe;
 
 #define EVAL_(expr)     #expr << " --> " << (expr)
 
+// ---------------------------------------------------------------------------
+
+struct Ev_0 : public event<> {};
+struct Ev_1 : public event<int> {};
+struct Ev_2 : public event<string, int> {};
+
 // ===========================================================================
 
 class Flowers {
@@ -252,6 +258,10 @@ void test_my_house ()
     SiD tar = MyHouse::spawn(kernel1, "waldy");
 
     kernel1.post(tar, "leaving", vparam(string("it's the string argument ;)")));
+
+    kernel1.post<Ev_0>(tar);
+    kernel1.post<Ev_1>(tar, vparam(0));
+    kernel1.post<Ev_2>(tar, vparam(string("ala"), 0));
 
     //GOOD: I had to add (char*) cast to prevent from below the error.
     // dynacall.cpp: In constructor 'PostArgs1<A1>::PostArgs1(const A1&) [with A1 = char [22]]':
